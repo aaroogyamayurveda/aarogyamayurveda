@@ -325,6 +325,29 @@
       object-fit:contain;
       filter:drop-shadow(0 18px 16px rgba(0,0,0,.18));
     }
+
+    /* Premium Ortho Gold banner — replaces the small Oil + Capsule images in the main showcase */
+    .product-banner-area{
+      padding:0;
+      min-height:490px;
+      background:#f5f1e7;
+      overflow:hidden;
+      position:relative;
+    }
+    .product-banner-area:before{
+      display:none;
+    }
+    .ortho-product-banner{
+      position:relative;
+      z-index:2;
+      width:100%;
+      height:100%;
+      min-height:490px;
+      display:block;
+      object-fit:cover;
+      object-position:center;
+      filter:none;
+    }
     .product-info{
       padding:48px;
     }
@@ -462,6 +485,8 @@
       .hero-visual{min-height:360px}
       .about-logo-box{min-height:300px}
       .product-images{min-height:400px}
+      .product-banner-area{min-height:400px}
+      .ortho-product-banner{min-height:400px}
       .product-info{padding:34px 25px}
       .why-grid{grid-template-columns:1fr}
       .footer-grid{grid-template-columns:1fr}
@@ -631,13 +656,10 @@
         <article class="product-card" style="margin-bottom:28px;">
           <div class="product-main">
 
-            <div class="product-images">
-              <img src="ortho-gold-oil.jpeg"
-                   alt="Ortho Gold Joint-care Oil 120 ml"
-                   class="product-photo">
-              <img src="ortho-gold-capsules.jpeg"
-                   alt="Ortho Gold Joint-care Capsules 60 Capsules"
-                   class="product-photo">
+            <div class="product-images product-banner-area">
+              <img src="ortho-gold-product-banner.png"
+                   alt="Ortho Gold Oil and Capsules - Joint Care"
+                   class="ortho-product-banner">
             </div>
 
             <div class="product-info">
