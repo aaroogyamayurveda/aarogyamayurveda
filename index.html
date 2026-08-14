@@ -46,13 +46,18 @@
             justify-content: space-between;
         }
 
-        .logo {
-            text-decoration: none;
-            color: #1d5b38;
-            font-size: 25px;
-            font-weight: 800;
-            letter-spacing: 0.3px;
-        }
+.logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.logo img {
+    width: 58px;
+    height: 58px;
+    object-fit: contain;
+    display: block;
+}
 
         .logo span {
             color: #b27a27;
@@ -330,9 +335,10 @@
                 padding: 13px 18px;
             }
 
-            .logo {
-                font-size: 20px;
-            }
+.logo img {
+    width: 48px;
+    height: 48px;
+}
 
             nav {
                 display: none;
@@ -393,9 +399,9 @@
     <header>
         <div class="navbar">
 
-            <a href="#home" class="logo">
-                Aarogyam <span>Ayurveda</span>
-            </a>
+<a href="#home" class="logo">
+    <img src="logo.png" alt="Aarogyam Ayurveda">
+</a>
 
             <nav>
                 <a href="#home">Home</a>
