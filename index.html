@@ -1,643 +1,782 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Aaroogyam Ayurveda | Natural Wellness & Ayurveda</title>
-
-    <meta name="description" content="Aaroogyam Ayurveda - Discover Ayurveda-inspired wellness products and explore Ortho Gold.">
-    <meta name="keywords" content="Aaroogyam Ayurveda, Ayurveda, Ortho Gold, Ayurvedic products">
-
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            color: #26352a;
-            background: #fffdf7;
-            line-height: 1.6;
-        }
-
-        /* HEADER */
-        header {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            background: rgba(255, 253, 247, 0.97);
-            border-bottom: 1px solid #e5e0d3;
-            backdrop-filter: blur(8px);
-        }
-
-        .navbar {
-            max-width: 1200px;
-            margin: auto;
-            padding: 15px 25px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .logo {
-            text-decoration: none;
-            color: #1d5b38;
-            font-size: 25px;
-            font-weight: 800;
-            letter-spacing: 0.3px;
-        }
-
-        .logo span {
-            color: #b27a27;
-        }
-
-        nav {
-            display: flex;
-            gap: 28px;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: #34443a;
-            font-weight: 600;
-            font-size: 15px;
-        }
-
-        nav a:hover {
-            color: #1d7043;
-        }
-
-        /* HERO */
-        .hero {
-            min-height: 650px;
-            display: flex;
-            align-items: center;
-            background:
-                linear-gradient(90deg, rgba(15, 61, 37, 0.94), rgba(15, 61, 37, 0.72)),
-                linear-gradient(135deg, #1d5b38, #6e9d63);
-            color: white;
-        }
-
-        .hero-content {
-            max-width: 1200px;
-            width: 100%;
-            margin: auto;
-            padding: 80px 25px;
-        }
-
-        .hero-text {
-            max-width: 720px;
-        }
-
-        .tag {
-            display: inline-block;
-            padding: 8px 16px;
-            border: 1px solid rgba(255,255,255,0.45);
-            border-radius: 30px;
-            margin-bottom: 22px;
-            font-size: 14px;
-            background: rgba(255,255,255,0.08);
-        }
-
-        .hero h1 {
-            font-size: clamp(42px, 7vw, 72px);
-            line-height: 1.08;
-            margin-bottom: 22px;
-        }
-
-        .hero h1 span {
-            color: #e5bd70;
-        }
-
-        .hero p {
-            max-width: 650px;
-            font-size: 19px;
-            color: #edf5ed;
-            margin-bottom: 32px;
-        }
-
-        .buttons {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 14px 25px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 700;
-            transition: 0.25s;
-        }
-
-        .btn-primary {
-            background: #d4a94e;
-            color: #1d351f;
-        }
-
-        .btn-primary:hover {
-            background: #e4be68;
-            transform: translateY(-2px);
-        }
-
-        .btn-outline {
-            border: 1px solid rgba(255,255,255,0.7);
-            color: white;
-        }
-
-        .btn-outline:hover {
-            background: white;
-            color: #1d5b38;
-        }
-
-        /* COMMON */
-        section {
-            padding: 85px 25px;
-        }
-
-        .container {
-            max-width: 1100px;
-            margin: auto;
-        }
-
-        .section-title {
-            text-align: center;
-            margin-bottom: 50px;
-        }
-
-        .section-title small {
-            color: #ae7926;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .section-title h2 {
-            font-size: 38px;
-            color: #1d5b38;
-            margin-top: 8px;
-        }
-
-        .section-title p {
-            max-width: 650px;
-            margin: 12px auto 0;
-            color: #657066;
-        }
-
-        /* ABOUT */
-        .about-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 55px;
-            align-items: center;
-        }
-
-        .about-box {
-            background: #f0f5ed;
-            border-radius: 18px;
-            padding: 45px;
-            min-height: 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            color: #1d5b38;
-        }
-
-        .about-box .leaf {
-            font-size: 80px;
-        }
-
-        .about-text h3 {
-            font-size: 30px;
-            color: #1d5b38;
-            margin-bottom: 18px;
-        }
-
-        .about-text p {
-            color: #5e685f;
-            margin-bottom: 15px;
-        }
-
-        /* PRODUCTS */
-        .products {
-            background: #f5f2e9;
-        }
-
-        .product-card {
-            max-width: 750px;
-            margin: auto;
-            background: white;
-            border-radius: 20px;
-            padding: 42px;
-            box-shadow: 0 12px 35px rgba(35, 61, 42, 0.08);
-            border: 1px solid #e7e0d2;
-            text-align: center;
-        }
-
-        .product-icon {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            margin: 0 auto 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #eaf1e5;
-            font-size: 43px;
-        }
-
-        .product-card h3 {
-            font-size: 32px;
-            color: #1d5b38;
-            margin-bottom: 12px;
-        }
-
-        .product-card p {
-            color: #606960;
-            margin-bottom: 25px;
-        }
-
-        /* VALUES */
-        .values-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 22px;
-        }
-
-        .value-card {
-            background: white;
-            border: 1px solid #e6e1d6;
-            border-radius: 15px;
-            padding: 30px 24px;
-            text-align: center;
-        }
-
-        .value-card .icon {
-            font-size: 35px;
-            margin-bottom: 15px;
-        }
-
-        .value-card h3 {
-            color: #1d5b38;
-            margin-bottom: 8px;
-        }
-
-        .value-card p {
-            color: #6b736c;
-            font-size: 15px;
-        }
-
-        /* CONTACT */
-        .contact {
-            background: #1d5b38;
-            color: white;
-            text-align: center;
-        }
-
-        .contact h2 {
-            font-size: 40px;
-            margin-bottom: 12px;
-        }
-
-        .contact p {
-            color: #dce9df;
-            max-width: 600px;
-            margin: 0 auto 28px;
-        }
-
-        /* FOOTER */
-        footer {
-            background: #123b26;
-            color: #bfcfc3;
-            text-align: center;
-            padding: 25px;
-            font-size: 14px;
-        }
-
-        /* MOBILE */
-        @media (max-width: 750px) {
-
-            .navbar {
-                padding: 13px 18px;
-            }
-
-            .logo {
-                font-size: 20px;
-            }
-
-            nav {
-                display: none;
-            }
-
-            .hero {
-                min-height: 590px;
-            }
-
-            .hero-content {
-                padding: 65px 20px;
-            }
-
-            .hero h1 {
-                font-size: 44px;
-            }
-
-            .hero p {
-                font-size: 17px;
-            }
-
-            section {
-                padding: 65px 20px;
-            }
-
-            .about-grid {
-                grid-template-columns: 1fr;
-                gap: 30px;
-            }
-
-            .about-box {
-                min-height: 220px;
-                padding: 30px;
-            }
-
-            .values-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .section-title h2 {
-                font-size: 32px;
-            }
-
-            .product-card {
-                padding: 30px 22px;
-            }
-
-            .contact h2 {
-                font-size: 32px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Aaroogyam Ayurveda | Ayurvedic Wellness Products</title>
+  <meta name="description" content="Aaroogyam Ayurveda brings thoughtfully presented Ayurvedic wellness products. Explore Ortho Gold joint-care oil and capsules and visit the dedicated product website for more information.">
+  <meta name="keywords" content="Aaroogyam Ayurveda, Ayurvedic products, Ortho Gold, joint care oil, joint care capsules">
+  <meta name="robots" content="index, follow">
+
+  <style>
+    :root{
+      --green:#164b30;
+      --green-dark:#0c3520;
+      --green-light:#eaf3e8;
+      --gold:#c9963b;
+      --gold-light:#e8c776;
+      --cream:#fbf8ef;
+      --text:#24352b;
+      --muted:#68746c;
+      --white:#fff;
+      --border:#e5e7dc;
+      --shadow:0 18px 50px rgba(22,75,48,.10);
+    }
+
+    *{margin:0;padding:0;box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      font-family:Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+      color:var(--text);
+      background:#fff;
+      line-height:1.65;
+    }
+    a{text-decoration:none;color:inherit}
+    img{max-width:100%;display:block}
+    .container{width:min(1160px,92%);margin:auto}
+
+    /* TOP STRIP */
+    .top-strip{
+      background:var(--green-dark);
+      color:#eaf3eb;
+      text-align:center;
+      padding:8px 15px;
+      font-size:13px;
+      font-weight:650;
+    }
+
+    /* HEADER */
+    header{
+      position:sticky;
+      top:0;
+      z-index:1000;
+      background:rgba(255,255,255,.96);
+      backdrop-filter:blur(12px);
+      border-bottom:1px solid var(--border);
+    }
+    .nav{
+      min-height:78px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:11px;
+      font-weight:900;
+      color:var(--green);
+    }
+    .brand img{
+      width:54px;
+      height:54px;
+      object-fit:contain;
+    }
+    .brand-text{
+      font-size:20px;
+      line-height:1.05;
+    }
+    .brand-text span{
+      display:block;
+      color:var(--gold);
+      font-size:13px;
+      letter-spacing:1.4px;
+      margin-top:4px;
+    }
+    nav{
+      display:flex;
+      align-items:center;
+      gap:26px;
+      font-size:14px;
+      font-weight:750;
+    }
+    nav a:hover{color:var(--gold)}
+    .nav-button{
+      background:var(--gold);
+      color:#17361f;
+      padding:11px 17px;
+      border-radius:999px;
+      font-weight:850;
+    }
+
+    /* HERO */
+    .hero{
+      position:relative;
+      overflow:hidden;
+      background:
+        radial-gradient(circle at 80% 10%,rgba(232,199,118,.22),transparent 25%),
+        radial-gradient(circle at 0 100%,rgba(92,139,85,.18),transparent 28%),
+        linear-gradient(135deg,#103d26,#1d5d39 62%,#2c7149);
+      color:#fff;
+    }
+    .hero-grid{
+      min-height:600px;
+      display:grid;
+      grid-template-columns:1fr .9fr;
+      gap:55px;
+      align-items:center;
+      padding:70px 0 85px;
+    }
+    .eyebrow{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid rgba(255,255,255,.30);
+      background:rgba(255,255,255,.08);
+      border-radius:999px;
+      padding:8px 14px;
+      font-size:13px;
+      font-weight:800;
+      margin-bottom:20px;
+    }
+    h1{
+      font-size:clamp(42px,6vw,70px);
+      line-height:1.03;
+      letter-spacing:-2.5px;
+      margin-bottom:22px;
+    }
+    h1 span{color:var(--gold-light)}
+    .hero-copy{
+      max-width:650px;
+      color:#e4eee6;
+      font-size:18px;
+      margin-bottom:30px;
+    }
+    .actions{display:flex;gap:12px;flex-wrap:wrap}
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:14px 22px;
+      border-radius:12px;
+      font-weight:850;
+      transition:.2s;
+    }
+    .btn:hover{transform:translateY(-2px)}
+    .btn-gold{
+      background:var(--gold-light);
+      color:#16361f;
+      box-shadow:0 10px 25px rgba(0,0,0,.12);
+    }
+    .btn-outline{
+      color:#fff;
+      border:1px solid rgba(255,255,255,.45);
+      background:rgba(255,255,255,.06);
+    }
+
+    .hero-visual{
+      min-height:430px;
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:30px;
+      background:rgba(255,255,255,.09);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+      overflow:hidden;
+    }
+    .hero-visual:before{
+      content:"";
+      position:absolute;
+      width:390px;height:390px;border-radius:50%;
+      border:1px solid rgba(232,199,118,.55);
+      box-shadow:0 0 0 15px rgba(232,199,118,.07),0 0 0 35px rgba(232,199,118,.04);
+    }
+    .hero-logo{
+      position:relative;
+      z-index:2;
+      width:min(275px,70%);
+      filter:drop-shadow(0 18px 25px rgba(0,0,0,.18));
+    }
+    .hero-badge{
+      position:absolute;
+      z-index:3;
+      background:#fff;
+      color:var(--green);
+      border-radius:14px;
+      padding:11px 14px;
+      box-shadow:var(--shadow);
+      font-size:12px;
+      font-weight:850;
+    }
+    .badge-one{top:45px;left:22px}
+    .badge-two{right:22px;bottom:45px}
+
+    /* SECTION HEAD */
+    section{padding:88px 0}
+    .section-head{
+      max-width:720px;
+      margin:0 auto 48px;
+      text-align:center;
+    }
+    .kicker{
+      color:var(--gold);
+      font-size:12px;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:2px;
+    }
+    .section-head h2{
+      color:var(--green);
+      font-size:clamp(31px,4vw,46px);
+      line-height:1.1;
+      margin:9px 0 14px;
+    }
+    .section-head p{color:var(--muted)}
+
+    /* ABOUT */
+    .about{
+      background:#fff;
+    }
+    .about-grid{
+      display:grid;
+      grid-template-columns:.9fr 1.1fr;
+      gap:55px;
+      align-items:center;
+    }
+    .about-logo-box{
+      min-height:390px;
+      border-radius:28px;
+      background:linear-gradient(145deg,#f3f7ef,#fbf7eb);
+      border:1px solid #e8e8dc;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:40px;
+    }
+    .about-logo-box img{width:min(300px,80%)}
+    .about-copy h3{
+      color:var(--green);
+      font-size:32px;
+      line-height:1.15;
+      margin:8px 0 18px;
+    }
+    .about-copy p{
+      color:var(--muted);
+      margin-bottom:14px;
+    }
+    .about-points{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-top:24px;
+    }
+    .point{
+      background:var(--green-light);
+      border-radius:14px;
+      padding:13px 15px;
+      font-weight:750;
+      color:var(--green);
+      font-size:14px;
+    }
+
+    /* PRODUCTS */
+    .products{background:var(--cream)}
+    .product-card{
+      background:#fff;
+      border:1px solid #e5e3d7;
+      border-radius:28px;
+      overflow:hidden;
+      box-shadow:var(--shadow);
+    }
+    .product-main{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      align-items:center;
+      min-height:490px;
+    }
+    .product-images{
+      min-height:490px;
+      background:
+        radial-gradient(circle at 50% 30%,rgba(201,150,59,.18),transparent 35%),
+        linear-gradient(145deg,#eef5ea,#fbf7eb);
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      gap:22px;
+      padding:45px 25px 25px;
+      position:relative;
+    }
+    .product-images:before{
+      content:"";
+      position:absolute;
+      width:82%;
+      height:70px;
+      left:9%;
+      bottom:35px;
+      background:rgba(41,61,35,.12);
+      filter:blur(16px);
+      border-radius:50%;
+    }
+    .product-photo{
+      position:relative;
+      z-index:2;
+      width:45%;
+      max-height:410px;
+      object-fit:contain;
+      filter:drop-shadow(0 18px 16px rgba(0,0,0,.18));
+    }
+    .product-info{
+      padding:48px;
+    }
+    .product-logo{
+      width:72px;
+      height:72px;
+      object-fit:contain;
+      margin-bottom:14px;
+    }
+    .product-info h3{
+      color:var(--green);
+      font-size:42px;
+      line-height:1.05;
+      margin-bottom:12px;
+    }
+    .product-subtitle{
+      color:var(--gold);
+      font-weight:850;
+      margin-bottom:16px;
+    }
+    .product-info>p{
+      color:var(--muted);
+      margin-bottom:22px;
+    }
+    .feature-list{
+      display:grid;
+      gap:10px;
+      margin-bottom:27px;
+    }
+    .feature{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      font-size:14px;
+      font-weight:700;
+    }
+    .feature b{
+      flex:none;
+      width:23px;height:23px;
+      border-radius:50%;
+      background:var(--green-light);
+      color:var(--green);
+      display:grid;
+      place-items:center;
+    }
+    .product-footer{
+      border-top:1px solid #ecece4;
+      padding:17px 25px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:15px;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .future-products{
+      margin-top:25px;
+      text-align:center;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    /* WHY */
+    .why-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:20px;
+    }
+    .why-card{
+      padding:30px 25px;
+      border:1px solid var(--border);
+      border-radius:20px;
+      text-align:center;
+      background:#fff;
+    }
+    .why-icon{
+      width:56px;height:56px;
+      margin:0 auto 16px;
+      border-radius:17px;
+      background:var(--green-light);
+      display:grid;
+      place-items:center;
+      font-size:25px;
+    }
+    .why-card h3{color:var(--green);margin-bottom:7px}
+    .why-card p{color:var(--muted);font-size:14px}
+
+    /* CTA */
+    .cta{
+      background:linear-gradient(135deg,#15492e,#2c7148);
+      color:#fff;
+      text-align:center;
+    }
+    .cta h2{
+      font-size:clamp(32px,4vw,48px);
+      line-height:1.1;
+      margin-bottom:13px;
+    }
+    .cta p{
+      color:#dfece1;
+      max-width:650px;
+      margin:0 auto 26px;
+    }
+
+    /* FOOTER */
+    footer{
+      background:#0c321f;
+      color:#c4d3c8;
+      padding:40px 0 20px;
+    }
+    .footer-grid{
+      display:grid;
+      grid-template-columns:1.4fr 1fr 1fr;
+      gap:30px;
+      margin-bottom:30px;
+    }
+    footer h3{color:#fff;margin-bottom:10px}
+    footer p,footer a{font-size:14px;color:#b9cbbd}
+    footer a:hover{color:#fff}
+    .copyright{
+      border-top:1px solid rgba(255,255,255,.12);
+      padding-top:18px;
+      text-align:center;
+      font-size:13px;
+    }
+
+    /* MOBILE */
+    @media(max-width:850px){
+      nav{display:none}
+      .nav-button{padding:9px 13px;font-size:12px}
+      .hero-grid,.about-grid,.product-main{grid-template-columns:1fr}
+      .hero-grid{padding-top:55px}
+      .hero-visual{min-height:360px}
+      .about-logo-box{min-height:300px}
+      .product-images{min-height:400px}
+      .product-info{padding:34px 25px}
+      .why-grid{grid-template-columns:1fr}
+      .footer-grid{grid-template-columns:1fr}
+    }
+    @media(max-width:520px){
+      .brand img{width:45px;height:45px}
+      .brand-text{font-size:17px}
+      .brand-text span{font-size:10px}
+      .hero-copy{font-size:16px}
+      .about-points{grid-template-columns:1fr}
+      .product-images{gap:8px;padding-left:10px;padding-right:10px}
+      .product-info h3{font-size:35px}
+      .product-footer{flex-direction:column;text-align:center}
+    }
+  </style>
 </head>
 
 <body>
 
-    <!-- HEADER -->
-    <header>
-        <div class="navbar">
+  <div class="top-strip">
+    🌿 Ayurveda-inspired wellness • Quality-focused products • Customer-first experience
+  </div>
 
-            <a href="#home" class="logo">
-                Aaroogyam <span>Ayurveda</span>
-            </a>
-
-            <nav>
-                <a href="#home">Home</a>
-                <a href="#about">About</a>
-                <a href="#products">Products</a>
-                <a href="#contact">Contact</a>
-            </nav>
-
+  <header>
+    <div class="container nav">
+      <a href="#home" class="brand">
+        <img src="aaroogyam-ayurveda-logo-circle.png" alt="Aaroogyam Ayurveda Logo">
+        <div class="brand-text">
+          Aaroogyam
+          <span>AYURVEDA</span>
         </div>
-    </header>
+      </a>
 
+      <nav>
+        <a href="#home">Home</a>
+        <a href="#about">About Us</a>
+        <a href="#products">Products</a>
+        <a href="#why-us">Why Us</a>
+      </nav>
+
+      <a href="#products" class="nav-button">Explore Products</a>
+    </div>
+  </header>
+
+  <main id="home">
 
     <!-- HERO -->
-    <section class="hero" id="home">
+    <section class="hero">
+      <div class="container hero-grid">
 
-        <div class="hero-content">
+        <div>
+          <div class="eyebrow">🌿 Aaroogyam Ayurveda</div>
 
-            <div class="hero-text">
+          <h1>
+            Natural wellness,
+            <span>inspired by Ayurveda.</span>
+          </h1>
 
-                <div class="tag">
-                    🌿 Ayurveda • Wellness • Care
-                </div>
+          <p class="hero-copy">
+            Discover thoughtfully presented Ayurvedic wellness products for
+            today's Indian lifestyle — with clear information and a simple
+            journey to the product you are looking for.
+          </p>
 
-                <h1>
-                    Discover a more natural approach to
-                    <span>wellness.</span>
-                </h1>
-
-                <p>
-                    Welcome to Aaroogyam Ayurveda. Explore our range of
-                    Ayurveda-inspired wellness products created with a focus
-                    on quality, care and traditional wellness values.
-                </p>
-
-                <div class="buttons">
-
-                    <a href="#products" class="btn btn-primary">
-                        Explore Products
-                    </a>
-
-                    <a href="#about" class="btn btn-outline">
-                        Know More
-                    </a>
-
-                </div>
-
-            </div>
-
+          <div class="actions">
+            <a href="#products" class="btn btn-gold">Explore Our Products →</a>
+            <a href="#about" class="btn btn-outline">Know More</a>
+          </div>
         </div>
 
-    </section>
+        <div class="hero-visual">
+          <div class="hero-badge badge-one">✓ Quality-focused</div>
+          <img
+            src="aaroogyam-ayurveda-logo-circle.png"
+            alt="Aaroogyam Ayurveda"
+            class="hero-logo"
+          >
+          <div class="hero-badge badge-two">🌿 Ayurveda • Wellness • Care</div>
+        </div>
 
+      </div>
+    </section>
 
     <!-- ABOUT -->
-    <section id="about">
+    <section id="about" class="about">
+      <div class="container">
 
-        <div class="container">
-
-            <div class="section-title">
-                <small>About Us</small>
-                <h2>Aaroogyam Ayurveda</h2>
-                <p>
-                    A wellness-focused Ayurveda brand with a commitment
-                    to thoughtful products and customer care.
-                </p>
-            </div>
-
-            <div class="about-grid">
-
-                <div class="about-box">
-                    <div>
-                        <div class="leaf">🌿</div>
-                        <h3>Inspired by Ayurveda</h3>
-                    </div>
-                </div>
-
-                <div class="about-text">
-
-                    <h3>Tradition with a modern approach</h3>
-
-                    <p>
-                        Aaroogyam Ayurveda brings together the values of
-                        traditional Ayurveda and a modern approach to
-                        wellness.
-                    </p>
-
-                    <p>
-                        Our aim is to provide carefully presented products
-                        while keeping quality, transparency and customer
-                        experience at the heart of our brand.
-                    </p>
-
-                </div>
-
-            </div>
-
+        <div class="section-head">
+          <div class="kicker">About Aaroogyam</div>
+          <h2>Traditional values, modern presentation</h2>
+          <p>
+            Aaroogyam Ayurveda is designed as a central destination where
+            customers can discover our Ayurvedic wellness products in one place.
+          </p>
         </div>
 
-    </section>
+        <div class="about-grid">
 
+          <div class="about-logo-box">
+            <img src="aaroogyam-ayurveda-logo-circle.png" alt="Aaroogyam Ayurveda Logo">
+          </div>
 
-    <!-- PRODUCTS -->
-    <section class="products" id="products">
-
-        <div class="container">
-
-            <div class="section-title">
-
-                <small>Our Product</small>
-
-                <h2>Explore Ortho Gold</h2>
-
-                <p>
-                    Discover our dedicated Ortho Gold product website
-                    for detailed product information.
-                </p>
-
-            </div>
-
-            <div class="product-card">
-
-                <div class="product-icon">
-                    🌿
-                </div>
-
-                <h3>Ortho Gold</h3>
-
-                <p>
-                    Visit the dedicated Ortho Gold website to learn more
-                    about the product, its information and availability.
-                </p>
-
-                <a
-                    href="https://orthogold.in"
-                    class="btn btn-primary"
-                    target="_blank"
-                    rel="noopener"
-                >
-                    Visit Ortho Gold →
-                </a>
-
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- VALUES -->
-    <section>
-
-        <div class="container">
-
-            <div class="section-title">
-
-                <small>Our Approach</small>
-
-                <h2>What We Value</h2>
-
-            </div>
-
-            <div class="values-grid">
-
-                <div class="value-card">
-
-                    <div class="icon">🌿</div>
-
-                    <h3>Ayurveda</h3>
-
-                    <p>
-                        Inspired by the principles and heritage of Ayurveda.
-                    </p>
-
-                </div>
-
-                <div class="value-card">
-
-                    <div class="icon">✓</div>
-
-                    <h3>Quality</h3>
-
-                    <p>
-                        We believe in thoughtful presentation and
-                        quality-focused products.
-                    </p>
-
-                </div>
-
-                <div class="value-card">
-
-                    <div class="icon">♥</div>
-
-                    <h3>Care</h3>
-
-                    <p>
-                        Customer experience and responsible communication
-                        are important to us.
-                    </p>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- CONTACT -->
-    <section class="contact" id="contact">
-
-        <div class="container">
-
-            <h2>Connect With Us</h2>
+          <div class="about-copy">
+            <div class="kicker">Our Approach</div>
+            <h3>One brand. Multiple wellness products.</h3>
 
             <p>
-                Have a question about Aaroogyam Ayurveda or our products?
-                Get in touch with us.
+              Our goal is to make it easy for customers to discover a product,
+              understand what it is designed for, and then visit its dedicated
+              website for complete information.
             </p>
 
-            <!-- बाद में यहाँ आपका WhatsApp / phone / email डालेंगे -->
+            <p>
+              As our product range grows, new products can be added to this
+              same website without changing the overall customer journey.
+            </p>
 
-            <a href="https://orthogold.in"
-               target="_blank"
-               rel="noopener"
-               class="btn btn-primary">
-                Explore Ortho Gold
-            </a>
+            <div class="about-points">
+              <div class="point">🌿 Ayurveda-inspired</div>
+              <div class="point">✓ Clear product information</div>
+              <div class="point">♥ Customer-focused</div>
+              <div class="point">→ Easy product discovery</div>
+            </div>
+          </div>
 
         </div>
-
+      </div>
     </section>
 
+    <!-- PRODUCTS -->
+    <section id="products" class="products">
+      <div class="container">
 
-    <!-- FOOTER -->
-    <footer>
+        <div class="section-head">
+          <div class="kicker">Our Products</div>
+          <h2>Explore our featured product</h2>
+          <p>
+            Start with Ortho Gold. More products can be added here as the
+            Aaroogyam Ayurveda range grows.
+          </p>
+        </div>
 
+        <article class="product-card">
+
+          <div class="product-main">
+
+            <div class="product-images">
+              <img
+                src="ortho-gold-oil.jpeg"
+                alt="Ortho Gold Ayurvedic Oil"
+                class="product-photo"
+              >
+
+              <img
+                src="ortho-gold-capsules.jpeg"
+                alt="Ortho Gold Capsules"
+                class="product-photo"
+              >
+            </div>
+
+            <div class="product-info">
+
+              <img
+                src="ortho-gold-logo-circle.png"
+                alt="Ortho Gold Logo"
+                class="product-logo"
+              >
+
+              <div class="kicker">Featured Product</div>
+
+              <h3>Ortho Gold</h3>
+
+              <div class="product-subtitle">
+                Joint-care focused Ayurvedic product range
+              </div>
+
+              <p>
+                Ortho Gold is available in two formats — Ayurvedic oil for
+                external use and capsules. Explore the dedicated Ortho Gold
+                website for complete product information, ingredients, usage
+                directions and availability.
+              </p>
+
+              <div class="feature-list">
+                <div class="feature">
+                  <b>✓</b>
+                  <span>Ortho Gold Oil — external-use format</span>
+                </div>
+                <div class="feature">
+                  <b>✓</b>
+                  <span>Ortho Gold Capsules — capsule format</span>
+                </div>
+                <div class="feature">
+                  <b>✓</b>
+                  <span>Dedicated website for complete product information</span>
+                </div>
+              </div>
+
+              <a
+                href="https://www.orthogold.in"
+                target="_blank"
+                rel="noopener"
+                class="btn btn-gold"
+              >
+                More Information on Ortho Gold →
+              </a>
+
+            </div>
+          </div>
+
+          <div class="product-footer">
+            <span>🌿 Aaroogyam Ayurveda • Featured Product</span>
+            <span>Product information available at Ortho Gold website</span>
+          </div>
+
+        </article>
+
+        <div class="future-products">
+          More Aaroogyam Ayurveda products will be added here as the range grows.
+        </div>
+
+      </div>
+    </section>
+
+    <!-- WHY US -->
+    <section id="why-us">
+      <div class="container">
+
+        <div class="section-head">
+          <div class="kicker">Why Aaroogyam Ayurveda</div>
+          <h2>A simple, trustworthy product journey</h2>
+          <p>
+            We want visitors to find the right product quickly and get detailed
+            information before moving to the dedicated product website.
+          </p>
+        </div>
+
+        <div class="why-grid">
+
+          <div class="why-card">
+            <div class="why-icon">🌿</div>
+            <h3>Ayurveda-inspired</h3>
+            <p>
+              A product presentation rooted in the values and heritage of Ayurveda.
+            </p>
+          </div>
+
+          <div class="why-card">
+            <div class="why-icon">✓</div>
+            <h3>Clear Information</h3>
+            <p>
+              Simple descriptions help visitors understand a product before exploring it further.
+            </p>
+          </div>
+
+          <div class="why-card">
+            <div class="why-icon">♥</div>
+            <h3>Customer First</h3>
+            <p>
+              A straightforward journey from product discovery to the dedicated product website.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta">
+      <div class="container">
+        <h2>Want to know more about Ortho Gold?</h2>
         <p>
-            © 2026 Aaroogyam Ayurveda. All Rights Reserved.
+          Visit the dedicated Ortho Gold website for detailed product
+          information and availability.
         </p>
 
-    </footer>
+        <a
+          href="https://www.orthogold.in"
+          target="_blank"
+          rel="noopener"
+          class="btn btn-gold"
+        >
+          Visit Ortho Gold Website →
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container footer-grid">
+
+      <div>
+        <h3>Aaroogyam Ayurveda</h3>
+        <p>
+          Ayurveda-inspired wellness products presented with a modern,
+          customer-friendly experience.
+        </p>
+      </div>
+
+      <div>
+        <h3>Quick Links</h3>
+        <p><a href="#home">Home</a></p>
+        <p><a href="#about">About Us</a></p>
+        <p><a href="#products">Products</a></p>
+      </div>
+
+      <div>
+        <h3>Featured Product</h3>
+        <p>
+          <a href="https://www.orthogold.in" target="_blank" rel="noopener">
+            Ortho Gold →
+          </a>
+        </p>
+      </div>
+
+    </div>
+
+    <div class="container copyright">
+      © 2026 Aaroogyam Ayurveda. All Rights Reserved.
+    </div>
+  </footer>
 
 </body>
 </html>
