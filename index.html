@@ -447,6 +447,7 @@
 
     /* MOBILE */
     @media(max-width:850px){
+      .products .container > div[style*="grid-template-columns:repeat(2,1fr)"]{grid-template-columns:1fr !important}
       nav{display:none}
       .nav-button{padding:9px 13px;font-size:12px}
       .hero-grid,.about-grid,.product-main{grid-template-columns:1fr}
@@ -597,6 +598,27 @@
           </p>
         </div>
 
+        <!-- PRODUCT RANGE -->
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-bottom:24px;">
+          <div style="background:#fff;border:1px solid #e5e3d7;border-radius:20px;padding:18px 20px;display:flex;align-items:center;gap:15px;box-shadow:0 10px 30px rgba(22,75,48,.06);">
+            <div style="width:48px;height:48px;border-radius:14px;background:var(--green-light);display:grid;place-items:center;font-size:22px;">🌿</div>
+            <div>
+              <div style="font-size:12px;color:var(--gold);font-weight:900;text-transform:uppercase;letter-spacing:1px;">External Use</div>
+              <strong style="color:var(--green);font-size:18px;">Ortho Gold Oil</strong>
+              <div style="font-size:13px;color:var(--muted);">120 ml</div>
+            </div>
+          </div>
+
+          <div style="background:#fff;border:1px solid #e5e3d7;border-radius:20px;padding:18px 20px;display:flex;align-items:center;gap:15px;box-shadow:0 10px 30px rgba(22,75,48,.06);">
+            <div style="width:48px;height:48px;border-radius:14px;background:var(--green-light);display:grid;place-items:center;font-size:22px;">🌿</div>
+            <div>
+              <div style="font-size:12px;color:var(--gold);font-weight:900;text-transform:uppercase;letter-spacing:1px;">Capsule Format</div>
+              <strong style="color:var(--green);font-size:18px;">Ortho Gold Capsules</strong>
+              <div style="font-size:13px;color:var(--muted);">60 Capsules</div>
+            </div>
+          </div>
+        </div>
+
         <!-- PRODUCT INTRO -->
         <article class="product-card" style="margin-bottom:28px;">
           <div class="product-main">
@@ -717,15 +739,17 @@
 
             <h4 style="color:var(--green);margin-bottom:8px;">Key ingredients per capsule</h4>
             <p style="color:var(--muted);font-size:14px;margin-bottom:18px;">
-              • Shallaki • Ashwagandha • Nirgundi 
-              • Rasna • Haridra  • Saunth 
-              • Satavari • Suddh Guggul • Hadjod
+              Shallaki 50 mg • Ashwagandha 60 mg • Nirgundi 50 mg • Rasna 50 mg •
+              Haridra 40 mg • Saunth 40 mg • Satavari 60 mg • Lasun 50 mg •
+              Suddh Guggul 50 mg • Hadjod 50 mg • Methi Dana 60 mg • Amla 50 mg •
+              Shilajit 50 mg • Giloy 40 mg • Tulsi 50 mg • Harsingar 60 mg,
               along with the other ingredients listed on the product label.
             </p>
 
             <h4 style="color:var(--green);margin-bottom:8px;">Directions</h4>
             <p style="color:var(--muted);font-size:14px;margin-bottom:18px;">
-              Take 1–2 capsules twice a day.
+              Take 1–2 capsules twice a day on an empty stomach or as directed
+              by a physician.
             </p>
 
             <p style="font-size:12px;color:#7b817b;margin-bottom:18px;">
@@ -742,6 +766,18 @@
             </a>
           </article>
 
+        </div>
+
+        <div style="margin-top:28px;background:linear-gradient(135deg,#edf5ea,#fbf7eb);border:1px solid #e4e7dc;border-radius:24px;padding:30px;text-align:center;">
+          <div class="kicker">Choose Your Format</div>
+          <h3 style="color:var(--green);font-size:28px;margin:6px 0 10px;">Oil for external use. Capsules for daily use.</h3>
+          <p style="max-width:720px;margin:0 auto 20px;color:var(--muted);font-size:14px;">
+            Explore the format that suits your needs, then visit the dedicated Ortho Gold website
+            for complete product information.
+          </p>
+          <a href="https://www.orthogold.in" target="_blank" rel="noopener" class="btn btn-gold">
+            Visit Ortho Gold Website →
+          </a>
         </div>
 
         <div class="future-products">
