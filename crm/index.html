@@ -21,18 +21,7 @@
 </form></section></div>
 
 <div id="app" class="app">
-<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><button type="button" id="logout" class="logout" onclick="document.getElementById("agentNewOrder")?.addEventListener("click",()=>document.getElementById("newOrder").click());
-document.getElementById("myOrderSearchBtn")?.addEventListener("click",async()=>{
- const term=document.getElementById("myOrderSearch").value.trim();
- if(!term)return loadMyOrders();
- let q=sb.from("orders").select("id,order_no,order_status,total_amount,order_date,customers(customer_name,mobile)").eq("agent_id",me.id).limit(50);
- if(/^\d+$/.test(term)) q=q.eq("order_no",Number(term));
- else q=q.ilike("customers.mobile",`%${term}%`);
- const {data,error}=await q;
- document.getElementById("myOrdersBody").innerHTML=error?`<tr><td colspan="6">${esc(error.message)}</td></tr>`:(data||[]).map(o=>`<tr><td>#${esc(o.order_no)}</td><td>${esc(o.customers?.customer_name)}</td><td>${esc(o.customers?.mobile)}</td><td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td><td><span class="pill">${esc(o.order_status)}</span></td><td>${o.order_date?new Date(o.order_date).toLocaleString("en-IN"):"-"}</td></tr>`).join("")||'<tr><td colspan="6" class="empty">Order नहीं मिला</td></tr>';
-});
-
-window.__crmLogout && window.__crmLogout();">Logout</button></div></header>
+<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><button id="logout" class="logout">Logout</button></div></header>
 <div class="layout">
 <aside class="side" id="nav"></aside>
 <main class="main">
@@ -41,10 +30,9 @@ window.__crmLogout && window.__crmLogout();">Logout</button></div></header>
 <div class="cards"><div class="stat"><span>आज के Orders</span><b id="sOrders">0</b></div><div class="stat"><span>Pending</span><b id="sPending">0</b></div><div class="stat"><span>In Transit</span><b id="sTransit">0</b></div><div class="stat"><span>Delivered</span><b id="sDelivered">0</b></div></div>
 <div id="agentQuick" class="panel hidden">
 <h3>📞 Agent Quick Entry</h3>
-<p class="sub">Call complete होने के बाद Customer save करें और फिर Orders में order create करें।</p>
+<p class="sub">Call के दौरान Customer और Order की पूरी details एक ही form में भरें।</p>
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
-<button class="btn" id="agentCustomerBtn">+ Customer Entry</button>
-<button class="btn alt" id="agentOrderBtn">+ New Order</button>
+<button class="btn" id="agentOrderBtn">+ New Order / Customer</button>
 </div>
 </div>
 <div class="panel"><h3>Quick Search</h3><div class="search"><input id="globalSearch" placeholder="Order ID / Mobile Number"><button class="btn" id="searchBtn">Search</button></div><div id="searchResult" class="tablewrap" style="margin-top:14px"></div></div>
@@ -58,12 +46,6 @@ window.__crmLogout && window.__crmLogout();">Logout</button></div></header>
 <section id="customers" class="page">
 <div class="title"><div><h2>Customer / Enquiry</h2><div class="sub">Call के बाद customer information और product enquiry save करें</div></div><button class="btn" id="newCustomer">+ New Customer</button></div>
 <div class="panel"><div class="tablewrap"><table><thead><tr><th>Name</th><th>Mobile</th><th>City</th><th>Product</th><th>Agent</th><th>Date</th></tr></thead><tbody id="customersBody"></tbody></table></div></div>
-</section>
-
-<section id="myorders" class="page">
-<div class="title"><div><h2>My Orders</h2><div class="sub">Agent द्वारा बनाए गए orders और उनकी current status</div></div><button class="btn" id="agentNewOrder">+ नया Order</button></div>
-<div class="panel"><div class="search"><input id="myOrderSearch" placeholder="Order ID / Mobile"><button class="btn" id="myOrderSearchBtn">Search</button></div></div>
-<div class="panel"><div class="tablewrap"><table><thead><tr><th>Order ID</th><th>Customer</th><th>Mobile</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody id="myOrdersBody"></tbody></table></div></div>
 </section>
 
 <section id="orders" class="page">
@@ -86,47 +68,12 @@ window.__crmLogout && window.__crmLogout();">Logout</button></div></header>
 <div id="modal" class="modal"><div class="modalbox"><div class="modalhead"><h3 id="modalTitle"></h3><button class="close" id="closeModal">✕</button></div><div id="modalContent"></div></div></div>
 <div id="toast" class="toast"></div>
 
-<script>
-window.__crmLogout = function () {
-  try {
-    var keys = [];
-    for (var i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
-    keys.forEach(function(k) {
-      if (k && (k.indexOf("sb-") === 0 || k.toLowerCase().indexOf("supabase") !== -1)) {
-        localStorage.removeItem(k);
-      }
-    });
-    var skeys = [];
-    for (var j = 0; j < sessionStorage.length; j++) skeys.push(sessionStorage.key(j));
-    skeys.forEach(function(k) {
-      if (k && (k.indexOf("sb-") === 0 || k.toLowerCase().indexOf("supabase") !== -1)) {
-        sessionStorage.removeItem(k);
-      }
-    });
-  } catch (e) {
-    console.error("logout storage cleanup:", e);
-  }
-  // Force a fresh CRM page. The startup code sees logout=1 and shows login.
-  window.location.href = window.location.pathname + "?logout=1";
-};
-</script>
 <script type="module">
 import {createClient} from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 const SUPABASE_URL="https://envziigrxkmwmamswduv.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_6ET5_koDowtTZNOMWBX7ig_DWnPDr09";
 const sb=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 let me=null,profile=null;
-const FORCE_LOGOUT=new URLSearchParams(location.search).get("logout")==="1";
-if(FORCE_LOGOUT){
-  try{
-    Object.keys(localStorage).forEach(k=>{
-      if(k.startsWith("sb-") || k.includes("supabase")) localStorage.removeItem(k);
-    });
-    Object.keys(sessionStorage).forEach(k=>{
-      if(k.startsWith("sb-") || k.includes("supabase")) sessionStorage.removeItem(k);
-    });
-  }catch(e){}
-}
 
 const $=id=>document.getElementById(id);
 const roleName=r=>({super_admin:"Super Admin",management:"Management",order_manager:"Order Manager",agent:"Agent",dealer:"Dealer",warehouse:"Warehouse",courier_manager:"Courier Manager"}[r]||r);
@@ -156,12 +103,11 @@ function buildNav(){
  $("agentQuick").classList.toggle("hidden", profile.role!=="agent");
  const n=$("nav");n.innerHTML="";
  const items=[["dashboard","🏠 Dashboard"],["customers","👤 Customers / Enquiry"],["orders","📦 Orders"],["dealers","🚚 Dealer Orders"],["reports","📊 Reports"]];
- if(profile.role==="agent") items.splice(3,0,["myorders","🧾 My Orders"]);
-if(["super_admin","management"].includes(profile.role))items.splice(1,0,["users","👥 User Management"]);
+ if(["super_admin","management"].includes(profile.role))items.splice(1,0,["users","👥 User Management"]);
  items.forEach(([id,t])=>{const b=document.createElement("button");b.textContent=t;b.onclick=()=>showPage(id);n.appendChild(b)});
 }
 function showPage(id){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll(".side button").forEach(x=>x.classList.remove("active"));[...document.querySelectorAll(".side button")].find(x=>x.textContent.toLowerCase().includes(id==="customers"?"customers":id))?.classList.add("active");refreshAll()}
-async function refreshAll(){await loadStats();if(["super_admin","management"].includes(profile.role))await loadUsers();await loadCustomers();await loadOrders();await loadDealerOrders();await loadReports();if(profile.role==="agent")await loadMyOrders()}
+async function refreshAll(){await loadStats();if(["super_admin","management"].includes(profile.role))await loadUsers();await loadCustomers();await loadOrders();await loadDealerOrders();await loadReports()}
 
 async function loadStats(){
  let q=sb.from("orders").select("id,order_status,order_date",{count:"exact",head:false});
@@ -183,11 +129,6 @@ async function loadCustomers(){
  if(profile.role==="agent")q=q.eq("created_by",me.id);
  const {data}=await q;
  $("customersBody").innerHTML=(data||[]).map(c=>`<tr><td>${esc(c.customer_name)}</td><td>${esc(c.mobile)}</td><td>${esc(c.city||"-")}</td><td>-</td><td>${esc(profile.full_name)}</td><td>${new Date(c.created_at).toLocaleString("en-IN")}</td></tr>`).join("")||'<tr><td colspan="6" class="empty">No customers</td></tr>';
-}
-async function loadMyOrders(){
- if(profile.role!=="agent")return;
- const {data,error}=await sb.from("orders").select("id,order_no,order_status,total_amount,order_date,customers(customer_name,mobile)").eq("agent_id",me.id).order("order_date",{ascending:false}).limit(100);
- $("myOrdersBody").innerHTML=error?`<tr><td colspan="6">${esc(error.message)}</td></tr>`:(data||[]).map(o=>`<tr><td>#${esc(o.order_no)}</td><td>${esc(o.customers?.customer_name)}</td><td>${esc(o.customers?.mobile)}</td><td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td><td><span class="pill">${esc(o.order_status)}</span></td><td>${o.order_date?new Date(o.order_date).toLocaleString("en-IN"):"-"}</td></tr>`).join("")||'<tr><td colspan="6" class="empty">No orders</td></tr>';
 }
 async function loadOrders(){
  let q=sb.from("orders").select("id,order_no,order_status,total_amount,order_date,customer_id,agent_id,dealer_id,customers(customer_name,mobile),profiles!orders_agent_id_fkey(full_name),dealers(dealer_name)").order("order_date",{ascending:false}).limit(100);
@@ -265,156 +206,33 @@ $("newCustomer").onclick=()=>modal("नया Customer / Enquiry",`
 <div class="field"><label>Gender</label><select name="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
 <div class="field"><label>Pincode</label><input name="pincode"></div><div class="field"><label>City</label><input name="city"></div><div class="field"><label>State</label><input name="state" value="Madhya Pradesh"></div>
 </div><div class="field"><label>Address</label><textarea name="address"></textarea></div>
-<div class="grid2"><div class="field"><label>Lead Source</label><select name="lead_source"><option value="phone">Phone Call</option><option value="facebook">Facebook</option><option value="instagram">Instagram</option><option value="whatsapp">WhatsApp</option><option value="website">Website</option><option value="other">Other</option></select></div><div class="field"><label>Remarks</label><input name="remarks"></div></div>
-<div class="actions"><button type="submit" class="btn">Save Customer</button></div><div id="customerMsg" class="msg"></div></form>`);
-document.addEventListener("submit", async e=>{
-  const form=e.target;
-  if(!form) return;
-
-  if(form.id==="customerForm"){
-    e.preventDefault();
-    const msg=document.getElementById("customerMsg");
-    const submit=form.querySelector('button[type="submit"]');
-    submit.disabled=true;
-    try{
-      const b=Object.fromEntries(new FormData(form).entries());
-      const name=(b.customer_name||"").trim();
-      if(!/^[\p{L} .'-]+$/u.test(name)) throw new Error("Customer Name में numbers नहीं डालें।");
-      if(!/^[6-9][0-9]{9}$/.test(b.mobile||"")) throw new Error("Mobile Number exactly 10 digits का होना चाहिए।");
-      if(b.alternate_mobile && !/^[6-9][0-9]{9}$/.test(b.alternate_mobile)) throw new Error("Alternate Mobile exactly 10 digits का होना चाहिए।");
-      if(b.pincode && !/^[0-9]{6}$/.test(b.pincode)) throw new Error("Pincode exactly 6 digits का होना चाहिए।");
-
-      const payload={
-        customer_name:name,
-        mobile:b.mobile,
-        alternate_mobile:b.alternate_mobile||null,
-        age:b.age?Number(b.age):null,
-        gender:b.gender||null,
-        pincode:b.pincode||null,
-        city:b.city||null,
-        state:b.state||null,
-        address:b.address||null,
-        created_by:me.id
-      };
-      const {error}=await sb.from("customers").insert(payload);
-      if(error) throw new Error(error.message);
-      $("modal").style.display="none";
-      toast("Customer saved");
-      await loadCustomers();
-    }catch(err){
-      if(msg) msg.textContent=err?.message||String(err);
-      submit.disabled=false;
-    }
-    return;
-  }
-
-  if(form.id==="orderForm"){
-    e.preventDefault();
-    const msg=document.getElementById("orderMsg");
-    const submit=form.querySelector('button[type="submit"]');
-    submit.disabled=true;
-    if(msg) msg.textContent="Customer और Order save हो रहा है…";
-
-    try{
-      const b=Object.fromEntries(new FormData(form).entries());
-      const name=(b.customer_name||"").trim();
-
-      if(!/^[\p{L} .'-]+$/u.test(name)) throw new Error("Customer Name में numbers नहीं डालें।");
-      if(!/^[6-9][0-9]{9}$/.test(b.mobile||"")) throw new Error("Mobile Number exactly 10 digits का होना चाहिए और 6–9 से शुरू होना चाहिए।");
-      if(b.alternate_mobile && !/^[6-9][0-9]{9}$/.test(b.alternate_mobile)) throw new Error("Alternate Mobile exactly 10 digits का होना चाहिए।");
-      if(!/^[0-9]{6}$/.test(b.pincode||"")) throw new Error("Pincode exactly 6 digits का होना चाहिए।");
-
-      let customerId;
-      const existing=await sb.from("customers").select("id").eq("mobile",b.mobile).maybeSingle();
-      if(existing.error) throw new Error("Customer search failed: "+existing.error.message);
-
-      if(existing.data){
-        customerId=existing.data.id;
-        const upd=await sb.from("customers").update({
-          customer_name:name,
-          alternate_mobile:b.alternate_mobile||null,
-          age:b.age?Number(b.age):null,
-          gender:b.gender||null,
-          pincode:b.pincode,
-          city:b.city,
-          state:b.state,
-          address:b.address
-        }).eq("id",customerId);
-        if(upd.error) throw new Error("Customer update failed: "+upd.error.message);
-      }else{
-        const ins=await sb.from("customers").insert({
-          customer_name:name,
-          mobile:b.mobile,
-          alternate_mobile:b.alternate_mobile||null,
-          age:b.age?Number(b.age):null,
-          gender:b.gender||null,
-          pincode:b.pincode,
-          city:b.city,
-          state:b.state,
-          address:b.address,
-          created_by:me.id
-        }).select("id").single();
-        if(ins.error) throw new Error("Customer save failed: "+ins.error.message);
-        customerId=ins.data.id;
-      }
-
-      // IMPORTANT: only columns known to exist in the current orders table.
-      const orderPayload={
-        customer_id:customerId,
-        total_amount:Number(b.total_amount),
-        payment_mode:b.payment_mode,
-        scheme:b.scheme||null,
-        remarks:b.remarks||null,
-        agent_id:me.id,
-        order_status:"new"
-      };
-
-      const created=await sb.from("orders").insert(orderPayload).select("id,order_no").single();
-      if(created.error) throw new Error("Order save failed: "+created.error.message);
-
-      const item=await sb.from("order_items").insert({
-        order_id:created.data.id,
-        product_id:b.product_id,
-        quantity:Number(b.quantity),
-        unit_price:Number(b.total_amount)/Number(b.quantity)
-      });
-      if(item.error) throw new Error("Order item save failed: "+item.error.message);
-
-      $("modal").style.display="none";
-      toast("Order #"+created.data.order_no+" created successfully");
-      await refreshAll();
-    }catch(err){
-      if(msg) msg.textContent=err?.message||String(err);
-      submit.disabled=false;
-    }
-  }
-});
+<div class="actions"><button class="btn">Save Customer</button></div><div id="customerMsg" class="msg"></div></form>`);
+$("customerForm").onsubmit=async e=>{e.preventDefault();const b=Object.fromEntries(new FormData(e.target).entries());b.age=b.age?Number(b.age):null;b.created_by=me.id;const {error}=await sb.from("customers").insert(b);if(error)$("customerMsg").textContent=error.message;else{$("modal").style.display="none";toast("Customer saved");await loadCustomers()}};
 
 $("newOrder").onclick=async()=>{
-  const {data:products,error:productError}=await sb.from("products").select("id,product_name,price").eq("active",true);
-  if(productError){ toast(productError.message); return; }
+ const {data:products,error:productError}=await sb.from("products").select("id,product_name,price").eq("active",true);
+ if(productError){toast(productError.message);return}
 
-  modal("नया Order — Customer + Order एक साथ",`
+ modal("नया Order — Customer + Order एक साथ",`
 <form id="orderForm">
-<h4 style="color:var(--g);margin:4px 0 10px">Customer Details</h4>
+<h4 style="color:var(--g);margin:4px 0 12px">Customer Details</h4>
 <div class="grid2">
 <div class="field"><label>Customer Name *</label><input name="customer_name" required maxlength="80" pattern="[A-Za-zÀ-ÖØ-öø-ÿ .'-]+" title="Name में numbers नहीं डालें"></div>
-<div class="field"><label>Mobile Number *</label><input name="mobile" required inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}" title="10 digit mobile number" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)"></div>
-<div class="field"><label>Alternate Mobile</label><input name="alternate_mobile" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}" title="10 digit mobile number" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)"></div>
+<div class="field"><label>Mobile Number *</label><input name="mobile" required inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}" title="10 digit Indian mobile number" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)"></div>
+<div class="field"><label>Alternate Mobile</label><input name="alternate_mobile" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}" title="10 digit Indian mobile number" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)"></div>
 <div class="field"><label>Age</label><input name="age" type="number" min="1" max="120"></div>
-<div class="field"><label>Gender</label><select name="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+<div class="field"><label>Gender</label><select name="gender"><option value="">Select</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
 <div class="field"><label>Pincode *</label><input name="pincode" required inputmode="numeric" maxlength="6" pattern="[0-9]{6}" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,6)"></div>
 <div class="field"><label>City *</label><input name="city" required maxlength="60"></div>
 <div class="field"><label>State *</label><input name="state" required maxlength="60" value="Madhya Pradesh"></div>
 </div>
 <div class="field"><label>Full Address *</label><textarea name="address" required maxlength="300"></textarea></div>
-
-<h4 style="color:var(--g);margin:18px 0 10px">Order Details</h4>
+<h4 style="color:var(--g);margin:18px 0 12px">Order Details</h4>
 <div class="grid2">
-<div class="field"><label>Product *</label><select name="product_id" id="directProduct" required><option value="">Select Product</option>${(products||[]).map(p=>`<option value="${p.id}" data-price="${p.price}">${esc(p.product_name)} — ₹${Number(p.price||0).toLocaleString("en-IN")}</option>`).join("")}</select></div>
-<div class="field"><label>Quantity *</label><input name="quantity" type="number" min="1" max="99" value="1" required></div>
+<div class="field"><label>Product *</label><select name="product_id" id="directProduct" required><option value="">Select Product</option>${(products||[]).map(p=>`<option value="${p.id}" data-price="${Number(p.price||0)}">${esc(p.product_name)} — ₹${Number(p.price||0).toLocaleString("en-IN")}</option>`).join("")}</select></div>
+<div class="field"><label>Quantity *</label><input name="quantity" id="directQty" type="number" min="1" max="99" value="1" required></div>
 <div class="field"><label>Total Amount (₹) *</label><input name="total_amount" id="directAmount" type="number" min="0" required></div>
-<div class="field"><label>Payment Mode *</label><select name="payment_mode" required><option value="cod">COD</option><option value="prepaid">Prepaid</option></select></div>
+<div class="field"><label>Payment Mode *</label><select name="payment_mode" required><option value="cod">COD</option><option value="prepaid">Prepaid</option><option value="other">Other</option></select></div>
 <div class="field"><label>Scheme / Offer</label><input name="scheme" maxlength="150"></div>
 <div class="field"><label>Lead Source</label><select name="lead_source"><option value="phone">Phone Call</option><option value="whatsapp">WhatsApp</option><option value="facebook">Facebook</option><option value="instagram">Instagram</option><option value="website">Website</option><option value="other">Other</option></select></div>
 </div>
@@ -423,17 +241,60 @@ $("newOrder").onclick=async()=>{
 <div id="orderMsg" class="msg"></div>
 </form>`);
 
-  const product=document.getElementById("directProduct");
-  const amount=document.getElementById("directAmount");
-  const qty=document.querySelector('#orderForm [name="quantity"]');
-  const updateAmount=()=>{
-    const price=Number(product?.selectedOptions[0]?.dataset.price||0);
-    const q=Number(qty?.value||1);
-    if(product && amount && price) amount.value=price*q;
-  };
-  product?.addEventListener("change",updateAmount);
-  qty?.addEventListener("input",updateAmount);
+ const product=$("directProduct"),qty=$("directQty"),amount=$("directAmount");
+ const recalc=()=>{const price=Number(product?.selectedOptions[0]?.dataset.price||0);const q=Number(qty?.value||1);if(price&&amount)amount.value=price*q};
+ product?.addEventListener("change",recalc);qty?.addEventListener("input",recalc);
 };
+
+document.addEventListener("submit",async e=>{
+ if(e.target?.id!=="orderForm")return;
+ e.preventDefault();
+ const form=e.target,msg=$("orderMsg"),btn=form.querySelector('button[type="submit"]');
+ btn.disabled=true;msg.textContent="Customer और Order save हो रहा है…";
+ try{
+  const b=Object.fromEntries(new FormData(form).entries());
+  const name=(b.customer_name||"").trim();
+  if(!/^[\p{L} .'-]+$/u.test(name))throw new Error("Customer Name में numbers नहीं डालें।");
+  if(!/^[6-9][0-9]{9}$/.test(b.mobile||""))throw new Error("Mobile Number exactly 10 digits का होना चाहिए और 6–9 से शुरू होना चाहिए।");
+  if(b.alternate_mobile&&!/^[6-9][0-9]{9}$/.test(b.alternate_mobile))throw new Error("Alternate Mobile exactly 10 digits का होना चाहिए।");
+  if(!/^[0-9]{6}$/.test(b.pincode||""))throw new Error("Pincode exactly 6 digits का होना चाहिए।");
+  if(!b.product_id)throw new Error("Product select करें।");
+  const quantity=Number(b.quantity),total=Number(b.total_amount);
+  if(quantity<1)throw new Error("Quantity सही डालें।");
+  if(total<0)throw new Error("Amount सही डालें।");
+
+  let customerId;
+  const found=await sb.from("customers").select("id").eq("mobile",b.mobile).maybeSingle();
+  if(found.error)throw new Error("Customer search failed: "+found.error.message);
+  const customerPayload={customer_name:name,mobile:b.mobile,alternate_mobile:b.alternate_mobile||null,age:b.age?Number(b.age):null,gender:b.gender||null,pincode:b.pincode,city:b.city,state:b.state,address:b.address};
+  if(found.data){
+   customerId=found.data.id;
+   const upd=await sb.from("customers").update(customerPayload).eq("id",customerId);
+   if(upd.error)throw new Error("Customer update failed: "+upd.error.message);
+  }else{
+   const ins=await sb.from("customers").insert({...customerPayload,created_by:me.id}).select("id").single();
+   if(ins.error)throw new Error("Customer save failed: "+ins.error.message);
+   customerId=ins.data.id;
+  }
+
+  const created=await sb.from("orders").insert({
+    customer_id:customerId,
+    total_amount:total,
+    payment_mode:b.payment_mode,
+    scheme:b.scheme||null,
+    remarks:b.remarks||null,
+    agent_id:me.id,
+    order_status:"new"
+  }).select("id,order_no").single();
+  if(created.error)throw new Error("Order save failed: "+created.error.message);
+
+  const item=await sb.from("order_items").insert({order_id:created.data.id,product_id:b.product_id,quantity,unit_price:total/quantity});
+  if(item.error)throw new Error("Order item save failed: "+item.error.message);
+
+  $("modal").style.display="none";toast("Order #"+created.data.order_no+" created successfully");await refreshAll();
+ }catch(err){msg.textContent=err?.message||String(err);btn.disabled=false}
+});
+
 
 async function searchOrders(inputId,resultId){
  const term=$(inputId).value.trim();if(!term){$(resultId).innerHTML="";return}
@@ -444,49 +305,39 @@ async function searchOrders(inputId,resultId){
 }
 $("searchBtn").onclick=()=>searchOrders("globalSearch","searchResult");$("orderSearchBtn").onclick=()=>searchOrders("orderSearch","ordersBody");
 
-document.getElementById("agentCustomerBtn")?.addEventListener("click",()=>document.getElementById("newCustomer").click());
 document.getElementById("agentOrderBtn")?.addEventListener("click",()=>document.getElementById("newOrder").click());
 
-function showLoginScreen(){
-  me=null;
-  profile=null;
-  $("app").style.display="none";
-  $("loginPage").classList.remove("hidden");
-  $("email").value="";
-  $("password").value="";
-  $("loginMsg").textContent="आप successfully logout हो गए हैं।";
-  try{ history.replaceState(null,"",location.pathname); }catch(e){}
-}
-
-async function doLogout(e){
-  if(e){ e.preventDefault(); e.stopPropagation(); }
-  const btn=document.getElementById("logout");
-  if(btn) btn.disabled=true;
-
-  // Immediately switch the UI to login. Then invalidate the Supabase session.
-  // This prevents the UI from getting stuck if signOut/network has a problem.
-  showLoginScreen();
-
+async function doLogout(){
   try{
+    $("logout").disabled=true;
     await sb.auth.signOut({scope:"local"});
-  }catch(err){
-    console.error("Supabase logout:",err);
+  }catch(e){
+    console.error("Logout error:",e);
   }finally{
-    // Remove only Supabase auth storage entries; do not wipe unrelated site data.
-    try{
-      Object.keys(localStorage).forEach(k=>{
-        if(k.startsWith("sb-") || k.includes("supabase")) localStorage.removeItem(k);
-      });
-      Object.keys(sessionStorage).forEach(k=>{
-        if(k.startsWith("sb-") || k.includes("supabase")) sessionStorage.removeItem(k);
-      });
-    }catch(err){}
-    if(btn) btn.disabled=false;
-    showLoginScreen();
+    // Always clear the local Supabase session/UI even if the network call fails.
+    try{ localStorage.clear(); sessionStorage.clear(); }catch(e){}
+    me=null; profile=null;
+    $("app").style.display="none";
+    $("loginPage").classList.remove("hidden");
+    $("email").value="";
+    $("password").value="";
+    $("loginMsg").textContent="आप successfully logout हो गए हैं।";
+    $("logout").disabled=false;
+    history.replaceState(null,"",location.pathname);
   }
 }
+$("logout").addEventListener("click",doLogout);
 
-const {data:{session}}=await sb.auth.getSession();
-  if(session) await boot(session.user);
+sb.auth.onAuthStateChange((event, session)=>{
+  if(event==="SIGNED_OUT" && !session){
+    $("app").style.display="none";
+    $("loginPage").classList.remove("hidden");
+  }
+});
+
+// Do not auto-login on page refresh. CRM always starts at the login screen.
+try{ await sb.auth.signOut({scope:"local"}); }catch(e){}
+$("app").style.display="none";
+$("loginPage").classList.remove("hidden");
 </script>
 </body></html>
