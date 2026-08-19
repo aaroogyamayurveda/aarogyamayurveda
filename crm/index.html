@@ -328,7 +328,124 @@ function attachCreateOrderLiveValidation(){
 }
 attachCreateOrderLiveValidation();
 document.addEventListener("submit",async e=>{if(e.target?.id!=="createOrderPageForm")return;e.preventDefault();const f=e.target,btn=f.querySelector('button[type="submit"]');f.querySelectorAll(".field-error").forEach(x=>x.textContent="");f.querySelectorAll(".invalid").forEach(x=>x.classList.remove("invalid"));const b=Object.fromEntries(new FormData(f).entries()),bad=(n,id,t)=>{f.elements[n]?.classList.add("invalid");$(id).textContent=t};let ok=true;if(!/^[\p{L} .'-]+$/u.test((b.customer_name||"").trim())){bad("customer_name","err_name","Name में numbers नहीं डालें।");ok=false}if(!/^[6-9][0-9]{9}$/.test(b.mobile||"")){bad("mobile","err_mobile","Mobile exactly 10 digits होना चाहिए।");ok=false}if(b.alternate_mobile&&!/^[6-9][0-9]{9}$/.test(b.alternate_mobile)){bad("alternate_mobile","err_alt","Alternate mobile exactly 10 digits होना चाहिए।");ok=false}if(b.age&&(!/^[0-9]+$/.test(b.age)||+b.age>120||+b.age<1)){bad("age","err_age","Age 1 से 120 के बीच होना चाहिए।");ok=false}if(!/^[0-9]{6}$/.test(b.pincode||"")){bad("pincode","err_pin","Pincode exactly 6 digits होना चाहिए।");ok=false}if(!/^[0-9]+$/.test(b.quantity||"")||+b.quantity<1||+b.quantity>99){bad("quantity","err_qty","Quantity 1–99 whole number होनी चाहिए।");ok=false}if(!ok)return;const enquiry=e.submitter?.id==="createEnquiry";$("confirmTitle").textContent=enquiry?"Create Enquiry":"Create Order";$("confirmText").textContent=enquiry?"क्या आप enquiry create करना चाहते हैं?":"क्या आप order create करना चाहते हैं?";$("confirmOverlay").classList.remove("hidden");$("confirmNo").onclick=()=>$("confirmOverlay").classList.add("hidden");$("confirmYes").onclick=async()=>{$("confirmOverlay").classList.add("hidden");await createOrderOrEnquiry(f,btn,enquiry)}});
-async function createOrderOrEnquiry(f,btn,enquiry){const msg=$("pageOrderMsg");btn.disabled=true;try{const {data:{session}}=await sb.auth.getSession();if(!session)throw Error("Session expired. Please login again.");const b=Object.fromEntries(new FormData(f).entries()),found=await sb.from("customers").select("id").eq("mobile",b.mobile).maybeSingle();if(found.error)throw found.error;const cp={customer_name:b.customer_name.trim(),mobile:b.mobile,alternate_mobile:b.alternate_mobile||null,age:b.age?+b.age:null,gender:b.gender||null,pincode:b.pincode,city:b.city,state:b.state,address:b.address};let cid;if(found.data){cid=found.data.id;const r=await sb.from("customers").update(cp).eq("id",cid);if(r.error)throw r.error}else{const r=await sb.from("customers").insert({...cp,created_by:session.user.id}).select("id").single();if(r.error)throw r.error;cid=r.data.id}if(enquiry){const q=await sb.from("orders").insert({customer_id:cid,total_amount:0,payment_mode:b.payment_mode||"cod",remarks:(b.remarks||"")+" [ENQUIRY]",agent_id:session.user.id,order_status:"enquiry"}).select("id,order_no").single();if(q.error)throw q.error;$("successText").textContent=`Enquiry place हो गई है। Enquiry No: #${q.data.order_no||q.data.id}`}else{const pr=await sb.from("products").select("price,sale_price,selling_price,amount").eq("id",b.product_id).single();if(pr.error)throw pr.error;const unitPrice=+((pr.data.price??pr.data.sale_price??pr.data.selling_price??pr.data.amount)??0);if(unitPrice<=0)throw Error("Selected product का price database में नहीं मिला।");const qty=+b.quantity,total=unitPrice*qty;const o=await sb.from("orders").insert({customer_id:cid,total_amount:total,payment_mode:b.payment_mode,remarks:b.remarks||null,agent_id:session.user.id,order_status:"new"}).select("id,order_no").single();if(o.error)throw o.error;const i=await sb.from("order_items").insert({order_id:o.data.id,product_id:b.product_id,quantity:qty,unit_price:unitPrice});if(i.error)throw i.error;$("successText").textContent=`Order place हो गया है। Order No: #${o.data.order_no||o.data.id}`}$("successOverlay").classList.remove("hidden");$("successOk").onclick=()=>{$("successOverlay").classList.add("hidden");resetCreateOrderForm()}}catch(err){msg.textContent=err?.message||String(err)}finally{btn.disabled=false}}
+async function createOrderOrEnquiry(f,btn,enquiry){
+ const msg=$("pageOrderMsg");
+ btn.disabled=true;
+ try{
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session)throw Error("Session expired. Please login again.");
+
+  const b=Object.fromEntries(new FormData(f).entries());
+
+  // Find/update the customer first.
+  const found=await sb.from("customers").select("id").eq("mobile",b.mobile).maybeSingle();
+  if(found.error)throw found.error;
+
+  const cp={
+   customer_name:b.customer_name.trim(),
+   mobile:b.mobile,
+   alternate_mobile:b.alternate_mobile||null,
+   age:b.age?+b.age:null,
+   gender:b.gender||null,
+   pincode:b.pincode,
+   city:b.city,
+   state:b.state,
+   address:b.address
+  };
+
+  let cid;
+  if(found.data){
+   cid=found.data.id;
+   const r=await sb.from("customers").update(cp).eq("id",cid);
+   if(r.error)throw r.error;
+  }else{
+   const r=await sb.from("customers")
+     .insert({...cp,created_by:session.user.id})
+     .select("id").single();
+   if(r.error)throw r.error;
+   cid=r.data.id;
+  }
+
+  if(enquiry){
+   // The database enum does NOT contain "enquiry".
+   // Keep the valid "new" status and mark the record as an enquiry in remarks.
+   const q=await sb.from("orders").insert({
+     customer_id:cid,
+     total_amount:0,
+     payment_mode:b.payment_mode||"cod",
+     remarks:(b.remarks||"")+" [ENQUIRY]",
+     agent_id:session.user.id,
+     order_status:"new"
+   }).select("id,order_no").single();
+
+   if(q.error)throw q.error;
+
+   $("successText").textContent=
+     `Enquiry place हो गई है। Enquiry No: #${q.data.order_no||q.data.id}`;
+  }else{
+   // IMPORTANT: do NOT name columns that may not exist.
+   // Fetch the complete product row, then read whichever price field
+   // is actually present in the existing products table.
+   const pr=await sb.from("products").select("*").eq("id",b.product_id).single();
+   if(pr.error)throw pr.error;
+
+   const product=pr.data||{};
+   const unitPrice=Number(
+     product.price ??
+     product.sale_price ??
+     product.selling_price ??
+     product.amount ??
+     product.mrp ??
+     0
+   );
+
+   if(!Number.isFinite(unitPrice)||unitPrice<=0){
+     throw Error("Selected product का price database में नहीं मिला।");
+   }
+
+   const qty=Number(b.quantity);
+   if(!Number.isInteger(qty)||qty<1||qty>99){
+     throw Error("Quantity 1–99 whole number होनी चाहिए।");
+   }
+
+   const total=unitPrice*qty;
+
+   const o=await sb.from("orders").insert({
+     customer_id:cid,
+     total_amount:total,
+     payment_mode:b.payment_mode,
+     remarks:b.remarks||null,
+     agent_id:session.user.id,
+     order_status:"new"
+   }).select("id,order_no").single();
+
+   if(o.error)throw o.error;
+
+   const i=await sb.from("order_items").insert({
+     order_id:o.data.id,
+     product_id:b.product_id,
+     quantity:qty,
+     unit_price:unitPrice
+   });
+
+   if(i.error)throw i.error;
+
+   $("successText").textContent=
+     `Order place हो गया है। Order No: #${o.data.order_no||o.data.id}`;
+  }
+
+  $("successOverlay").classList.remove("hidden");
+  $("successOk").onclick=()=>{
+   $("successOverlay").classList.add("hidden");
+   resetCreateOrderForm();
+  };
+ }catch(err){
+  msg.textContent=err?.message||String(err);
+ }finally{
+  btn.disabled=false;
+ }
+}
+
 async function searchOrders(inputId,resultId){
  const term=$(inputId).value.trim();
  if(!term){$(resultId).innerHTML="";return}
