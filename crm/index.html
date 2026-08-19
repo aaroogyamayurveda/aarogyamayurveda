@@ -21,7 +21,18 @@
 </form></section></div>
 
 <div id="app" class="app">
-<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><button type="button" id="logout" class="logout" onclick="window.__crmLogout && window.__crmLogout();">Logout</button></div></header>
+<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><button type="button" id="logout" class="logout" onclick="document.getElementById("agentNewOrder")?.addEventListener("click",()=>document.getElementById("newOrder").click());
+document.getElementById("myOrderSearchBtn")?.addEventListener("click",async()=>{
+ const term=document.getElementById("myOrderSearch").value.trim();
+ if(!term)return loadMyOrders();
+ let q=sb.from("orders").select("id,order_no,order_status,total_amount,order_date,customers(customer_name,mobile)").eq("agent_id",me.id).limit(50);
+ if(/^\d+$/.test(term)) q=q.eq("order_no",Number(term));
+ else q=q.ilike("customers.mobile",`%${term}%`);
+ const {data,error}=await q;
+ document.getElementById("myOrdersBody").innerHTML=error?`<tr><td colspan="6">${esc(error.message)}</td></tr>`:(data||[]).map(o=>`<tr><td>#${esc(o.order_no)}</td><td>${esc(o.customers?.customer_name)}</td><td>${esc(o.customers?.mobile)}</td><td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td><td><span class="pill">${esc(o.order_status)}</span></td><td>${o.order_date?new Date(o.order_date).toLocaleString("en-IN"):"-"}</td></tr>`).join("")||'<tr><td colspan="6" class="empty">Order नहीं मिला</td></tr>';
+});
+
+window.__crmLogout && window.__crmLogout();">Logout</button></div></header>
 <div class="layout">
 <aside class="side" id="nav"></aside>
 <main class="main">
@@ -47,6 +58,12 @@
 <section id="customers" class="page">
 <div class="title"><div><h2>Customer / Enquiry</h2><div class="sub">Call के बाद customer information और product enquiry save करें</div></div><button class="btn" id="newCustomer">+ New Customer</button></div>
 <div class="panel"><div class="tablewrap"><table><thead><tr><th>Name</th><th>Mobile</th><th>City</th><th>Product</th><th>Agent</th><th>Date</th></tr></thead><tbody id="customersBody"></tbody></table></div></div>
+</section>
+
+<section id="myorders" class="page">
+<div class="title"><div><h2>My Orders</h2><div class="sub">Agent द्वारा बनाए गए orders और उनकी current status</div></div><button class="btn" id="agentNewOrder">+ नया Order</button></div>
+<div class="panel"><div class="search"><input id="myOrderSearch" placeholder="Order ID / Mobile"><button class="btn" id="myOrderSearchBtn">Search</button></div></div>
+<div class="panel"><div class="tablewrap"><table><thead><tr><th>Order ID</th><th>Customer</th><th>Mobile</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody id="myOrdersBody"></tbody></table></div></div>
 </section>
 
 <section id="orders" class="page">
@@ -139,11 +156,12 @@ function buildNav(){
  $("agentQuick").classList.toggle("hidden", profile.role!=="agent");
  const n=$("nav");n.innerHTML="";
  const items=[["dashboard","🏠 Dashboard"],["customers","👤 Customers / Enquiry"],["orders","📦 Orders"],["dealers","🚚 Dealer Orders"],["reports","📊 Reports"]];
- if(["super_admin","management"].includes(profile.role))items.splice(1,0,["users","👥 User Management"]);
+ if(profile.role==="agent") items.splice(3,0,["myorders","🧾 My Orders"]);
+if(["super_admin","management"].includes(profile.role))items.splice(1,0,["users","👥 User Management"]);
  items.forEach(([id,t])=>{const b=document.createElement("button");b.textContent=t;b.onclick=()=>showPage(id);n.appendChild(b)});
 }
 function showPage(id){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll(".side button").forEach(x=>x.classList.remove("active"));[...document.querySelectorAll(".side button")].find(x=>x.textContent.toLowerCase().includes(id==="customers"?"customers":id))?.classList.add("active");refreshAll()}
-async function refreshAll(){await loadStats();if(["super_admin","management"].includes(profile.role))await loadUsers();await loadCustomers();await loadOrders();await loadDealerOrders();await loadReports()}
+async function refreshAll(){await loadStats();if(["super_admin","management"].includes(profile.role))await loadUsers();await loadCustomers();await loadOrders();await loadDealerOrders();await loadReports();if(profile.role==="agent")await loadMyOrders()}
 
 async function loadStats(){
  let q=sb.from("orders").select("id,order_status,order_date",{count:"exact",head:false});
@@ -165,6 +183,11 @@ async function loadCustomers(){
  if(profile.role==="agent")q=q.eq("created_by",me.id);
  const {data}=await q;
  $("customersBody").innerHTML=(data||[]).map(c=>`<tr><td>${esc(c.customer_name)}</td><td>${esc(c.mobile)}</td><td>${esc(c.city||"-")}</td><td>-</td><td>${esc(profile.full_name)}</td><td>${new Date(c.created_at).toLocaleString("en-IN")}</td></tr>`).join("")||'<tr><td colspan="6" class="empty">No customers</td></tr>';
+}
+async function loadMyOrders(){
+ if(profile.role!=="agent")return;
+ const {data,error}=await sb.from("orders").select("id,order_no,order_status,total_amount,order_date,customers(customer_name,mobile)").eq("agent_id",me.id).order("order_date",{ascending:false}).limit(100);
+ $("myOrdersBody").innerHTML=error?`<tr><td colspan="6">${esc(error.message)}</td></tr>`:(data||[]).map(o=>`<tr><td>#${esc(o.order_no)}</td><td>${esc(o.customers?.customer_name)}</td><td>${esc(o.customers?.mobile)}</td><td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td><td><span class="pill">${esc(o.order_status)}</span></td><td>${o.order_date?new Date(o.order_date).toLocaleString("en-IN"):"-"}</td></tr>`).join("")||'<tr><td colspan="6" class="empty">No orders</td></tr>';
 }
 async function loadOrders(){
  let q=sb.from("orders").select("id,order_no,order_status,total_amount,order_date,customer_id,agent_id,dealer_id,customers(customer_name,mobile),profiles!orders_agent_id_fkey(full_name),dealers(dealer_name)").order("order_date",{ascending:false}).limit(100);
@@ -242,6 +265,7 @@ $("newCustomer").onclick=()=>modal("नया Customer / Enquiry",`
 <div class="field"><label>Gender</label><select name="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
 <div class="field"><label>Pincode</label><input name="pincode"></div><div class="field"><label>City</label><input name="city"></div><div class="field"><label>State</label><input name="state" value="Madhya Pradesh"></div>
 </div><div class="field"><label>Address</label><textarea name="address"></textarea></div>
+<div class="grid2"><div class="field"><label>Lead Source</label><select name="lead_source"><option value="phone">Phone Call</option><option value="facebook">Facebook</option><option value="instagram">Instagram</option><option value="whatsapp">WhatsApp</option><option value="website">Website</option><option value="other">Other</option></select></div><div class="field"><label>Remarks</label><input name="remarks"></div></div>
 <div class="actions"><button type="submit" class="btn">Save Customer</button></div><div id="customerMsg" class="msg"></div></form>`);
 const customerForm=document.getElementById("customerForm");
 customerForm.addEventListener("submit",async e=>{
@@ -249,6 +273,8 @@ customerForm.addEventListener("submit",async e=>{
  const b=Object.fromEntries(new FormData(customerForm).entries());
  b.age=b.age?Number(b.age):null;
  b.created_by=me.id;
+ delete b.lead_source;
+ delete b.remarks;
  const {error}=await sb.from("customers").insert(b);
  if(error){
    document.getElementById("customerMsg").textContent=error.message;
@@ -262,7 +288,7 @@ customerForm.addEventListener("submit",async e=>{
 $("newOrder").onclick=async()=>{
  const {data:customers}=await sb.from("customers").select("id,customer_name,mobile").order("created_at",{ascending:false}).limit(100);
  const {data:products}=await sb.from("products").select("id,product_name,price").eq("active",true);
- modal("नया Order",`<form id="orderForm"><div class="field"><label>Customer</label><select name="customer_id" required>${(customers||[]).map(c=>`<option value="${c.id}">${esc(c.customer_name)} - ${esc(c.mobile)}</option>`).join("")}</select></div><div class="grid2"><div class="field"><label>Product</label><select name="product_id" required>${(products||[]).map(p=>`<option value="${p.id}" data-price="${p.price}">${esc(p.product_name)} - ₹${p.price}</option>`).join("")}</select></div><div class="field"><label>Quantity</label><input name="quantity" type="number" min="1" value="1" required></div><div class="field"><label>Amount</label><input name="total_amount" type="number" min="0" value="0" required></div><div class="field"><label>Payment</label><select name="payment_mode"><option value="cod">COD</option><option value="prepaid">Prepaid</option><option value="other">Other</option></select></div></div><div class="field"><label>Scheme / Offer</label><input name="scheme"></div><div class="field"><label>Remarks</label><textarea name="remarks"></textarea></div><div class="actions"><button type="submit" class="btn">Create Order</button></div><div id="orderMsg" class="msg"></div></form>`);
+ modal("नया Order",`<form id="orderForm"><div class="field"><label>Customer</label><select name="customer_id" required>${(customers||[]).map(c=>`<option value="${c.id}">${esc(c.customer_name)} - ${esc(c.mobile)}</option>`).join("")}</select></div><div class="grid2"><div class="field"><label>Product</label><select name="product_id" required>${(products||[]).map(p=>`<option value="${p.id}" data-price="${p.price}">${esc(p.product_name)} - ₹${p.price}</option>`).join("")}</select></div><div class="field"><label>Quantity</label><input name="quantity" type="number" min="1" value="1" required></div><div class="field"><label>Amount</label><input name="total_amount" type="number" min="0" value="0" required></div><div class="field"><label>Payment</label><select name="payment_mode"><option value="cod">COD</option><option value="prepaid">Prepaid</option><option value="other">Other</option></select></div></div><div class="field"><label>Scheme / Offer</label><input name="scheme"></div><div class="field"><label>Delivery Address</label><textarea name="delivery_address"></textarea></div><div class="field"><label>Remarks</label><textarea name="remarks"></textarea></div><div class="actions"><button type="submit" class="btn">Create Order</button></div><div id="orderMsg" class="msg"></div></form>`);
  const orderForm=document.getElementById("orderForm");
 orderForm.addEventListener("submit",async e=>{
  e.preventDefault();
@@ -270,18 +296,25 @@ orderForm.addEventListener("submit",async e=>{
  b.quantity=Number(b.quantity);
  b.total_amount=Number(b.total_amount);
  b.agent_id=me.id;
- const {data,error}=await sb.from("orders").insert(b).select("id").single();
+ b.order_status="new";
+ delete b.product_id; delete b.quantity; delete b.payment_mode; delete b.scheme; delete b.delivery_address; delete b.remarks;
+ const {data,error}=await sb.from("orders").insert(b).select("id,order_no").single();
  if(error){
    document.getElementById("orderMsg").textContent=error.message;
  }else{
-   await sb.from("order_items").insert({
+   const formData=Object.fromEntries(new FormData(orderForm).entries());
+   const itemError=(await sb.from("order_items").insert({
      order_id:data.id,
-     product_id:b.product_id,
-     quantity:b.quantity,
-     unit_price:b.total_amount/b.quantity
-   });
+     product_id:formData.product_id,
+     quantity:Number(formData.quantity),
+     unit_price:Number(formData.total_amount)/Number(formData.quantity)
+   })).error;
+   if(itemError){
+     document.getElementById("orderMsg").textContent="Order बना लेकिन item save नहीं हुआ: "+itemError.message;
+     return;
+   }
    $("modal").style.display="none";
-   toast("Order created");
+   toast("Order #"+data.order_no+" created");
    await refreshAll();
  }
 });
