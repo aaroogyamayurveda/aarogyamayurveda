@@ -312,10 +312,151 @@ document.addEventListener("submit", async e=>{
 });
 
 $("newOrder").onclick=async()=>{
- const {data:customers}=await sb.from("customers").select("id,customer_name,mobile").order("created_at",{ascending:false}).limit(100);
  const {data:products}=await sb.from("products").select("id,product_name,price").eq("active",true);
- modal("नया Order",`<form id="orderForm"><div class="field"><label>Customer</label><select name="customer_id" required>${(customers||[]).map(c=>`<option value="${c.id}">${esc(c.customer_name)} - ${esc(c.mobile)}</option>`).join("")}</select></div><div class="grid2"><div class="field"><label>Product</label><select name="product_id" required>${(products||[]).map(p=>`<option value="${p.id}" data-price="${p.price}">${esc(p.product_name)} - ₹${p.price}</option>`).join("")}</select></div><div class="field"><label>Quantity</label><input name="quantity" type="number" min="1" value="1" required></div><div class="field"><label>Amount</label><input name="total_amount" type="number" min="0" value="0" required></div><div class="field"><label>Payment</label><select name="payment_mode"><option value="cod">COD</option><option value="prepaid">Prepaid</option><option value="other">Other</option></select></div></div><div class="field"><label>Scheme / Offer</label><input name="scheme"></div><div class="field"><label>Delivery Address</label><textarea name="delivery_address"></textarea></div><div class="field"><label>Remarks</label><textarea name="remarks"></textarea></div><div class="actions"><button type="submit" class="btn">Create Order</button></div><div id="orderMsg" class="msg"></div></form>`);
- 
+ modal("नया Order — Customer + Order एक साथ",`
+<form id="orderForm" onsubmit="return false;">
+<h4 style="color:var(--g);margin:4px 0 10px">Customer Details</h4>
+<div class="grid2">
+<div class="field"><label>Customer Name *</label><input name="customer_name" required maxlength="80" pattern="[A-Za-zÀ-ÖØ-öø-ÿ .'-]+" title="Name में केवल letters और space डालें"></div>
+<div class="field"><label>Mobile Number *</label><input name="mobile" required inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}" title="10 digit valid Indian mobile number" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)"></div>
+<div class="field"><label>Alternate Mobile</label><input name="alternate_mobile" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}" title="10 digit valid Indian mobile number" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)"></div>
+<div class="field"><label>Age</label><input name="age" type="number" min="1" max="120"></div>
+<div class="field"><label>Gender</label><select name="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+<div class="field"><label>Pincode *</label><input name="pincode" required inputmode="numeric" maxlength="6" pattern="[0-9]{6}" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,6)"></div>
+<div class="field"><label>City *</label><input name="city" required maxlength="60"></div>
+<div class="field"><label>State *</label><input name="state" required maxlength="60" value="Madhya Pradesh"></div>
+</div>
+<div class="field"><label>Full Address *</label><textarea name="address" required maxlength="300"></textarea></div>
+
+<h4 style="color:var(--g);margin:18px 0 10px">Order Details</h4>
+<div class="grid2">
+<div class="field"><label>Product *</label><select name="product_id" id="directProduct" required>
+<option value="">Select Product</option>
+${(products||[]).map(p=>`<option value="${p.id}" data-price="${p.price}">${esc(p.product_name)} — ₹${Number(p.price||0).toLocaleString("en-IN")}</option>`).join("")}
+</select></div>
+<div class="field"><label>Quantity *</label><input name="quantity" type="number" min="1" max="99" value="1" required></div>
+<div class="field"><label>Total Amount (₹) *</label><input name="total_amount" id="directAmount" type="number" min="0" required></div>
+<div class="field"><label>Payment Mode *</label><select name="payment_mode" required><option value="cod">COD</option><option value="prepaid">Prepaid</option></select></div>
+<div class="field"><label>Scheme / Offer</label><input name="scheme" maxlength="150"></div>
+<div class="field"><label>Lead Source</label><select name="lead_source"><option value="phone">Phone Call</option><option value="whatsapp">WhatsApp</option><option value="facebook">Facebook</option><option value="instagram">Instagram</option><option value="website">Website</option><option value="other">Other</option></select></div>
+</div>
+<div class="field"><label>Order Remarks</label><textarea name="remarks" maxlength="500"></textarea></div>
+<div class="actions"><button type="submit" class="btn">Create Order</button></div>
+<div id="orderMsg" class="msg"></div>
+</form>`);
+
+const directProduct=document.getElementById("directProduct");
+const directAmount=document.getElementById("directAmount");
+if(directProduct && directAmount){
+ directProduct.addEventListener("change",()=>{
+   const price=Number(directProduct.selectedOptions[0]?.dataset.price||0);
+   const qty=Number(document.querySelector('#orderForm [name="quantity"]')?.value||1);
+   if(price) directAmount.value=price*qty;
+ });
+ const qtyInput=document.querySelector('#orderForm [name="quantity"]');
+ qtyInput?.addEventListener("input",()=>{
+   const price=Number(directProduct.selectedOptions[0]?.dataset.price||0);
+   const qty=Number(qtyInput.value||1);
+   if(price) directAmount.value=price*qty;
+ });
+}
+};
+
+document.addEventListener("submit", async e=>{
+ if(e.target && e.target.id==="orderForm"){
+   e.preventDefault();
+   const form=e.target;
+   const msg=document.getElementById("orderMsg");
+   const submit=form.querySelector('button[type="submit"]');
+   submit.disabled=true;
+   msg.textContent="Customer और Order save हो रहा है…";
+
+   try{
+     const fd=new FormData(form);
+     const b=Object.fromEntries(fd.entries());
+     const name=b.customer_name.trim();
+
+     // Client-side validation.
+     if(!/^[A-Za-zÀ-ÖØ-öø-ÿ .'-]+$/.test(name)){
+       throw new Error("Customer Name में केवल letters और space डालें।");
+     }
+     if(!/^[6-9][0-9]{9}$/.test(b.mobile)){
+       throw new Error("Mobile Number exactly 10 digits का होना चाहिए और 6–9 से शुरू होना चाहिए।");
+     }
+     if(b.alternate_mobile && !/^[6-9][0-9]{9}$/.test(b.alternate_mobile)){
+       throw new Error("Alternate Mobile exactly 10 digits का होना चाहिए।");
+     }
+     if(!/^[0-9]{6}$/.test(b.pincode)){
+       throw new Error("Pincode exactly 6 digits का होना चाहिए।");
+     }
+
+     // Find existing customer by mobile; otherwise create one.
+     let customerId=null;
+     const existing=await sb.from("customers").select("id").eq("mobile",b.mobile).maybeSingle();
+     if(existing.error) throw new Error("Customer search failed: "+existing.error.message);
+
+     if(existing.data){
+       customerId=existing.data.id;
+       const updateCustomer={
+         customer_name:name,
+         alternate_mobile:b.alternate_mobile||null,
+         age:b.age?Number(b.age):null,
+         gender:b.gender||null,
+         pincode:b.pincode,
+         city:b.city,
+         state:b.state,
+         address:b.address
+       };
+       const upd=await sb.from("customers").update(updateCustomer).eq("id",customerId);
+       if(upd.error) throw new Error("Customer update failed: "+upd.error.message);
+     }else{
+       const ins=await sb.from("customers").insert({
+         customer_name:name,
+         mobile:b.mobile,
+         alternate_mobile:b.alternate_mobile||null,
+         age:b.age?Number(b.age):null,
+         gender:b.gender||null,
+         pincode:b.pincode,
+         city:b.city,
+         state:b.state,
+         address:b.address,
+         created_by:me.id
+       }).select("id").single();
+       if(ins.error) throw new Error("Customer save failed: "+ins.error.message);
+       customerId=ins.data.id;
+     }
+
+     // Only use columns known to exist in the current orders table.
+     const orderPayload={
+       customer_id:customerId,
+       total_amount:Number(b.total_amount),
+       payment_mode:b.payment_mode,
+       scheme:b.scheme||null,
+       remarks:b.remarks||null,
+       agent_id:me.id,
+       order_status:"new"
+     };
+
+     const created=await sb.from("orders").insert(orderPayload).select("id,order_no").single();
+     if(created.error) throw new Error("Order save failed: "+created.error.message);
+
+     const item=await sb.from("order_items").insert({
+       order_id:created.data.id,
+       product_id:b.product_id,
+       quantity:Number(b.quantity),
+       unit_price:Number(b.total_amount)/Number(b.quantity)
+     });
+     if(item.error) throw new Error("Order item save failed: "+item.error.message);
+
+     $("modal").style.display="none";
+     toast("Order #"+created.data.order_no+" created successfully");
+     await refreshAll();
+   }catch(err){
+     msg.textContent=err?.message||String(err);
+     submit.disabled=false;
+   }
+ }
+});
 
 async function searchOrders(inputId,resultId){
  const term=$(inputId).value.trim();if(!term){$(resultId).innerHTML="";return}
