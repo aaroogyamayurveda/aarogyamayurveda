@@ -12,7 +12,7 @@
 @media(max-width:500px){.cards{grid-template-columns:1fr}.main{padding:16px}}
 .field-error{font-size:12px;color:var(--red);min-height:16px}.invalid{border-color:var(--red)!important}.confirmOverlay{position:fixed;inset:0;background:#0008;z-index:9999;display:grid;place-items:center}.confirmOverlay.hidden{display:none}.confirmBox{background:#fff;border-radius:16px;padding:24px;width:min(420px,92vw)}.confirmActions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}</style>
 <style>
-.order-location-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;width:100%;margin:0 0 14px}
+.order-location-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:100%;margin:0 0 14px}
 .order-location-grid .field{min-width:0}
 .order-location-grid select{width:100%;height:42px;min-height:42px;box-sizing:border-box}
 @media(max-width:900px){.order-location-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -54,7 +54,7 @@
 <div class="order-location-grid">
 <div class="field"><label>State *</label><select name="state" id="orderState" required><option value="">Select State</option></select></div>
 <div class="field"><label>City *</label><select name="city" id="orderCity" required disabled><option value="">Select City</option></select></div>
-<div class="field"><label>Tehsil *</label><select name="tehsil" id="orderTehsil" required disabled><option value="">Select Tehsil</option></select></div>
+
 <div class="field"><label>Area / Post *</label><select name="post" id="orderPost" required disabled><option value="">Select Area / Post</option></select></div>
 </div><div class="field"><label>Complete Delivery Address *</label><textarea name="address" maxlength="300" required></textarea></div>
 <div id="pageExistingCustomer" class="sub"></div>
@@ -243,11 +243,11 @@ async function loadCreateOrderProducts(){
  });
 }
 function pageOrderRecalc(){const p=Number($("pageProduct")?.selectedOptions[0]?.dataset.price||0),q=Number($("pageQty")?.value||1);if($("pageAmount"))$("pageAmount").value=p>0?p*q:""}
-function resetCreateOrderForm(){const f=$("createOrderPageForm");if(!f)return;f.reset();$("pageExistingCustomer").textContent="";$("pageAmount").value="";$("pageProduct").selectedIndex=0;$("pageQty").value="1";document.querySelectorAll(".field-error").forEach(x=>x.textContent="");document.querySelectorAll(".invalid").forEach(x=>x.classList.remove("invalid"));if($("orderState"))$("orderState").value="";if($("orderCity")){ $("orderCity").innerHTML='<option value="">Select City</option>';$("orderCity").disabled=true}if($("orderTehsil")){ $("orderTehsil").innerHTML='<option value="">Select Tehsil</option>';$("orderTehsil").disabled=true}if($("orderPost")){ $("orderPost").innerHTML='<option value="">Select Area / Post</option>';$("orderPost").disabled=true}}
+function resetCreateOrderForm(){const f=$("createOrderPageForm");if(!f)return;f.reset();$("pageExistingCustomer").textContent="";$("pageAmount").value="";$("pageProduct").selectedIndex=0;$("pageQty").value="1";document.querySelectorAll(".field-error").forEach(x=>x.textContent="");document.querySelectorAll(".invalid").forEach(x=>x.classList.remove("invalid"));if($("orderState"))$("orderState").value="";if($("orderCity")){ $("orderCity").innerHTML='<option value="">Select City</option>';$("orderCity").disabled=true}if($("")){ $("").innerHTML='<option value="">Select Tehsil</option>';$("").disabled=true}if($("orderPost")){ $("orderPost").innerHTML='<option value="">Select Area / Post</option>';$("orderPost").disabled=true}}
 
 $("pageProduct")?.addEventListener("change",pageOrderRecalc);$("pageQty")?.addEventListener("input",pageOrderRecalc);
 $("backToOrders")?.addEventListener("click",()=>showPage("orders"));
-$("pageOrderReset")?.addEventListener("click",()=>{const f=$("createOrderPageForm");f.reset();if(f.elements.state)f.elements.state.value="";["orderCity","orderTehsil","orderPost"].forEach(id=>{const x=$(id);if(x){x.innerHTML='<option value="">Select</option>';x.disabled=true}});$("pageExistingCustomer").textContent="";$("pageOrderMsg").textContent="";$("pageAmount").value="";f.querySelectorAll(".field-error").forEach(x=>x.textContent="");f.querySelectorAll(".invalid").forEach(x=>x.classList.remove("invalid"))});
+$("pageOrderReset")?.addEventListener("click",()=>{const f=$("createOrderPageForm");f.reset();if(f.elements.state)f.elements.state.value="";["orderCity","orderPost"].forEach(id=>{const x=$(id);if(x){x.innerHTML='<option value="">Select</option>';x.disabled=true}});$("pageExistingCustomer").textContent="";$("pageOrderMsg").textContent="";$("pageAmount").value="";f.querySelectorAll(".field-error").forEach(x=>x.textContent="");f.querySelectorAll(".invalid").forEach(x=>x.classList.remove("invalid"))});
 $("pageMobile")?.addEventListener("input",async e=>{
  const el=e.target;el.value=el.value.replace(/\D/g,"").slice(0,10);
  if(!/^[6-9][0-9]{9}$/.test(el.value)){ $("pageExistingCustomer").textContent="";return}
@@ -277,6 +277,39 @@ function liveValidateCreateOrder(){
 ["customer_name","mobile","alternate_mobile","age","pincode","quantity"].forEach(id=>{
  $(id)?.addEventListener("input",liveValidateCreateOrder);
 });
+
+function liveValidateCreateOrder(){
+ const f=document.getElementById("createOrderPageForm"); if(!f)return;
+ const set=(name,id,text,valid)=>{
+   const el=f.elements[name],box=document.getElementById(id);
+   if(!el||!box)return;
+   el.classList.toggle("invalid",!valid);
+   box.textContent=valid?"":text;
+ };
+ const name=(f.elements.customer_name?.value||"").trim();
+ const mob=f.elements.mobile?.value||"";
+ const alt=f.elements.alternate_mobile?.value||"";
+ const age=f.elements.age?.value||"";
+ const pin=f.elements.pincode?.value||"";
+ const qty=f.elements.quantity?.value||"";
+ set("customer_name","err_name","Name में numbers नहीं डालें.",name==="" || /^[\p{L} .'-]+$/u.test(name));
+ set("mobile","err_mobile",mob.length<10?"Mobile number में 10 digits होने चाहिए।":"Valid 10 digit mobile number डालें.",/^[6-9][0-9]{9}$/.test(mob));
+ set("alternate_mobile","err_alt","Alternate mobile exactly 10 digits होना चाहिए.",!alt||/^[6-9][0-9]{9}$/.test(alt));
+ set("age","err_age","Age 1 से 120 के बीच होना चाहिए.",!age||(/^[0-9]+$/.test(age)&&+age>=1&&+age<=120));
+ set("pincode","err_pin",pin.length<6?"Pincode में 6 digits होने चाहिए।":"Pincode exactly 6 digits होना चाहिए।",/^[0-9]{6}$/.test(pin));
+ set("quantity","err_qty","Quantity 1–99 whole number होनी चाहिए।",/^[0-9]+$/.test(qty)&&+qty>=1&&+qty<=99);
+}
+
+function attachLiveValidation(){
+ const f=document.getElementById("createOrderPageForm"); if(!f)return;
+ ["customer_name","mobile","alternate_mobile","age","pincode","quantity"].forEach(name=>{
+   const el=f.elements[name];
+   if(el) el.addEventListener("input",liveValidateCreateOrder);
+   if(el) el.addEventListener("blur",liveValidateCreateOrder);
+ });
+ liveValidateCreateOrder();
+}
+attachLiveValidation();
 document.addEventListener("submit",async e=>{if(e.target?.id!=="createOrderPageForm")return;e.preventDefault();const f=e.target,btn=f.querySelector('button[type="submit"]');f.querySelectorAll(".field-error").forEach(x=>x.textContent="");f.querySelectorAll(".invalid").forEach(x=>x.classList.remove("invalid"));const b=Object.fromEntries(new FormData(f).entries()),bad=(n,id,t)=>{f.elements[n]?.classList.add("invalid");$(id).textContent=t};let ok=true;if(!/^[\p{L} .'-]+$/u.test((b.customer_name||"").trim())){bad("customer_name","err_name","Name में numbers नहीं डालें।");ok=false}if(!/^[6-9][0-9]{9}$/.test(b.mobile||"")){bad("mobile","err_mobile","Mobile exactly 10 digits होना चाहिए।");ok=false}if(b.alternate_mobile&&!/^[6-9][0-9]{9}$/.test(b.alternate_mobile)){bad("alternate_mobile","err_alt","Alternate mobile exactly 10 digits होना चाहिए।");ok=false}if(b.age&&(!/^[0-9]+$/.test(b.age)||+b.age>120||+b.age<1)){bad("age","err_age","Age 1 से 120 के बीच होना चाहिए।");ok=false}if(!/^[0-9]{6}$/.test(b.pincode||"")){bad("pincode","err_pin","Pincode exactly 6 digits होना चाहिए।");ok=false}if(!/^[0-9]+$/.test(b.quantity||"")||+b.quantity<1||+b.quantity>99){bad("quantity","err_qty","Quantity 1–99 whole number होनी चाहिए।");ok=false}if(!ok)return;const enquiry=e.submitter?.id==="createEnquiry";$("confirmTitle").textContent=enquiry?"Create Enquiry":"Create Order";$("confirmText").textContent=enquiry?"क्या आप enquiry create करना चाहते हैं?":"क्या आप order create करना चाहते हैं?";$("confirmOverlay").classList.remove("hidden");$("confirmNo").onclick=()=>$("confirmOverlay").classList.add("hidden");$("confirmYes").onclick=async()=>{$("confirmOverlay").classList.add("hidden");await createOrderOrEnquiry(f,btn,enquiry)}});
 async function createOrderOrEnquiry(f,btn,enquiry){const msg=$("pageOrderMsg");btn.disabled=true;try{const {data:{session}}=await sb.auth.getSession();if(!session)throw Error("Session expired. Please login again.");const b=Object.fromEntries(new FormData(f).entries()),found=await sb.from("customers").select("id").eq("mobile",b.mobile).maybeSingle();if(found.error)throw found.error;const cp={customer_name:b.customer_name.trim(),mobile:b.mobile,alternate_mobile:b.alternate_mobile||null,age:b.age?+b.age:null,gender:b.gender||null,pincode:b.pincode,city:b.city,state:b.state,address:b.address};let cid;if(found.data){cid=found.data.id;const r=await sb.from("customers").update(cp).eq("id",cid);if(r.error)throw r.error}else{const r=await sb.from("customers").insert({...cp,created_by:session.user.id}).select("id").single();if(r.error)throw r.error;cid=r.data.id}if(enquiry){const q=await sb.from("orders").insert({customer_id:cid,total_amount:0,payment_mode:b.payment_mode||"cod",remarks:(b.remarks||"")+" [ENQUIRY]",agent_id:session.user.id,order_status:"enquiry"}).select("id,order_no").single();if(q.error)throw q.error;$("successText").textContent=`Enquiry place हो गई है। Enquiry No: #${q.data.order_no||q.data.id}`}else{const pr=await sb.from("products").select("price,sale_price,selling_price,amount").eq("id",b.product_id).single();if(pr.error)throw pr.error;const unitPrice=+((pr.data.price??pr.data.sale_price??pr.data.selling_price??pr.data.amount)??0);if(unitPrice<=0)throw Error("Selected product का price database में नहीं मिला।");const qty=+b.quantity,total=unitPrice*qty;const o=await sb.from("orders").insert({customer_id:cid,total_amount:total,payment_mode:b.payment_mode,remarks:b.remarks||null,agent_id:session.user.id,order_status:"new"}).select("id,order_no").single();if(o.error)throw o.error;const i=await sb.from("order_items").insert({order_id:o.data.id,product_id:b.product_id,quantity:qty,unit_price:unitPrice});if(i.error)throw i.error;$("successText").textContent=`Order place हो गया है। Order No: #${o.data.order_no||o.data.id}`}$("successOverlay").classList.remove("hidden");$("successOk").onclick=()=>{$("successOverlay").classList.add("hidden");resetCreateOrderForm()}}catch(err){msg.textContent=err?.message||String(err)}finally{btn.disabled=false}}
 async function searchOrders(inputId,resultId){
@@ -322,75 +355,110 @@ if(initialSession){
   $("loginPage").classList.remove("hidden");
 }
 
-const PINAPI="https://aniket-thapa.github.io/india-pincode-api";
-const slugify=x=>String(x||"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-async function initLocation(){
- const st=$("orderState"),city=$("orderCity"),teh=$("orderTehsil"),post=$("orderPost"),pin=$("orderPincode");
- if(!st||!city||!teh||!post)return;
 
- async function loadStates(){
-  try{
+
+const PINAPI="https://aniket-thapa.github.io/india-pincode-api";
+const POSTAL_API="https://api.postalpincode.in/pincode/";
+
+async function initLocation(){
+ const st=document.getElementById("orderState");
+ const city=document.getElementById("orderCity");
+ const post=document.getElementById("orderPost");
+ const pin=document.getElementById("orderPincode");
+ if(!st||!city||!post||!pin)return;
+
+ try{
    const states=await fetch(PINAPI+"/states.json").then(r=>r.json());
-   st.innerHTML='<option value="">Select State</option>'+states.map(x=>`<option value="${x.slug}">${x.name}</option>`).join("");
-  }catch(e){}
+   st.innerHTML='<option value="">Select State</option>'+
+     states.map(x=>`<option value="${x.slug}">${x.name}</option>`).join("");
+ }catch(e){
+   st.innerHTML='<option value="">State load failed</option>';
  }
+
  st.onchange=async()=>{
-  city.disabled=true;teh.disabled=true;post.disabled=true;
-  city.innerHTML='<option value="">Loading City…</option>';
-  teh.innerHTML='<option value="">Select Tehsil</option>';
-  post.innerHTML='<option value="">Select Area / Post</option>';
-  if(!st.value)return;
-  try{
-   const d=await fetch(PINAPI+"/states/"+st.value+".json").then(r=>r.json());
-   const districts=d.districts||[];
-   city.innerHTML='<option value="">Select City</option>'+districts.map(x=>`<option value="${x.slug}">${x.name}</option>`).join("");
-   city.disabled=false;
-  }catch(e){city.innerHTML='<option value="">City load failed</option>'}
+   city.disabled=true;
+   post.disabled=true;
+   city.innerHTML='<option value="">Loading City…</option>';
+   post.innerHTML='<option value="">Select Area / Post</option>';
+   if(!st.value)return;
+   try{
+     const d=await fetch(PINAPI+"/states/"+st.value+".json").then(r=>r.json());
+     city.innerHTML='<option value="">Select City / District</option>'+
+       (d.districts||[]).map(x=>`<option value="${x.slug}">${x.name}</option>`).join("");
+     city.disabled=false;
+   }catch(e){
+     city.innerHTML='<option value="">City load failed</option>';
+   }
  };
- city.onchange=async()=>{
-  teh.disabled=true;post.disabled=true;
-  teh.innerHTML='<option value="">Loading Tehsil…</option>';
-  post.innerHTML='<option value="">Select Area / Post</option>';
-  if(!st.value||!city.value)return;
-  try{
-   const d=await fetch(PINAPI+"/districts/"+st.value+"/"+city.value+".json").then(r=>r.json());
-   teh._offices=d.offices||[];
-   const vals=[...new Set(teh._offices.map(x=>x.taluk||x.subdistrict||x.block).filter(Boolean))];
-   teh.innerHTML='<option value="">Select Tehsil</option>'+vals.map(x=>`<option>${x}</option>`).join("");
-   teh.disabled=false;
-  }catch(e){teh.innerHTML='<option value="">Tehsil load failed</option>'}
+
+ city.onchange=()=>{
+   post.disabled=true;
+   post.innerHTML='<option value="">Enter 6-digit Pincode to load Area / Post</option>';
  };
- teh.onchange=()=>{
-  const v=(teh.value||"").toLowerCase();
-  const offices=(teh._offices||[]).filter(x=>String(x.taluk||x.subdistrict||x.block||"").toLowerCase()===v);
-  post.innerHTML='<option value="">Select Area / Post</option>'+offices.map(x=>`<option data-pin="${x.pincode}">${x.officeName}</option>`).join("");
-  post.disabled=false;
- };
- post.onchange=()=>{
-  const p=post.selectedOptions[0]?.dataset.pin;
-  if(p)pin.value=p;
-  liveValidateCreateOrder();
- };
- pin.addEventListener("input",()=>{pin.value=pin.value.replace(/\D/g,"").slice(0,6);liveValidateCreateOrder()});
- pin.addEventListener("blur",async()=>{
-  if(!/^[0-9]{6}$/.test(pin.value))return;
-  try{
-   const d=await fetch(PINAPI+"/pincodes/"+pin.value+".json").then(r=>r.json());
-   const offices=d.offices||[];if(!offices.length)return;
-   st.value=slugify(d.state);
-   await st.onchange();
-   city.value=slugify(d.district);
-   await city.onchange();
-   teh._offices=offices;
-   const vals=[...new Set(offices.map(x=>x.taluk||x.subdistrict||x.block).filter(Boolean))];
-   teh.innerHTML='<option value="">Select Tehsil</option>'+vals.map(x=>`<option>${x}</option>`).join("");
-   teh.disabled=false;
-   post.innerHTML='<option value="">Select Area / Post</option>'+offices.map(x=>`<option data-pin="${x.pincode}">${x.officeName}</option>`).join("");
-   post.disabled=false;
-  }catch(e){}
+
+ async function lookupPin(){
+   const p=pin.value.trim();
+   if(!/^[0-9]{6}$/.test(p))return;
+
+   try{
+     const response=await fetch(POSTAL_API+p);
+     const data=await response.json();
+     const offices=Array.isArray(data?.[0]?.PostOffice)?data[0].PostOffice:[];
+
+     if(!offices.length){
+       post.innerHTML='<option value="">Invalid Pincode</option>';
+       post.disabled=true;
+       return;
+     }
+
+     const first=offices[0];
+     const stateName=String(first.State||"").trim();
+     const districtName=String(first.District||"").trim();
+
+     const stateOpt=[...st.options].find(o=>
+       o.text.trim().toLowerCase()===stateName.toLowerCase()
+     );
+
+     if(stateOpt){
+       st.value=stateOpt.value;
+       await st.onchange();
+
+       const cityOpt=[...city.options].find(o=>
+         o.text.trim().toLowerCase()===districtName.toLowerCase()
+       );
+       if(cityOpt)city.value=cityOpt.value;
+     }
+
+     // One PIN can have multiple post offices.
+     post.innerHTML='<option value="">Select Area / Post</option>'+
+       offices.map(x=>{
+         const name=String(x.Name||"").trim();
+         const officePin=String(x.Pincode||p).trim();
+         return `<option data-pin="${officePin}">${name}</option>`;
+       }).join("");
+
+     post.disabled=false;
+
+     post.onchange=()=>{
+       const selected=post.selectedOptions[0];
+       if(selected?.dataset.pin)pin.value=selected.dataset.pin;
+       liveValidateCreateOrder();
+     };
+
+   }catch(e){
+     post.innerHTML='<option value="">Area / Post lookup failed</option>';
+     post.disabled=true;
+   }
+ }
+
+ pin.addEventListener("input",()=>{
+   pin.value=pin.value.replace(/\D/g,"").slice(0,6);
+   liveValidateCreateOrder();
+   if(pin.value.length===6)lookupPin();
  });
- await loadStates();
+ pin.addEventListener("blur",lookupPin);
 }
+
 initLocation();
 </script>
 </div></div><div id="confirmOverlay" class="confirmOverlay hidden"><div class="confirmBox"><h3 id="confirmTitle">Confirmation</h3><p id="confirmText"></p><div class="confirmActions"><button type="button" class="btn alt" id="confirmNo">No</button><button type="button" class="btn" id="confirmYes">Yes</button></div></div></div><div id="successOverlay" class="confirmOverlay hidden"><div class="confirmBox"><h3>Success</h3><p id="successText"></p><div class="confirmActions"><button type="button" class="btn" id="successOk">OK</button></div></div></body></html   const qty=Number(b.quantity);
