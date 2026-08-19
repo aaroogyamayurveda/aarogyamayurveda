@@ -156,8 +156,19 @@ $("newUser").onclick=()=>modal("नया CRM User",`
 $("createUserForm").onsubmit=async e=>{
  e.preventDefault();const f=new FormData(e.target),body=Object.fromEntries(f.entries());$("createMsg").textContent="Creating…";
  const {data,error}=await sb.functions.invoke("create-crm-user",{body});
- if(error){$("createMsg").textContent=error.message;return}
- if(data?.error){$("createMsg").textContent=data.error;return}
+ if(error){
+   let detail=error.message||"Edge Function call failed";
+   try{
+     const raw=await error.context?.text?.();
+     if(raw) detail+=" — "+raw;
+   }catch(_){}
+   $("createMsg").textContent=detail;
+   return;
+ }
+ if(data?.error){
+   $("createMsg").textContent=data.details?data.error+" — "+data.details:data.error;
+   return;
+ }
  $("modal").style.display="none";toast("User successfully created");await loadUsers();
 };
 
