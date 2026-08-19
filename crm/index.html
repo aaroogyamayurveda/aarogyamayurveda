@@ -318,7 +318,6 @@ orderForm.addEventListener("submit",async e=>{
    await refreshAll();
  }
 });
-};
 
 async function searchOrders(inputId,resultId){
  const term=$(inputId).value.trim();if(!term){$(resultId).innerHTML="";return}
