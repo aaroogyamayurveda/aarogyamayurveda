@@ -10,7 +10,27 @@
 @media(max-width:850px){.layout{grid-template-columns:1fr}.side{display:flex;overflow:auto;gap:5px}.side button{white-space:nowrap}.cards{grid-template-columns:1fr 1fr}.grid2,.grid3{grid-template-columns:1fr}.top{padding:0 12px}.user{display:none}}
 @media(max-width:500px){.cards{grid-template-columns:1fr}.main{padding:16px}}
 </style>
-</head>
+<script>
+window.__crmLogout = function () {
+  try {
+    var keys = [];
+    for (var i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
+    keys.forEach(function(k) {
+      if (k && (k.indexOf("sb-") === 0 || k.toLowerCase().indexOf("supabase") !== -1)) {
+        localStorage.removeItem(k);
+      }
+    });
+    var skeys = [];
+    for (var j = 0; j < sessionStorage.length; j++) skeys.push(sessionStorage.key(j));
+    skeys.forEach(function(k) {
+      if (k && (k.indexOf("sb-") === 0 || k.toLowerCase().indexOf("supabase") !== -1)) {
+        sessionStorage.removeItem(k);
+      }
+    });
+  } catch (e) {}
+  window.location.href = window.location.pathname + "?logout=1";
+};
+</script></head>
 <body>
 <div id="loginPage" class="wrap"><section class="login">
 <div class="brand"><img class="logo" src="https://aaroogyamayurveda.in/aaroogyam-ayurveda-logo-circle.png" alt="Aaroogyam Ayurveda"><h1>Aaroogyam Ayurveda</h1><p>Secure CRM Login</p></div>
@@ -21,18 +41,7 @@
 </form></section></div>
 
 <div id="app" class="app">
-<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><button type="button" id="logout" class="logout" onclick="document.getElementById("agentNewOrder")?.addEventListener("click",()=>document.getElementById("newOrder").click());
-document.getElementById("myOrderSearchBtn")?.addEventListener("click",async()=>{
- const term=document.getElementById("myOrderSearch").value.trim();
- if(!term)return loadMyOrders();
- let q=sb.from("orders").select("id,order_no,order_status,total_amount,order_date,customers(customer_name,mobile)").eq("agent_id",me.id).limit(50);
- if(/^\d+$/.test(term)) q=q.eq("order_no",Number(term));
- else q=q.ilike("customers.mobile",`%${term}%`);
- const {data,error}=await q;
- document.getElementById("myOrdersBody").innerHTML=error?`<tr><td colspan="6">${esc(error.message)}</td></tr>`:(data||[]).map(o=>`<tr><td>#${esc(o.order_no)}</td><td>${esc(o.customers?.customer_name)}</td><td>${esc(o.customers?.mobile)}</td><td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td><td><span class="pill">${esc(o.order_status)}</span></td><td>${o.order_date?new Date(o.order_date).toLocaleString("en-IN"):"-"}</td></tr>`).join("")||'<tr><td colspan="6" class="empty">Order नहीं मिला</td></tr>';
-});
-
-window.__crmLogout && window.__crmLogout();">Logout</button></div></header>
+<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><button type="button" id="logout" class="logout" onclick="window.__crmLogout()">Logout</button></div></header>
 <div class="layout">
 <aside class="side" id="nav"></aside>
 <main class="main">
@@ -87,15 +96,7 @@ window.__crmLogout && window.__crmLogout();">Logout</button></div></header>
 <div id="toast" class="toast"></div>
 
 <script>
-window.__crmLogout = function () {
-  try {
-    var keys = [];
-    for (var i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
-    keys.forEach(function(k) {
-      if (k && (k.indexOf("sb-") === 0 || k.toLowerCase().indexOf("supabase") !== -1)) {
-        localStorage.removeItem(k);
-      }
-    });
+});
     var skeys = [];
     for (var j = 0; j < sessionStorage.length; j++) skeys.push(sessionStorage.key(j));
     skeys.forEach(function(k) {
