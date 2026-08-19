@@ -10,27 +10,7 @@
 @media(max-width:850px){.layout{grid-template-columns:1fr}.side{display:flex;overflow:auto;gap:5px}.side button{white-space:nowrap}.cards{grid-template-columns:1fr 1fr}.grid2,.grid3{grid-template-columns:1fr}.top{padding:0 12px}.user{display:none}}
 @media(max-width:500px){.cards{grid-template-columns:1fr}.main{padding:16px}}
 </style>
-<script>
-window.__crmLogout = function () {
-  try {
-    var keys = [];
-    for (var i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
-    keys.forEach(function(k) {
-      if (k && (k.indexOf("sb-") === 0 || k.toLowerCase().indexOf("supabase") !== -1)) {
-        localStorage.removeItem(k);
-      }
-    });
-    var skeys = [];
-    for (var j = 0; j < sessionStorage.length; j++) skeys.push(sessionStorage.key(j));
-    skeys.forEach(function(k) {
-      if (k && (k.indexOf("sb-") === 0 || k.toLowerCase().indexOf("supabase") !== -1)) {
-        sessionStorage.removeItem(k);
-      }
-    });
-  } catch (e) {}
-  window.location.href = window.location.pathname + "?logout=1";
-};
-</script></head>
+</head>
 <body>
 <div id="loginPage" class="wrap"><section class="login">
 <div class="brand"><img class="logo" src="https://aaroogyamayurveda.in/aaroogyam-ayurveda-logo-circle.png" alt="Aaroogyam Ayurveda"><h1>Aaroogyam Ayurveda</h1><p>Secure CRM Login</p></div>
@@ -41,7 +21,18 @@ window.__crmLogout = function () {
 </form></section></div>
 
 <div id="app" class="app">
-<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><button type="button" id="logout" class="logout" onclick="window.__crmLogout()">Logout</button></div></header>
+<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><button type="button" id="logout" class="logout" onclick="document.getElementById("agentNewOrder")?.addEventListener("click",()=>document.getElementById("newOrder").click());
+document.getElementById("myOrderSearchBtn")?.addEventListener("click",async()=>{
+ const term=document.getElementById("myOrderSearch").value.trim();
+ if(!term)return loadMyOrders();
+ let q=sb.from("orders").select("id,order_no,order_status,total_amount,order_date,customers(customer_name,mobile)").eq("agent_id",me.id).limit(50);
+ if(/^\d+$/.test(term)) q=q.eq("order_no",Number(term));
+ else q=q.ilike("customers.mobile",`%${term}%`);
+ const {data,error}=await q;
+ document.getElementById("myOrdersBody").innerHTML=error?`<tr><td colspan="6">${esc(error.message)}</td></tr>`:(data||[]).map(o=>`<tr><td>#${esc(o.order_no)}</td><td>${esc(o.customers?.customer_name)}</td><td>${esc(o.customers?.mobile)}</td><td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td><td><span class="pill">${esc(o.order_status)}</span></td><td>${o.order_date?new Date(o.order_date).toLocaleString("en-IN"):"-"}</td></tr>`).join("")||'<tr><td colspan="6" class="empty">Order नहीं मिला</td></tr>';
+});
+
+window.__crmLogout && window.__crmLogout();">Logout</button></div></header>
 <div class="layout">
 <aside class="side" id="nav"></aside>
 <main class="main">
@@ -95,6 +86,30 @@ window.__crmLogout = function () {
 <div id="modal" class="modal"><div class="modalbox"><div class="modalhead"><h3 id="modalTitle"></h3><button class="close" id="closeModal">✕</button></div><div id="modalContent"></div></div></div>
 <div id="toast" class="toast"></div>
 
+<script>
+window.__crmLogout = function () {
+  try {
+    var keys = [];
+    for (var i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
+    keys.forEach(function(k) {
+      if (k && (k.indexOf("sb-") === 0 || k.toLowerCase().indexOf("supabase") !== -1)) {
+        localStorage.removeItem(k);
+      }
+    });
+    var skeys = [];
+    for (var j = 0; j < sessionStorage.length; j++) skeys.push(sessionStorage.key(j));
+    skeys.forEach(function(k) {
+      if (k && (k.indexOf("sb-") === 0 || k.toLowerCase().indexOf("supabase") !== -1)) {
+        sessionStorage.removeItem(k);
+      }
+    });
+  } catch (e) {
+    console.error("logout storage cleanup:", e);
+  }
+  // Force a fresh CRM page. The startup code sees logout=1 and shows login.
+  window.location.href = window.location.pathname + "?logout=1";
+};
+</script>
 <script type="module">
 import {createClient} from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 const SUPABASE_URL="https://envziigrxkmwmamswduv.supabase.co";
@@ -253,73 +268,139 @@ $("newCustomer").onclick=()=>modal("नया Customer / Enquiry",`
 <div class="grid2"><div class="field"><label>Lead Source</label><select name="lead_source"><option value="phone">Phone Call</option><option value="facebook">Facebook</option><option value="instagram">Instagram</option><option value="whatsapp">WhatsApp</option><option value="website">Website</option><option value="other">Other</option></select></div><div class="field"><label>Remarks</label><input name="remarks"></div></div>
 <div class="actions"><button type="submit" class="btn">Save Customer</button></div><div id="customerMsg" class="msg"></div></form>`);
 document.addEventListener("submit", async e=>{
- if(e.target && e.target.id==="customerForm"){
-   e.preventDefault();
-   const form=e.target;
-   const b=Object.fromEntries(new FormData(form).entries());
-   b.age=b.age?Number(b.age):null;
-   b.created_by=me.id;
-   delete b.lead_source;
-   delete b.remarks;
-   const {error}=await sb.from("customers").insert(b);
-   const msg=document.getElementById("customerMsg");
-   if(error){
-     if(msg) msg.textContent=error.message;
-   }else{
-     $("modal").style.display="none";
-     toast("Customer saved");
-     await loadCustomers();
-   }
- }
- if(e.target && e.target.id==="orderForm"){
-   e.preventDefault();
-   const form=e.target;
-   const fd=new FormData(form);
-   const b=Object.fromEntries(fd.entries());
-   const product_id=b.product_id;
-   const quantity=Number(b.quantity);
-   const total_amount=Number(b.total_amount);
-   const orderPayload={
-     customer_id:b.customer_id,
-     total_amount,
-     payment_mode:b.payment_mode,
-     scheme:b.scheme,
-     delivery_address:b.delivery_address,
-     remarks:b.remarks,
-     agent_id:me.id,
-     order_status:"new"
-   };
-   const {data,error}=await sb.from("orders").insert(orderPayload).select("id,order_no").single();
-   const msg=document.getElementById("orderMsg");
-   if(error){
-     if(msg) msg.textContent=error.message;
-     return;
-   }
-   const itemError=(await sb.from("order_items").insert({
-     order_id:data.id,
-     product_id,
-     quantity,
-     unit_price:total_amount/quantity
-   })).error;
-   if(itemError){
-     if(msg) msg.textContent="Order बना लेकिन item save नहीं हुआ: "+itemError.message;
-     return;
-   }
-   $("modal").style.display="none";
-   toast("Order #"+data.order_no+" created");
-   await refreshAll();
- }
+  const form=e.target;
+  if(!form) return;
+
+  if(form.id==="customerForm"){
+    e.preventDefault();
+    const msg=document.getElementById("customerMsg");
+    const submit=form.querySelector('button[type="submit"]');
+    submit.disabled=true;
+    try{
+      const b=Object.fromEntries(new FormData(form).entries());
+      const name=(b.customer_name||"").trim();
+      if(!/^[\p{L} .'-]+$/u.test(name)) throw new Error("Customer Name में numbers नहीं डालें।");
+      if(!/^[6-9][0-9]{9}$/.test(b.mobile||"")) throw new Error("Mobile Number exactly 10 digits का होना चाहिए।");
+      if(b.alternate_mobile && !/^[6-9][0-9]{9}$/.test(b.alternate_mobile)) throw new Error("Alternate Mobile exactly 10 digits का होना चाहिए।");
+      if(b.pincode && !/^[0-9]{6}$/.test(b.pincode)) throw new Error("Pincode exactly 6 digits का होना चाहिए।");
+
+      const payload={
+        customer_name:name,
+        mobile:b.mobile,
+        alternate_mobile:b.alternate_mobile||null,
+        age:b.age?Number(b.age):null,
+        gender:b.gender||null,
+        pincode:b.pincode||null,
+        city:b.city||null,
+        state:b.state||null,
+        address:b.address||null,
+        created_by:me.id
+      };
+      const {error}=await sb.from("customers").insert(payload);
+      if(error) throw new Error(error.message);
+      $("modal").style.display="none";
+      toast("Customer saved");
+      await loadCustomers();
+    }catch(err){
+      if(msg) msg.textContent=err?.message||String(err);
+      submit.disabled=false;
+    }
+    return;
+  }
+
+  if(form.id==="orderForm"){
+    e.preventDefault();
+    const msg=document.getElementById("orderMsg");
+    const submit=form.querySelector('button[type="submit"]');
+    submit.disabled=true;
+    if(msg) msg.textContent="Customer और Order save हो रहा है…";
+
+    try{
+      const b=Object.fromEntries(new FormData(form).entries());
+      const name=(b.customer_name||"").trim();
+
+      if(!/^[\p{L} .'-]+$/u.test(name)) throw new Error("Customer Name में numbers नहीं डालें।");
+      if(!/^[6-9][0-9]{9}$/.test(b.mobile||"")) throw new Error("Mobile Number exactly 10 digits का होना चाहिए और 6–9 से शुरू होना चाहिए।");
+      if(b.alternate_mobile && !/^[6-9][0-9]{9}$/.test(b.alternate_mobile)) throw new Error("Alternate Mobile exactly 10 digits का होना चाहिए।");
+      if(!/^[0-9]{6}$/.test(b.pincode||"")) throw new Error("Pincode exactly 6 digits का होना चाहिए।");
+
+      let customerId;
+      const existing=await sb.from("customers").select("id").eq("mobile",b.mobile).maybeSingle();
+      if(existing.error) throw new Error("Customer search failed: "+existing.error.message);
+
+      if(existing.data){
+        customerId=existing.data.id;
+        const upd=await sb.from("customers").update({
+          customer_name:name,
+          alternate_mobile:b.alternate_mobile||null,
+          age:b.age?Number(b.age):null,
+          gender:b.gender||null,
+          pincode:b.pincode,
+          city:b.city,
+          state:b.state,
+          address:b.address
+        }).eq("id",customerId);
+        if(upd.error) throw new Error("Customer update failed: "+upd.error.message);
+      }else{
+        const ins=await sb.from("customers").insert({
+          customer_name:name,
+          mobile:b.mobile,
+          alternate_mobile:b.alternate_mobile||null,
+          age:b.age?Number(b.age):null,
+          gender:b.gender||null,
+          pincode:b.pincode,
+          city:b.city,
+          state:b.state,
+          address:b.address,
+          created_by:me.id
+        }).select("id").single();
+        if(ins.error) throw new Error("Customer save failed: "+ins.error.message);
+        customerId=ins.data.id;
+      }
+
+      // IMPORTANT: only columns known to exist in the current orders table.
+      const orderPayload={
+        customer_id:customerId,
+        total_amount:Number(b.total_amount),
+        payment_mode:b.payment_mode,
+        scheme:b.scheme||null,
+        remarks:b.remarks||null,
+        agent_id:me.id,
+        order_status:"new"
+      };
+
+      const created=await sb.from("orders").insert(orderPayload).select("id,order_no").single();
+      if(created.error) throw new Error("Order save failed: "+created.error.message);
+
+      const item=await sb.from("order_items").insert({
+        order_id:created.data.id,
+        product_id:b.product_id,
+        quantity:Number(b.quantity),
+        unit_price:Number(b.total_amount)/Number(b.quantity)
+      });
+      if(item.error) throw new Error("Order item save failed: "+item.error.message);
+
+      $("modal").style.display="none";
+      toast("Order #"+created.data.order_no+" created successfully");
+      await refreshAll();
+    }catch(err){
+      if(msg) msg.textContent=err?.message||String(err);
+      submit.disabled=false;
+    }
+  }
 });
 
 $("newOrder").onclick=async()=>{
- const {data:products}=await sb.from("products").select("id,product_name,price").eq("active",true);
- modal("नया Order — Customer + Order एक साथ",`
-<form id="orderForm" onsubmit="return false;">
+  const {data:products,error:productError}=await sb.from("products").select("id,product_name,price").eq("active",true);
+  if(productError){ toast(productError.message); return; }
+
+  modal("नया Order — Customer + Order एक साथ",`
+<form id="orderForm">
 <h4 style="color:var(--g);margin:4px 0 10px">Customer Details</h4>
 <div class="grid2">
-<div class="field"><label>Customer Name *</label><input name="customer_name" required maxlength="80" pattern="[A-Za-zÀ-ÖØ-öø-ÿ .'-]+" title="Name में केवल letters और space डालें"></div>
-<div class="field"><label>Mobile Number *</label><input name="mobile" required inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}" title="10 digit valid Indian mobile number" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)"></div>
-<div class="field"><label>Alternate Mobile</label><input name="alternate_mobile" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}" title="10 digit valid Indian mobile number" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)"></div>
+<div class="field"><label>Customer Name *</label><input name="customer_name" required maxlength="80" pattern="[A-Za-zÀ-ÖØ-öø-ÿ .'-]+" title="Name में numbers नहीं डालें"></div>
+<div class="field"><label>Mobile Number *</label><input name="mobile" required inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}" title="10 digit mobile number" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)"></div>
+<div class="field"><label>Alternate Mobile</label><input name="alternate_mobile" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}" title="10 digit mobile number" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)"></div>
 <div class="field"><label>Age</label><input name="age" type="number" min="1" max="120"></div>
 <div class="field"><label>Gender</label><select name="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
 <div class="field"><label>Pincode *</label><input name="pincode" required inputmode="numeric" maxlength="6" pattern="[0-9]{6}" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,6)"></div>
@@ -330,10 +411,7 @@ $("newOrder").onclick=async()=>{
 
 <h4 style="color:var(--g);margin:18px 0 10px">Order Details</h4>
 <div class="grid2">
-<div class="field"><label>Product *</label><select name="product_id" id="directProduct" required>
-<option value="">Select Product</option>
-${(products||[]).map(p=>`<option value="${p.id}" data-price="${p.price}">${esc(p.product_name)} — ₹${Number(p.price||0).toLocaleString("en-IN")}</option>`).join("")}
-</select></div>
+<div class="field"><label>Product *</label><select name="product_id" id="directProduct" required><option value="">Select Product</option>${(products||[]).map(p=>`<option value="${p.id}" data-price="${p.price}">${esc(p.product_name)} — ₹${Number(p.price||0).toLocaleString("en-IN")}</option>`).join("")}</select></div>
 <div class="field"><label>Quantity *</label><input name="quantity" type="number" min="1" max="99" value="1" required></div>
 <div class="field"><label>Total Amount (₹) *</label><input name="total_amount" id="directAmount" type="number" min="0" required></div>
 <div class="field"><label>Payment Mode *</label><select name="payment_mode" required><option value="cod">COD</option><option value="prepaid">Prepaid</option></select></div>
@@ -345,118 +423,17 @@ ${(products||[]).map(p=>`<option value="${p.id}" data-price="${p.price}">${esc(p
 <div id="orderMsg" class="msg"></div>
 </form>`);
 
-const directProduct=document.getElementById("directProduct");
-const directAmount=document.getElementById("directAmount");
-if(directProduct && directAmount){
- directProduct.addEventListener("change",()=>{
-   const price=Number(directProduct.selectedOptions[0]?.dataset.price||0);
-   const qty=Number(document.querySelector('#orderForm [name="quantity"]')?.value||1);
-   if(price) directAmount.value=price*qty;
- });
- const qtyInput=document.querySelector('#orderForm [name="quantity"]');
- qtyInput?.addEventListener("input",()=>{
-   const price=Number(directProduct.selectedOptions[0]?.dataset.price||0);
-   const qty=Number(qtyInput.value||1);
-   if(price) directAmount.value=price*qty;
- });
-}
+  const product=document.getElementById("directProduct");
+  const amount=document.getElementById("directAmount");
+  const qty=document.querySelector('#orderForm [name="quantity"]');
+  const updateAmount=()=>{
+    const price=Number(product?.selectedOptions[0]?.dataset.price||0);
+    const q=Number(qty?.value||1);
+    if(product && amount && price) amount.value=price*q;
+  };
+  product?.addEventListener("change",updateAmount);
+  qty?.addEventListener("input",updateAmount);
 };
-
-document.addEventListener("submit", async e=>{
- if(e.target && e.target.id==="orderForm"){
-   e.preventDefault();
-   const form=e.target;
-   const msg=document.getElementById("orderMsg");
-   const submit=form.querySelector('button[type="submit"]');
-   submit.disabled=true;
-   msg.textContent="Customer और Order save हो रहा है…";
-
-   try{
-     const fd=new FormData(form);
-     const b=Object.fromEntries(fd.entries());
-     const name=b.customer_name.trim();
-
-     // Client-side validation.
-     if(!/^[A-Za-zÀ-ÖØ-öø-ÿ .'-]+$/.test(name)){
-       throw new Error("Customer Name में केवल letters और space डालें।");
-     }
-     if(!/^[6-9][0-9]{9}$/.test(b.mobile)){
-       throw new Error("Mobile Number exactly 10 digits का होना चाहिए और 6–9 से शुरू होना चाहिए।");
-     }
-     if(b.alternate_mobile && !/^[6-9][0-9]{9}$/.test(b.alternate_mobile)){
-       throw new Error("Alternate Mobile exactly 10 digits का होना चाहिए।");
-     }
-     if(!/^[0-9]{6}$/.test(b.pincode)){
-       throw new Error("Pincode exactly 6 digits का होना चाहिए।");
-     }
-
-     // Find existing customer by mobile; otherwise create one.
-     let customerId=null;
-     const existing=await sb.from("customers").select("id").eq("mobile",b.mobile).maybeSingle();
-     if(existing.error) throw new Error("Customer search failed: "+existing.error.message);
-
-     if(existing.data){
-       customerId=existing.data.id;
-       const updateCustomer={
-         customer_name:name,
-         alternate_mobile:b.alternate_mobile||null,
-         age:b.age?Number(b.age):null,
-         gender:b.gender||null,
-         pincode:b.pincode,
-         city:b.city,
-         state:b.state,
-         address:b.address
-       };
-       const upd=await sb.from("customers").update(updateCustomer).eq("id",customerId);
-       if(upd.error) throw new Error("Customer update failed: "+upd.error.message);
-     }else{
-       const ins=await sb.from("customers").insert({
-         customer_name:name,
-         mobile:b.mobile,
-         alternate_mobile:b.alternate_mobile||null,
-         age:b.age?Number(b.age):null,
-         gender:b.gender||null,
-         pincode:b.pincode,
-         city:b.city,
-         state:b.state,
-         address:b.address,
-         created_by:me.id
-       }).select("id").single();
-       if(ins.error) throw new Error("Customer save failed: "+ins.error.message);
-       customerId=ins.data.id;
-     }
-
-     // Only use columns known to exist in the current orders table.
-     const orderPayload={
-       customer_id:customerId,
-       total_amount:Number(b.total_amount),
-       payment_mode:b.payment_mode,
-       scheme:b.scheme||null,
-       remarks:b.remarks||null,
-       agent_id:me.id,
-       order_status:"new"
-     };
-
-     const created=await sb.from("orders").insert(orderPayload).select("id,order_no").single();
-     if(created.error) throw new Error("Order save failed: "+created.error.message);
-
-     const item=await sb.from("order_items").insert({
-       order_id:created.data.id,
-       product_id:b.product_id,
-       quantity:Number(b.quantity),
-       unit_price:Number(b.total_amount)/Number(b.quantity)
-     });
-     if(item.error) throw new Error("Order item save failed: "+item.error.message);
-
-     $("modal").style.display="none";
-     toast("Order #"+created.data.order_no+" created successfully");
-     await refreshAll();
-   }catch(err){
-     msg.textContent=err?.message||String(err);
-     submit.disabled=false;
-   }
- }
-});
 
 async function searchOrders(inputId,resultId){
  const term=$(inputId).value.trim();if(!term){$(resultId).innerHTML="";return}
@@ -511,6 +488,5 @@ async function doLogout(e){
 
 const {data:{session}}=await sb.auth.getSession();
   if(session) await boot(session.user);
-}
 </script>
 </body></html>
