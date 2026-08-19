@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="hi">
 <head>
@@ -9,7 +10,7 @@
 .wrap{min-height:100vh;display:grid;place-items:center;padding:24px}.login{width:min(430px,100%);background:#fff;border:1px solid var(--border);border-radius:26px;padding:34px;box-shadow:0 20px 55px #164b3014}.brand{text-align:center}.logo{width:78px;height:78px;object-fit:contain;margin:auto}.brand h1{font:700 29px Georgia,serif;color:var(--g);margin:8px 0 2px}.brand p{color:var(--muted);margin:4px 0 25px}.field{margin:12px 0}.field label{display:block;font-size:12px;font-weight:800;color:var(--g);margin-bottom:6px}.field input,.field select,.field textarea{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:11px;outline:none;background:#fff}.field textarea{min-height:80px;resize:vertical}.btn{border:0;border-radius:11px;padding:12px 15px;background:var(--g);color:#fff;font-weight:800}.btn.full{width:100%}.btn.alt{background:#fff;color:var(--g);border:1px solid var(--g)}.btn.red{background:var(--red)}.msg{min-height:20px;color:var(--red);font-size:13px;margin-top:10px;text-align:center}.app{display:none;min-height:100vh}.top{height:68px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:20}.top strong{font:700 21px Georgia,serif;color:var(--g)}.user{font-size:12px;color:var(--muted)}.logout{margin-left:10px;border:1px solid var(--border);background:#fff;color:var(--g);border-radius:9px;padding:8px 12px;font-weight:800}.layout{display:grid;grid-template-columns:235px 1fr;min-height:calc(100vh - 68px)}.side{background:#123c27;padding:18px 12px;color:#fff}.side button{display:block;width:100%;text-align:left;background:transparent;color:#e9f3ec;border:0;border-radius:9px;padding:11px 12px;margin:4px 0;font-weight:700}.side button:hover,.side button.active{background:#ffffff18}.main{padding:25px;max-width:1250px;width:100%;margin:auto}.page{display:none}.page.active{display:block}.title{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:18px}.title h2{color:var(--g);margin:0}.sub{color:var(--muted);font-size:13px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}.stat{background:#fff;border:1px solid var(--border);border-radius:16px;padding:17px}.stat span{font-size:12px;color:var(--muted)}.stat b{display:block;font-size:27px;color:var(--g);margin-top:4px}.panel{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:18px}.panel h3{margin:0 0 14px;color:var(--g)}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:10px;border-bottom:1px solid #edf1ee;white-space:nowrap}th{color:var(--g);background:#f7faf7}.pill{display:inline-block;padding:5px 8px;border-radius:999px;background:#edf5ea;color:var(--g);font-weight:800;font-size:11px}.search{display:flex;gap:8px}.search input{flex:1;padding:11px;border:1px solid var(--border);border-radius:10px}.empty{padding:22px;text-align:center;color:var(--muted)}.hidden{display:none!important}.modal{position:fixed;inset:0;background:#0008;z-index:100;display:none;place-items:center;padding:20px}.modalbox{width:min(600px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:20px;padding:22px}.modalhead{display:flex;justify-content:space-between;align-items:center}.modalhead h3{color:var(--g);margin:0}.close{border:0;background:#eee;border-radius:8px;padding:7px 10px}.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:15px}.toast{position:fixed;right:20px;bottom:20px;background:#163d28;color:#fff;padding:12px 16px;border-radius:10px;display:none;z-index:200}
 @media(max-width:850px){.layout{grid-template-columns:1fr}.side{display:flex;overflow:auto;gap:5px}.side button{white-space:nowrap}.cards{grid-template-columns:1fr 1fr}.grid2,.grid3{grid-template-columns:1fr}.top{padding:0 12px}.user{display:none}}
 @media(max-width:500px){.cards{grid-template-columns:1fr}.main{padding:16px}}
-</style>
+.field-error{font-size:12px;color:var(--red);min-height:16px}.invalid{border-color:var(--red)!important}.confirmOverlay{position:fixed;inset:0;background:#0008;z-index:9999;display:grid;place-items:center}.confirmOverlay.hidden{display:none}.confirmBox{background:#fff;border-radius:16px;padding:24px;width:min(420px,92vw)}.confirmActions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}</style>
 </head>
 <body>
 <div id="loginPage" class="wrap"><section class="login">
@@ -37,21 +38,21 @@
 <div class="panel"><form id="createOrderPageForm">
 <h3>Customer Details</h3>
 <div class="grid2">
-<div class="field"><label>Customer Name *</label><input name="customer_name" maxlength="80" required pattern="[A-Za-zÀ-ÖØ-öø-ÿ .'-]+" title="Name में numbers नहीं डालें"></div>
-<div class="field"><label>Mobile Number *</label><input name="mobile" id="pageMobile" inputmode="numeric" maxlength="10" required pattern="[6-9][0-9]{9}" placeholder="10 digit mobile"></div>
-<div class="field"><label>Alternate Mobile</label><input name="alternate_mobile" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}"></div>
-<div class="field"><label>Age</label><input name="age" type="number" min="1" max="120"></div>
+<div class="field"><label>Customer Name *</label><input name="customer_name" maxlength="80" required pattern="[A-Za-zÀ-ÖØ-öø-ÿ .'-]+" title="Name में numbers नहीं डालें"><div id="err_name" class="field-error"></div></div>
+<div class="field"><label>Mobile Number *</label><input name="mobile" id="pageMobile" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" inputmode="numeric" maxlength="10" required pattern="[6-9][0-9]{9}" placeholder="10 digit mobile"><div id="err_mobile" class="field-error"></div></div>
+<div class="field"><label>Alternate Mobile</label><input name="alternate_mobile" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}"><div id="err_alt" class="field-error"></div></div>
+<div class="field"><label>Age</label><input name="age" type="text" inputmode="numeric" maxlength="3" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,3)"><div id="err_age" class="field-error"></div></div>
 <div class="field"><label>Gender</label><select name="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
-<div class="field"><label>Pincode *</label><input name="pincode" inputmode="numeric" maxlength="6" required pattern="[0-9]{6}"></div>
-<div class="field"><label>City *</label><input name="city" maxlength="60" required></div>
-<div class="field"><label>State *</label><input name="state" value="Madhya Pradesh" maxlength="60" required></div>
+<div class="field"><label>Pincode *</label><input name="pincode" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" id="orderPincode" inputmode="numeric" maxlength="6" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" required pattern="[0-9]{6}"><div id="err_pin" class="field-error"></div></div>
+<div class="field"><label>City *</label><select name="city" id="orderCity" required disabled><option value="">Select City</option></select></div>
+<div class="field"><label>State *</label><select name="state" id="orderState" required><option value="">Select State</option></select></div>
 </div>
-<div class="field"><label>Complete Delivery Address *</label><textarea name="address" maxlength="300" required></textarea></div>
+<div class="field"><label>Tehsil *</label><select name="tehsil" id="orderTehsil" required disabled><option value="">Select Tehsil</option></select></div><div class="field"><label>Area / Post *</label><select name="post" id="orderPost" required disabled><option value="">Select Area / Post</option></select></div><div class="field"><label>Complete Delivery Address *</label><textarea name="address" maxlength="300" required></textarea></div>
 <div id="pageExistingCustomer" class="sub"></div>
 <h3 style="margin-top:22px">Order Details</h3>
 <div class="grid2">
 <div class="field"><label>Product *</label><select name="product_id" id="pageProduct" required><option value="">Loading…</option></select></div>
-<div class="field"><label>Quantity *</label><input name="quantity" id="pageQty" type="number" min="1" max="99" value="1" required></div>
+<div class="field"><label>Quantity *</label><input name="quantity" id="pageQty" oninput="this.value=this.value.replace(/\D/g,'').slice(0,2)" type="text" inputmode="numeric" maxlength="2" value="1" required><div id="err_qty" class="field-error"></div></div>
 <div class="field"><label>Total Amount (₹) *</label><input name="total_amount" id="pageAmount" type="number" min="0" readonly></div>
 <div class="field"><label>Payment Mode *</label><select name="payment_mode" required><option value="cod">COD</option><option value="prepaid">Prepaid</option><option value="other">Other</option></select></div>
 <div class="field"><label>Lead Source</label><select name="lead_source"><option value="phone">Phone Call</option><option value="whatsapp">WhatsApp</option><option value="facebook">Facebook</option><option value="instagram">Instagram</option><option value="website">Website</option><option value="other">Other</option></select></div>
@@ -105,7 +106,7 @@ $("loginForm").onsubmit=async e=>{
  e.preventDefault();$("loginMsg").textContent="Login हो रहा है…";
  const {data,error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
  if(error){$("loginMsg").textContent="Login failed: "+error.message;return}
- await boot(data.user);
+ window.location.replace(window.location.pathname);
 };
 
 async function boot(user){
@@ -233,17 +234,7 @@ async function loadCreateOrderProducts(){
  });
 }
 function pageOrderRecalc(){const p=Number($("pageProduct")?.selectedOptions[0]?.dataset.price||0),q=Number($("pageQty")?.value||1);if($("pageAmount"))$("pageAmount").value=p>0?p*q:""}
-function resetCreateOrderForm(){
- const f=$("createOrderPageForm");
- if(!f)return;
- f.reset();
- if(f.elements.state)f.elements.state.value="Madhya Pradesh";
- if($("pageExistingCustomer"))$("pageExistingCustomer").textContent="";
- if($("pageAmount"))$("pageAmount").value="";
- if($("pageOrderMsg")){$("pageOrderMsg").textContent="";$("pageOrderMsg").style.color="";}
- if($("pageProduct"))$("pageProduct").value="";
- if($("pageQty"))$("pageQty").value="1";
-}
+function resetCreateOrderForm(){const f=$("createOrderPageForm");if(!f)return;f.reset();$("pageExistingCustomer").textContent="";$("pageAmount").value="";$("pageProduct").selectedIndex=0;$("pageQty").value="1";document.querySelectorAll(".field-error").forEach(x=>x.textContent="");document.querySelectorAll(".invalid").forEach(x=>x.classList.remove("invalid"));if($("orderState"))$("orderState").value="";if($("orderCity")){ $("orderCity").innerHTML='<option value="">Select City</option>';$("orderCity").disabled=true}if($("orderTehsil")){ $("orderTehsil").innerHTML='<option value="">Select Tehsil</option>';$("orderTehsil").disabled=true}if($("orderPost")){ $("orderPost").innerHTML='<option value="">Select Area / Post</option>';$("orderPost").disabled=true}}
 
 $("pageProduct")?.addEventListener("change",pageOrderRecalc);$("pageQty")?.addEventListener("input",pageOrderRecalc);
 $("backToOrders")?.addEventListener("click",()=>showPage("orders"));
@@ -256,73 +247,8 @@ $("pageMobile")?.addEventListener("input",async e=>{
  $("pageExistingCustomer").textContent="Existing customer मिला — details auto-fill की गई हैं.";
  const f=$("createOrderPageForm");["customer_name","alternate_mobile","age","gender","pincode","city","state","address"].forEach(k=>{if(data[k]!=null&&f.elements[k])f.elements[k].value=data[k]});
 });
-document.addEventListener("submit",async e=>{
- if(e.target?.id!=="createOrderPageForm")return;
- e.preventDefault();
- const f=e.target,btn=f.querySelector('button[type="submit"]'),msg=$("pageOrderMsg");
- btn.disabled=true;msg.textContent="Customer और Order save हो रहा है…";
- try{
-  const {data:{session}}=await sb.auth.getSession();
-  if(!session)throw new Error("Session expired. Please login again.");
-  const b=Object.fromEntries(new FormData(f).entries()),name=(b.customer_name||"").trim();
-  if(!/^[\p{L} .'-]+$/u.test(name))throw new Error("Customer Name में numbers नहीं डालें।");
-  if(!/^[6-9][0-9]{9}$/.test(b.mobile||""))throw new Error("Mobile exactly 10 digits होना चाहिए।");
-  if(b.alternate_mobile&&!/^[6-9][0-9]{9}$/.test(b.alternate_mobile))throw new Error("Alternate Mobile exactly 10 digits होना चाहिए।");
-  if(!/^[0-9]{6}$/.test(b.pincode||""))throw new Error("Pincode exactly 6 digits होना चाहिए।");
-  if(!b.product_id)throw new Error("Product select करें।");
-
-  const qty=Number(b.quantity);
-  if(!Number.isInteger(qty)||qty<1)throw new Error("Quantity सही डालें।");
-
-  // Always read the current price from the database. The user never types amount.
-  const productCheck=await sb.from("products").select("*").eq("id",b.product_id).single();
-  if(productCheck.error)throw new Error("Product load failed: "+productCheck.error.message);
-  const pp=productCheck.data;
-  const unitPrice=Number(pp.price ?? pp.sale_price ?? pp.selling_price ?? pp.amount ?? 0);
-  if(unitPrice<=0)throw new Error("Selected product का price database में नहीं मिला।");
-  const total=unitPrice*qty;
-  if($("pageAmount"))$("pageAmount").value=total;
-
-  const found=await sb.from("customers").select("id").eq("mobile",b.mobile).maybeSingle();
-  if(found.error)throw new Error("Customer search failed: "+found.error.message);
-
-  const cp={
-   customer_name:name,mobile:b.mobile,alternate_mobile:b.alternate_mobile||null,
-   age:b.age?Number(b.age):null,gender:b.gender||null,pincode:b.pincode,
-   city:b.city,state:b.state,address:b.address
-  };
-  let customerId;
-  if(found.data){
-   customerId=found.data.id;
-   const r=await sb.from("customers").update(cp).eq("id",customerId);
-   if(r.error)throw new Error("Customer update failed: "+r.error.message);
-  }else{
-   const r=await sb.from("customers").insert({...cp,created_by:me.id}).select("id").single();
-   if(r.error)throw new Error("Customer save failed: "+r.error.message);
-   customerId=r.data.id;
-  }
-
-  const order=await sb.from("orders").insert({
-   customer_id:customerId,total_amount:total,payment_mode:b.payment_mode,
-   remarks:b.remarks||null,agent_id:me.id,order_status:"new"
-  }).select("id,order_no").single();
-  if(order.error)throw new Error("Order save failed: "+order.error.message);
-
-  const item=await sb.from("order_items").insert({
-   order_id:order.data.id,product_id:b.product_id,quantity:qty,unit_price:unitPrice
-  });
-  if(item.error)throw new Error("Order item save failed: "+item.error.message);
-
-  msg.textContent=`Order #${order.data.order_no} created successfully.`;
-  msg.style.color="var(--g)";
-  resetCreateOrderForm();
-  await loadCreateOrderProducts();
-  await refreshAll();
- }catch(err){
-  msg.textContent=err?.message||String(err);msg.style.color="var(--red)";
- }finally{btn.disabled=false}
-});
-
+document.addEventListener("submit",async e=>{if(e.target?.id!=="createOrderPageForm")return;e.preventDefault();const f=e.target,btn=f.querySelector('button[type="submit"]');f.querySelectorAll(".field-error").forEach(x=>x.textContent="");f.querySelectorAll(".invalid").forEach(x=>x.classList.remove("invalid"));const b=Object.fromEntries(new FormData(f).entries()),bad=(n,id,t)=>{f.elements[n]?.classList.add("invalid");$(id).textContent=t};let ok=true;if(!/^[\p{L} .'-]+$/u.test((b.customer_name||"").trim())){bad("customer_name","err_name","Name में numbers नहीं डालें।");ok=false}if(!/^[6-9][0-9]{9}$/.test(b.mobile||"")){bad("mobile","err_mobile","Mobile exactly 10 digits होना चाहिए।");ok=false}if(b.alternate_mobile&&!/^[6-9][0-9]{9}$/.test(b.alternate_mobile)){bad("alternate_mobile","err_alt","Alternate mobile exactly 10 digits होना चाहिए।");ok=false}if(b.age&&(!/^[0-9]+$/.test(b.age)||+b.age>120||+b.age<1)){bad("age","err_age","Age 1 से 120 के बीच होना चाहिए।");ok=false}if(!/^[0-9]{6}$/.test(b.pincode||"")){bad("pincode","err_pin","Pincode exactly 6 digits होना चाहिए।");ok=false}if(!/^[0-9]+$/.test(b.quantity||"")||+b.quantity<1||+b.quantity>99){bad("quantity","err_qty","Quantity 1–99 whole number होनी चाहिए।");ok=false}if(!ok)return;const enquiry=e.submitter?.id==="createEnquiry";$("confirmTitle").textContent=enquiry?"Create Enquiry":"Create Order";$("confirmText").textContent=enquiry?"क्या आप enquiry create करना चाहते हैं?":"क्या आप order create करना चाहते हैं?";$("confirmOverlay").classList.remove("hidden");$("confirmNo").onclick=()=>$("confirmOverlay").classList.add("hidden");$("confirmYes").onclick=async()=>{$("confirmOverlay").classList.add("hidden");await createOrderOrEnquiry(f,btn,enquiry)}});
+async function createOrderOrEnquiry(f,btn,enquiry){const msg=$("pageOrderMsg");btn.disabled=true;try{const {data:{session}}=await sb.auth.getSession();if(!session)throw Error("Session expired. Please login again.");const b=Object.fromEntries(new FormData(f).entries()),found=await sb.from("customers").select("id").eq("mobile",b.mobile).maybeSingle();if(found.error)throw found.error;const cp={customer_name:b.customer_name.trim(),mobile:b.mobile,alternate_mobile:b.alternate_mobile||null,age:b.age?+b.age:null,gender:b.gender||null,pincode:b.pincode,city:b.city,state:b.state,address:b.address};let cid;if(found.data){cid=found.data.id;const r=await sb.from("customers").update(cp).eq("id",cid);if(r.error)throw r.error}else{const r=await sb.from("customers").insert({...cp,created_by:session.user.id}).select("id").single();if(r.error)throw r.error;cid=r.data.id}if(enquiry){const q=await sb.from("orders").insert({customer_id:cid,total_amount:0,payment_mode:b.payment_mode||"cod",remarks:(b.remarks||"")+" [ENQUIRY]",agent_id:session.user.id,order_status:"enquiry"}).select("id,order_no").single();if(q.error)throw q.error;$("successText").textContent=`Enquiry place हो गई है। Enquiry No: #${q.data.order_no||q.data.id}`}else{const pr=await sb.from("products").select("price,sale_price,selling_price,amount").eq("id",b.product_id).single();if(pr.error)throw pr.error;const unitPrice=+((pr.data.price??pr.data.sale_price??pr.data.selling_price??pr.data.amount)??0);if(unitPrice<=0)throw Error("Selected product का price database में नहीं मिला।");const qty=+b.quantity,total=unitPrice*qty;const o=await sb.from("orders").insert({customer_id:cid,total_amount:total,payment_mode:b.payment_mode,remarks:b.remarks||null,agent_id:session.user.id,order_status:"new"}).select("id,order_no").single();if(o.error)throw o.error;const i=await sb.from("order_items").insert({order_id:o.data.id,product_id:b.product_id,quantity:qty,unit_price:unitPrice});if(i.error)throw i.error;$("successText").textContent=`Order place हो गया है। Order No: #${o.data.order_no||o.data.id}`}$("successOverlay").classList.remove("hidden");$("successOk").onclick=()=>{$("successOverlay").classList.add("hidden");resetCreateOrderForm()}}catch(err){msg.textContent=err?.message||String(err)}finally{btn.disabled=false}}
 async function searchOrders(inputId,resultId){
  const term=$(inputId).value.trim();
  if(!term){$(resultId).innerHTML="";return}
@@ -347,32 +273,7 @@ async function searchOrders(inputId,resultId){
 $("searchBtn").onclick=()=>searchOrders("globalSearch","searchResult");$("orderSearchBtn").onclick=()=>searchOrders("orderSearch","ordersBody");
 
 
-async function doLogout(){
-  try{
-    $("logout").disabled=true;
-    await sb.auth.signOut({scope:"local"});
-  }catch(e){
-    console.error("Logout error:",e);
-  }finally{
-    // Always clear the local Supabase session/UI even if the network call fails.
-    try{
-      Object.keys(localStorage).forEach(k=>{
-        if(k.startsWith("sb-") || k.toLowerCase().includes("supabase")) localStorage.removeItem(k);
-      });
-      Object.keys(sessionStorage).forEach(k=>{
-        if(k.startsWith("sb-") || k.toLowerCase().includes("supabase")) sessionStorage.removeItem(k);
-      });
-    }catch(e){}
-    me=null; profile=null;
-    $("app").style.display="none";
-    $("loginPage").classList.remove("hidden");
-    $("email").value="";
-    $("password").value="";
-    $("loginMsg").textContent="आप successfully logout हो गए हैं।";
-    $("logout").disabled=false;
-    history.replaceState(null,"",location.pathname);
-  }
-}
+async function doLogout(){try{await sb.auth.signOut({scope:"local"})}catch(e){}try{Object.keys(localStorage).forEach(k=>{if(k.startsWith("sb-")||k.toLowerCase().includes("supabase"))localStorage.removeItem(k)});Object.keys(sessionStorage).forEach(k=>{if(k.startsWith("sb-")||k.toLowerCase().includes("supabase"))sessionStorage.removeItem(k)})}catch(e){}window.location.replace(window.location.pathname+"?loggedout=1")}
 $("logout").addEventListener("click",doLogout);
 
 sb.auth.onAuthStateChange((event, session)=>{
@@ -390,8 +291,8 @@ if(initialSession){
   $("app").style.display="none";
   $("loginPage").classList.remove("hidden");
 }
-</script>
-</body></html   const qty=Number(b.quantity);
+const PINAPI="https://aniket-thapa.github.io/india-pincode-api";const slugify=x=>String(x||"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");async function initLocation(){const st=$("orderState"),city=$("orderCity"),teh=$("orderTehsil"),post=$("orderPost"),pin=$("orderPincode");if(!st)return;try{const states=await fetch(PINAPI+"/states.json").then(r=>r.json());st.innerHTML='<option value="">Select State</option>'+states.map(x=>`<option value="${x.slug}">${x.name}</option>`).join("")}catch(e){return}st.onchange=async()=>{city.disabled=true;teh.disabled=true;post.disabled=true;city.innerHTML='<option>Loading…</option>';try{const d=await fetch(PINAPI+"/states/"+st.value+".json").then(r=>r.json());city.innerHTML='<option value="">Select City / District</option>'+d.districts.map(x=>`<option value="${x.slug}">${x.name}</option>`).join("");city.disabled=false}catch(e){}};city.onchange=async()=>{teh.disabled=true;post.disabled=true;try{const d=await fetch(PINAPI+"/districts/"+st.value+"/"+city.value+".json").then(r=>r.json());teh._offices=d.offices||[];const vals=[...new Set(teh._offices.map(x=>x.taluk||x.subdistrict||x.block).filter(Boolean))];teh.innerHTML='<option value="">Select Tehsil</option>'+vals.map(x=>`<option>${x}</option>`).join("");teh.disabled=false}catch(e){}};teh.onchange=()=>{const v=teh.value.toLowerCase(),offices=(teh._offices||[]).filter(x=>String(x.taluk||x.subdistrict||x.block||"").toLowerCase()===v);post.innerHTML='<option value="">Select Area / Post</option>'+offices.map(x=>`<option data-pin="${x.pincode}">${x.officeName}</option>`).join("");post.disabled=false};post.onchange=()=>{const p=post.selectedOptions[0]?.dataset.pin;if(p)pin.value=p};pin.addEventListener("blur",async()=>{if(!/^[0-9]{6}$/.test(pin.value))return;try{const d=await fetch(PINAPI+"/pincodes/"+pin.value+".json").then(r=>r.json()),offices=d.offices||[];if(!offices.length)return;st.value=slugify(d.state);await new Promise(r=>setTimeout(r,100));st.dispatchEvent(new Event("change"));await new Promise(r=>setTimeout(r,400));city.value=slugify(d.district);city.dispatchEvent(new Event("change"));await new Promise(r=>setTimeout(r,400));teh._offices=offices;const vals=[...new Set(offices.map(x=>x.taluk||x.subdistrict||x.block).filter(Boolean))];teh.innerHTML='<option value="">Select Tehsil</option>'+vals.map(x=>`<option>${x}</option>`).join("");teh.disabled=false;post.innerHTML='<option value="">Select Area / Post</option>'+offices.map(x=>`<option data-pin="${pin.value}">${x.officeName}</option>`).join("");post.disabled=false}catch(e){}})}initLocation();</script>
+<div id="confirmOverlay" class="confirmOverlay hidden"><div class="confirmBox"><h3 id="confirmTitle">Confirmation</h3><p id="confirmText"></p><div class="confirmActions"><button type="button" class="btn alt" id="confirmNo">No</button><button type="button" class="btn" id="confirmYes">Yes</button></div></div></div><div id="successOverlay" class="confirmOverlay hidden"><div class="confirmBox"><h3>Success</h3><p id="successText"></p><div class="confirmActions"><button type="button" class="btn" id="successOk">OK</button></div></div></div><div id="confirmOverlay" class="confirmOverlay hidden"><div class="confirmBox"><h3 id="confirmTitle">Confirmation</h3><p id="confirmText"></p><div class="confirmActions"><button type="button" class="btn alt" id="confirmNo">No</button><button type="button" class="btn" id="confirmYes">Yes</button></div></div></div><div id="successOverlay" class="confirmOverlay hidden"><div class="confirmBox"><h3>Success</h3><p id="successText"></p><div class="confirmActions"><button type="button" class="btn" id="successOk">OK</button></div></div></div></body></html   const qty=Number(b.quantity);
    if(qty<1)throw new Error("Quantity सही डालें।");
    const productCheck=await sb.from("products").select("*").eq("id",b.product_id).single();
    if(productCheck.error)throw new Error("Product load failed: "+productCheck.error.message);
