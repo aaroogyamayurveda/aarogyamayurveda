@@ -50,7 +50,7 @@
 
 <section id="orders" class="page">
 <div class="title"><div><h2>Orders</h2><div class="sub">Order search, status और dealer assignment</div></div><button class="btn" id="newOrder">+ New Order</button></div>
-<div class="panel"><div class="search"><input id="orderSearch" placeholder="Order ID / Mobile"><button class="btn" id="orderSearchBtn">Search</button></div></div>
+<div class="panel"><div class="search"><input id="orderSearch" placeholder="Order ID या 10-digit Mobile"><button class="btn" id="orderSearchBtn">Search</button></div></div>
 <div class="panel"><div class="tablewrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Mobile</th><th>Product/Qty</th><th>Agent</th><th>Dealer</th><th>Status</th><th>Amount</th></tr></thead><tbody id="ordersBody"></tbody></table></div></div>
 </section>
 
@@ -173,7 +173,13 @@ $("newUser").onclick=()=>{
    const f=new FormData(form),body=Object.fromEntries(f.entries());
 
    try{
-     const {data,error}=await sb.functions.invoke("create-crm-user",{body});
+     const {data:sessionData}=await sb.auth.getSession();
+const accessToken=sessionData?.session?.access_token;
+if(!accessToken) throw new Error("Super Admin session expired. Please login again.");
+const {data,error}=await sb.functions.invoke("quick-service",{
+  body,
+  headers:{Authorization:`Bearer ${accessToken}`}
+});
      if(error){
        let detail=error.message||"Edge Function call failed";
        try{
@@ -328,7 +334,15 @@ document.addEventListener("submit",async e=>{
 async function searchOrders(inputId,resultId){
  const term=$(inputId).value.trim();if(!term){$(resultId).innerHTML="";return}
  let q=sb.from("orders").select("order_no,order_status,total_amount,customers(customer_name,mobile),dealers(dealer_name)").limit(30);
- if(/^\d+$/.test(term))q=q.eq("order_no",Number(term));else q=q.ilike("customers.mobile",`%${term}%`);
+ const isMobile=/^[6-9]\d{9}$/.test(term);
+ const isOrderId=/^\d+$/.test(term) && !isMobile;
+ if(isOrderId){
+   q=q.eq("order_no",Number(term));
+ }else if(isMobile){
+   q=q.eq("customers.mobile",term);
+ }else{
+   q=q.ilike("customers.mobile",`%${term}%`);
+ }
  const {data,error}=await q;
  $(resultId).innerHTML=error?`<div class="danger">${esc(error.message)}</div>`:(data||[]).map(o=>`<div class="panel"><strong>#${esc(o.order_no)}</strong> — ${esc(o.customers?.customer_name)} — ${esc(o.customers?.mobile)} — <span class="pill">${esc(o.order_status)}</span> — ₹${Number(o.total_amount||0).toLocaleString("en-IN")}</div>`).join("")||'<div class="empty">Order नहीं मिला</div>';
 }
