@@ -95,22 +95,6 @@ window.__crmLogout = function () {
 <div id="modal" class="modal"><div class="modalbox"><div class="modalhead"><h3 id="modalTitle"></h3><button class="close" id="closeModal">✕</button></div><div id="modalContent"></div></div></div>
 <div id="toast" class="toast"></div>
 
-<script>
-});
-    var skeys = [];
-    for (var j = 0; j < sessionStorage.length; j++) skeys.push(sessionStorage.key(j));
-    skeys.forEach(function(k) {
-      if (k && (k.indexOf("sb-") === 0 || k.toLowerCase().indexOf("supabase") !== -1)) {
-        sessionStorage.removeItem(k);
-      }
-    });
-  } catch (e) {
-    console.error("logout storage cleanup:", e);
-  }
-  // Force a fresh CRM page. The startup code sees logout=1 and shows login.
-  window.location.href = window.location.pathname + "?logout=1";
-};
-</script>
 <script type="module">
 import {createClient} from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 const SUPABASE_URL="https://envziigrxkmwmamswduv.supabase.co";
