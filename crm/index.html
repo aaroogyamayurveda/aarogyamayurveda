@@ -143,8 +143,9 @@ async function loadReports(){
  $("reportBody").innerHTML=Object.entries(counts).map(([k,v])=>`<div class="stat"><span>${esc(k)}</span><b>${v}</b></div>`).join("")||'<div class="empty">No orders yet</div>';
 }
 
-$("newUser").onclick=()=>modal("नया CRM User",`
-<form id="createUserForm">
+$("newUser").onclick=()=>{
+ modal("नया CRM User",`
+<form id="createUserForm" onsubmit="return false;">
 <div class="grid2">
 <div class="field"><label>पूरा नाम</label><input name="full_name" required></div>
 <div class="field"><label>Email</label><input name="email" type="email" required></div>
@@ -153,23 +154,41 @@ $("newUser").onclick=()=>modal("नया CRM User",`
 <div class="field"><label>Role</label><select name="role"><option value="agent">Agent</option><option value="order_manager">Order Manager</option><option value="management">Management</option><option value="dealer">Dealer</option><option value="warehouse">Warehouse</option><option value="courier_manager">Courier Manager</option><option value="super_admin">Super Admin</option></select></div>
 <div class="field"><label>Password</label><input name="password" type="password" minlength="8" required></div>
 </div><div class="actions"><button type="submit" class="btn">Create User</button></div><div id="createMsg" class="msg"></div></form>`);
-$("createUserForm").onsubmit=async e=>{
- e.preventDefault();const f=new FormData(e.target),body=Object.fromEntries(f.entries());$("createMsg").textContent="Creating…";
- const {data,error}=await sb.functions.invoke("create-crm-user",{body});
- if(error){
-   let detail=error.message||"Edge Function call failed";
+
+ const form=document.getElementById("createUserForm");
+ form.addEventListener("submit",async e=>{
+   e.preventDefault();
+   e.stopPropagation();
+   const submit=form.querySelector('button[type="submit"]');
+   submit.disabled=true;
+   $("createMsg").textContent="Creating user…";
+   const f=new FormData(form),body=Object.fromEntries(f.entries());
+
    try{
-     const raw=await error.context?.text?.();
-     if(raw) detail+=" — "+raw;
-   }catch(_){}
-   $("createMsg").textContent=detail;
-   return;
- }
- if(data?.error){
-   $("createMsg").textContent=data.details?data.error+" — "+data.details:data.error;
-   return;
- }
- $("modal").style.display="none";toast("User successfully created");await loadUsers();
+     const {data,error}=await sb.functions.invoke("create-crm-user",{body});
+     if(error){
+       let detail=error.message||"Edge Function call failed";
+       try{
+         const raw=await error.context?.text?.();
+         if(raw) detail+=" — "+raw;
+       }catch(_){}
+       $("createMsg").textContent=detail;
+       submit.disabled=false;
+       return;
+     }
+     if(data?.error){
+       $("createMsg").textContent=data.details?data.error+" — "+data.details:data.error;
+       submit.disabled=false;
+       return;
+     }
+     $("modal").style.display="none";
+     toast("User successfully created");
+     await loadUsers();
+   }catch(err){
+     $("createMsg").textContent="Error: "+(err?.message||String(err));
+     submit.disabled=false;
+   }
+ });
 };
 
 $("newCustomer").onclick=()=>modal("नया Customer / Enquiry",`
