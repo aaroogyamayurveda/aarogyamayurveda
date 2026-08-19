@@ -21,7 +21,7 @@
 </form></section></div>
 
 <div id="app" class="app">
-<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><button id="logout" class="logout">Logout</button></div></header>
+<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><button type="button" id="logout" class="logout">Logout</button></div></header>
 <div class="layout">
 <aside class="side" id="nav"></aside>
 <main class="main">
@@ -229,31 +229,54 @@ $("searchBtn").onclick=()=>searchOrders("globalSearch","searchResult");$("orderS
 document.getElementById("agentCustomerBtn")?.addEventListener("click",()=>document.getElementById("newCustomer").click());
 document.getElementById("agentOrderBtn")?.addEventListener("click",()=>document.getElementById("newOrder").click());
 
-async function doLogout(){
+function showLoginScreen(){
+  me=null;
+  profile=null;
+  $("app").style.display="none";
+  $("loginPage").classList.remove("hidden");
+  $("email").value="";
+  $("password").value="";
+  $("loginMsg").textContent="आप successfully logout हो गए हैं।";
+  try{ history.replaceState(null,"",location.pathname); }catch(e){}
+}
+
+async function doLogout(e){
+  if(e){ e.preventDefault(); e.stopPropagation(); }
+  const btn=document.getElementById("logout");
+  if(btn) btn.disabled=true;
+
+  // Immediately switch the UI to login. Then invalidate the Supabase session.
+  // This prevents the UI from getting stuck if signOut/network has a problem.
+  showLoginScreen();
+
   try{
-    $("logout").disabled=true;
     await sb.auth.signOut({scope:"local"});
-  }catch(e){
-    console.error("Logout error:",e);
+  }catch(err){
+    console.error("Supabase logout:",err);
   }finally{
-    // Always clear the local Supabase session/UI even if the network call fails.
-    try{ localStorage.clear(); sessionStorage.clear(); }catch(e){}
-    me=null; profile=null;
-    $("app").style.display="none";
-    $("loginPage").classList.remove("hidden");
-    $("email").value="";
-    $("password").value="";
-    $("loginMsg").textContent="आप successfully logout हो गए हैं।";
-    $("logout").disabled=false;
-    history.replaceState(null,"",location.pathname);
+    // Remove only Supabase auth storage entries; do not wipe unrelated site data.
+    try{
+      Object.keys(localStorage).forEach(k=>{
+        if(k.startsWith("sb-") || k.includes("supabase")) localStorage.removeItem(k);
+      });
+      Object.keys(sessionStorage).forEach(k=>{
+        if(k.startsWith("sb-") || k.includes("supabase")) sessionStorage.removeItem(k);
+      });
+    }catch(err){}
+    if(btn) btn.disabled=false;
+    showLoginScreen();
   }
 }
-$("logout").addEventListener("click",doLogout);
+
+// Use event delegation as a fallback so the button works even if the app is re-rendered.
+document.addEventListener("click",function(e){
+  const target=e.target.closest("#logout");
+  if(target){ doLogout(e); }
+},true);
 
 sb.auth.onAuthStateChange((event, session)=>{
-  if(event==="SIGNED_OUT" && !session){
-    $("app").style.display="none";
-    $("loginPage").classList.remove("hidden");
+  if(event==="SIGNED_OUT" || !session){
+    showLoginScreen();
   }
 });
 
