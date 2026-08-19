@@ -525,11 +525,40 @@ async function initLocation(){
     }
   };
 
-  city.onchange=()=>{
+  city.onchange=async()=>{
     post.disabled=true;
-    post.innerHTML='<option value="">Enter 6-digit Pincode to load Area / Post</option>';
+    post.innerHTML='<option value="">Loading Area / Post…</option>';
+    if(!st.value||!city.value)return;
+
+    // The state/district API does not expose all post offices.
+    // Use the pincode directory to load all Area/Post entries for the selected city.
+    try{
+      const d=await fetch(PINAPI+"/districts/"+st.value+"/"+city.value+".json").then(r=>r.json());
+      const offices=Array.isArray(d?.offices)?d.offices:[];
+      const unique=new Map();
+
+      offices.forEach(x=>{
+        const name=String(x.Name||x.name||x.officeName||"").trim();
+        const p=String(x.Pincode||x.pincode||"").trim();
+        if(name && p) unique.set(name+"|"+p,{name,p});
+      });
+
+      const rows=[...unique.values()].sort((a,b)=>a.name.localeCompare(b.name));
+      post.innerHTML='<option value="">Select Area / Post</option>'+
+        rows.map(x=>`<option data-pin="${x.p.replace(/"/g,"&quot;")}">${x.name}</option>`).join("");
+
+      post.disabled=rows.length===0;
+
+      if(!rows.length){
+        post.innerHTML='<option value="">Area / Post data not available</option>';
+      }
+    }catch(e){
+      post.innerHTML='<option value="">Area / Post load failed</option>';
+      post.disabled=true;
+    }
   };
 
+  // Existing working PIN -> State -> City -> Area/Post flow remains unchanged.
   async function lookupPincode(){
     const p=pin.value.trim();
     if(!/^[0-9]{6}$/.test(p))return;
@@ -550,7 +579,6 @@ async function initLocation(){
       const stateName=String(first.State||"").trim();
       const districtName=String(first.District||"").trim();
 
-      // Auto-fill State and City from PIN.
       const stateOpt=[...st.options].find(o=>
         o.text.trim().toLowerCase()===stateName.toLowerCase()
       );
@@ -565,7 +593,6 @@ async function initLocation(){
         if(cityOpt)city.value=cityOpt.value;
       }
 
-      // Use the API's actual "Name" field. Never use officeName/undefined.
       post.innerHTML='<option value="">Select Area / Post</option>'+
         offices.map(x=>{
           const name=String(x.Name||"").trim();
@@ -574,26 +601,26 @@ async function initLocation(){
         }).join("");
 
       post.disabled=false;
-
-      post.onchange=()=>{
-        const selected=post.selectedOptions[0];
-        if(selected?.dataset.pin)pin.value=selected.dataset.pin;
-        liveValidateCreateOrder();
-      };
-
-      // If there is only one post, leave it selectable rather than silently
-      // forcing a choice.
     }catch(e){
       post.innerHTML='<option value="">Area / Post lookup failed</option>';
       post.disabled=true;
     }
   }
 
+  post.onchange=()=>{
+    const selected=post.selectedOptions[0];
+    if(selected?.dataset.pin){
+      pin.value=selected.dataset.pin;
+      liveValidateCreateOrder();
+    }
+  };
+
   pin.addEventListener("input",()=>{
     pin.value=pin.value.replace(/\D/g,"").slice(0,6);
     liveValidateCreateOrder();
     if(pin.value.length===6)lookupPincode();
   });
+
   pin.addEventListener("blur",lookupPincode);
 }
 
