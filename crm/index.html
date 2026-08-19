@@ -21,7 +21,7 @@
 </form></section></div>
 
 <div id="app" class="app">
-<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><button type="button" id="logout" class="logout">Logout</button></div></header>
+<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><a id="logout" class="logout" href="?logout=1" style="text-decoration:none;display:inline-block">Logout</a></div></header>
 <div class="layout">
 <aside class="side" id="nav"></aside>
 <main class="main">
@@ -75,6 +75,17 @@ const SUPABASE_URL="https://envziigrxkmwmamswduv.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_6ET5_koDowtTZNOMWBX7ig_DWnPDr09";
 const sb=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
 let me=null,profile=null;
+const FORCE_LOGOUT=new URLSearchParams(location.search).get("logout")==="1";
+if(FORCE_LOGOUT){
+  try{
+    Object.keys(localStorage).forEach(k=>{
+      if(k.startsWith("sb-") || k.includes("supabase")) localStorage.removeItem(k);
+    });
+    Object.keys(sessionStorage).forEach(k=>{
+      if(k.startsWith("sb-") || k.includes("supabase")) sessionStorage.removeItem(k);
+    });
+  }catch(e){}
+}
 
 const $=id=>document.getElementById(id);
 const roleName=r=>({super_admin:"Super Admin",management:"Management",order_manager:"Order Manager",agent:"Agent",dealer:"Dealer",warehouse:"Warehouse",courier_manager:"Courier Manager"}[r]||r);
@@ -207,14 +218,49 @@ $("newCustomer").onclick=()=>modal("नया Customer / Enquiry",`
 <div class="field"><label>Gender</label><select name="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
 <div class="field"><label>Pincode</label><input name="pincode"></div><div class="field"><label>City</label><input name="city"></div><div class="field"><label>State</label><input name="state" value="Madhya Pradesh"></div>
 </div><div class="field"><label>Address</label><textarea name="address"></textarea></div>
-<div class="actions"><button class="btn">Save Customer</button></div><div id="customerMsg" class="msg"></div></form>`);
-$("customerForm").onsubmit=async e=>{e.preventDefault();const b=Object.fromEntries(new FormData(e.target).entries());b.age=b.age?Number(b.age):null;b.created_by=me.id;const {error}=await sb.from("customers").insert(b);if(error)$("customerMsg").textContent=error.message;else{$("modal").style.display="none";toast("Customer saved");await loadCustomers()}};
+<div class="actions"><button type="submit" class="btn">Save Customer</button></div><div id="customerMsg" class="msg"></div></form>`);
+const customerForm=document.getElementById("customerForm");
+customerForm.addEventListener("submit",async e=>{
+ e.preventDefault();
+ const b=Object.fromEntries(new FormData(customerForm).entries());
+ b.age=b.age?Number(b.age):null;
+ b.created_by=me.id;
+ const {error}=await sb.from("customers").insert(b);
+ if(error){
+   document.getElementById("customerMsg").textContent=error.message;
+ }else{
+   $("modal").style.display="none";
+   toast("Customer saved");
+   await loadCustomers();
+ }
+});
 
 $("newOrder").onclick=async()=>{
  const {data:customers}=await sb.from("customers").select("id,customer_name,mobile").order("created_at",{ascending:false}).limit(100);
  const {data:products}=await sb.from("products").select("id,product_name,price").eq("active",true);
- modal("नया Order",`<form id="orderForm"><div class="field"><label>Customer</label><select name="customer_id" required>${(customers||[]).map(c=>`<option value="${c.id}">${esc(c.customer_name)} - ${esc(c.mobile)}</option>`).join("")}</select></div><div class="grid2"><div class="field"><label>Product</label><select name="product_id" required>${(products||[]).map(p=>`<option value="${p.id}" data-price="${p.price}">${esc(p.product_name)} - ₹${p.price}</option>`).join("")}</select></div><div class="field"><label>Quantity</label><input name="quantity" type="number" min="1" value="1" required></div><div class="field"><label>Amount</label><input name="total_amount" type="number" min="0" value="0" required></div><div class="field"><label>Payment</label><select name="payment_mode"><option value="cod">COD</option><option value="prepaid">Prepaid</option><option value="other">Other</option></select></div></div><div class="field"><label>Scheme / Offer</label><input name="scheme"></div><div class="field"><label>Remarks</label><textarea name="remarks"></textarea></div><div class="actions"><button class="btn">Create Order</button></div><div id="orderMsg" class="msg"></div></form>`);
- $("orderForm").onsubmit=async e=>{e.preventDefault();const b=Object.fromEntries(new FormData(e.target).entries());b.quantity=Number(b.quantity);b.total_amount=Number(b.total_amount);b.agent_id=me.id;const {data,error}=await sb.from("orders").insert(b).select("id").single();if(error)$("orderMsg").textContent=error.message;else{await sb.from("order_items").insert({order_id:data.id,product_id:b.product_id,quantity:b.quantity,unit_price:b.total_amount/b.quantity});$("modal").style.display="none";toast("Order created");await refreshAll()}};
+ modal("नया Order",`<form id="orderForm"><div class="field"><label>Customer</label><select name="customer_id" required>${(customers||[]).map(c=>`<option value="${c.id}">${esc(c.customer_name)} - ${esc(c.mobile)}</option>`).join("")}</select></div><div class="grid2"><div class="field"><label>Product</label><select name="product_id" required>${(products||[]).map(p=>`<option value="${p.id}" data-price="${p.price}">${esc(p.product_name)} - ₹${p.price}</option>`).join("")}</select></div><div class="field"><label>Quantity</label><input name="quantity" type="number" min="1" value="1" required></div><div class="field"><label>Amount</label><input name="total_amount" type="number" min="0" value="0" required></div><div class="field"><label>Payment</label><select name="payment_mode"><option value="cod">COD</option><option value="prepaid">Prepaid</option><option value="other">Other</option></select></div></div><div class="field"><label>Scheme / Offer</label><input name="scheme"></div><div class="field"><label>Remarks</label><textarea name="remarks"></textarea></div><div class="actions"><button type="submit" class="btn">Create Order</button></div><div id="orderMsg" class="msg"></div></form>`);
+ const orderForm=document.getElementById("orderForm");
+orderForm.addEventListener("submit",async e=>{
+ e.preventDefault();
+ const b=Object.fromEntries(new FormData(orderForm).entries());
+ b.quantity=Number(b.quantity);
+ b.total_amount=Number(b.total_amount);
+ b.agent_id=me.id;
+ const {data,error}=await sb.from("orders").insert(b).select("id").single();
+ if(error){
+   document.getElementById("orderMsg").textContent=error.message;
+ }else{
+   await sb.from("order_items").insert({
+     order_id:data.id,
+     product_id:b.product_id,
+     quantity:b.quantity,
+     unit_price:b.total_amount/b.quantity
+   });
+   $("modal").style.display="none";
+   toast("Order created");
+   await refreshAll();
+ }
+});
 };
 
 async function searchOrders(inputId,resultId){
@@ -268,19 +314,22 @@ async function doLogout(e){
   }
 }
 
-// Use event delegation as a fallback so the button works even if the app is re-rendered.
+// Navigation-based logout is intentionally used here.
+// It cannot be blocked by form submission, module timing, or Supabase network errors.
 document.addEventListener("click",function(e){
   const target=e.target.closest("#logout");
-  if(target){ doLogout(e); }
+  if(target){
+    e.preventDefault();
+    window.location.assign("?logout=1");
+  }
 },true);
 
-sb.auth.onAuthStateChange((event, session)=>{
-  if(event==="SIGNED_OUT" || !session){
-    showLoginScreen();
-  }
-});
-
-const {data:{session}}=await sb.auth.getSession();
-if(session) await boot(session.user);
+if(FORCE_LOGOUT){
+  try{ history.replaceState(null,"",location.pathname); }catch(e){}
+  showLoginScreen();
+}else{
+  const {data:{session}}=await sb.auth.getSession();
+  if(session) await boot(session.user);
+}
 </script>
 </body></html>
