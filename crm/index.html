@@ -5,18 +5,159 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Aaroogyam Ayurveda CRM</title>
 <style>
+
+.location-grid .field,.location-grid select{width:100%;min-width:0}
+.location-grid select{height:42px}
+@media(max-width:900px){}
+@media(max-width:520px){}
+
 :root{--g:#164b30;--g2:#246743;--bg:#f4f7f4;--card:#fff;--text:#18241d;--muted:#69756e;--border:#dfe7e1;--gold:#b8862b;--red:#b43b35;--blue:#245f86}
 *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}button,input,select,textarea{font:inherit}button{cursor:pointer}
 .wrap{min-height:100vh;display:grid;place-items:center;padding:24px}.login{width:min(430px,100%);background:#fff;border:1px solid var(--border);border-radius:26px;padding:34px;box-shadow:0 20px 55px #164b3014}.brand{text-align:center}.logo{width:78px;height:78px;object-fit:contain;margin:auto}.brand h1{font:700 29px Georgia,serif;color:var(--g);margin:8px 0 2px}.brand p{color:var(--muted);margin:4px 0 25px}.field{margin:12px 0}.field label{display:block;font-size:12px;font-weight:800;color:var(--g);margin-bottom:6px}.field input,.field select,.field textarea{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:11px;outline:none;background:#fff}.field textarea{min-height:80px;resize:vertical}.btn{border:0;border-radius:11px;padding:12px 15px;background:var(--g);color:#fff;font-weight:800}.btn.full{width:100%}.btn.alt{background:#fff;color:var(--g);border:1px solid var(--g)}.btn.red{background:var(--red)}.msg{min-height:20px;color:var(--red);font-size:13px;margin-top:10px;text-align:center}.app{display:none;min-height:100vh}.top{height:68px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:20}.top strong{font:700 21px Georgia,serif;color:var(--g)}.user{font-size:12px;color:var(--muted)}.logout{margin-left:10px;border:1px solid var(--border);background:#fff;color:var(--g);border-radius:9px;padding:8px 12px;font-weight:800}.layout{display:grid;grid-template-columns:235px 1fr;min-height:calc(100vh - 68px)}.side{background:#123c27;padding:18px 12px;color:#fff}.side button{display:block;width:100%;text-align:left;background:transparent;color:#e9f3ec;border:0;border-radius:9px;padding:11px 12px;margin:4px 0;font-weight:700}.side button:hover,.side button.active{background:#ffffff18}.main{padding:25px;max-width:1250px;width:100%;margin:auto}.page{display:none}.page.active{display:block}.title{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:18px}.title h2{color:var(--g);margin:0}.sub{color:var(--muted);font-size:13px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}.stat{background:#fff;border:1px solid var(--border);border-radius:16px;padding:17px}.stat span{font-size:12px;color:var(--muted)}.stat b{display:block;font-size:27px;color:var(--g);margin-top:4px}.panel{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:18px}.panel h3{margin:0 0 14px;color:var(--g)}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:10px;border-bottom:1px solid #edf1ee;white-space:nowrap}th{color:var(--g);background:#f7faf7}.pill{display:inline-block;padding:5px 8px;border-radius:999px;background:#edf5ea;color:var(--g);font-weight:800;font-size:11px}.search{display:flex;gap:8px}.search input{flex:1;padding:11px;border:1px solid var(--border);border-radius:10px}.empty{padding:22px;text-align:center;color:var(--muted)}.hidden{display:none!important}.modal{position:fixed;inset:0;background:#0008;z-index:100;display:none;place-items:center;padding:20px}.modalbox{width:min(600px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:20px;padding:22px}.modalhead{display:flex;justify-content:space-between;align-items:center}.modalhead h3{color:var(--g);margin:0}.close{border:0;background:#eee;border-radius:8px;padding:7px 10px}.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:15px}.toast{position:fixed;right:20px;bottom:20px;background:#163d28;color:#fff;padding:12px 16px;border-radius:10px;display:none;z-index:200}
 @media(max-width:850px){.layout{grid-template-columns:1fr}.side{display:flex;overflow:auto;gap:5px}.side button{white-space:nowrap}.cards{grid-template-columns:1fr 1fr}.grid2,.grid3{grid-template-columns:1fr}.top{padding:0 12px}.user{display:none}}
 @media(max-width:500px){.cards{grid-template-columns:1fr}.main{padding:16px}}
 .field-error{font-size:12px;color:var(--red);min-height:16px}.invalid{border-color:var(--red)!important}.confirmOverlay{position:fixed;inset:0;background:#0008;z-index:9999;display:grid;place-items:center}.confirmOverlay.hidden{display:none}.confirmBox{background:#fff;border-radius:16px;padding:24px;width:min(420px,92vw)}.confirmActions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}</style>
-</head>
+<style>
+/* Create Order ONLY: State / City / Tehsil / Area-Post */
+.order-location-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:12px;
+  width:100%;
+}
+.order-location-grid .field{
+  min-width:0;
+}
+.order-location-grid select{
+  width:100%;
+  height:42px;
+  min-height:42px;
+}
+@media(max-width:900px){
+  .order-location-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:520px){
+  .order-location-grid{grid-template-columns:1fr}
+}
+</style></head>
 <body>
 <div id="loginPage" class="wrap"><section class="login">
 <div class="brand"><img class="logo" src="https://aaroogyamayurveda.in/aaroogyam-ayurveda-logo-circle.png" alt="Aaroogyam Ayurveda"><h1>Aaroogyam Ayurveda</h1><p>Secure CRM Login</p></div>
-<form id="loginForm">
-<div class="field"><label>Email</label><input id="email" type="email" autocomplete="username" required></div>
+<form id="loginForm"><div class="field"><label>Email</label><input id="email" type="email" autocomplete="username" required></div>
+<div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" required></div>
+<button class="btn full" type="submit">LOGIN</button><div id="loginMsg" class="msg"></div>
+</form></section></div>
+
+<div id="app" class="app">
+<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><button id="logout" class="logout">Logout</button></div></header>
+<div class="layout">
+<aside class="side" id="nav"></aside>
+<main class="main">
+<section id="dashboard" class="page active">
+<div class="title"><div><h2 id="dashTitle">Dashboard</h2><div class="sub" id="dashSub"></div></div></div>
+<div class="cards"><div class="stat"><span>आज के Orders</span><b id="sOrders">0</b></div><div class="stat"><span>Pending</span><b id="sPending">0</b></div><div class="stat"><span>In Transit</span><b id="sTransit">0</b></div><div class="stat"><span>Delivered</span><b id="sDelivered">0</b></div></div>
+<div class="panel"><h3>Quick Search</h3><div class="search"><input id="globalSearch" placeholder="Order ID / Mobile Number"><button class="btn" id="searchBtn">Search</button></div><div id="searchResult" class="tablewrap" style="margin-top:14px"></div></div>
+</section>
+
+
+<section id="createOrderPage" class="page">
+<div class="title"><div><h2>+ Create Order</h2><div class="sub">Customer और Order की पूरी details एक ही page पर भरें</div></div><button class="btn alt" id="backToOrders">← Orders</button></div>
+<div class="panel"><form id="createOrderPageForm">
+<h3>Customer Details</h3>
+<div class="grid2">
+<div class="field"><label>Customer Name *</label><input name="customer_name" maxlength="80" required pattern="[A-Za-zÀ-ÖØ-öø-ÿ .'-]+" title="Name में numbers नहीं डालें"><div id="err_name" class="field-error"></div></div>
+<div class="field"><label>Mobile Number *</label><input name="mobile" id="pageMobile" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" inputmode="numeric" maxlength="10" required pattern="[6-9][0-9]{9}" placeholder="10 digit mobile"><div id="err_mobile" class="field-error"></div></div>
+<div class="field"><label>Alternate Mobile</label><input name="alternate_mobile" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}"><div id="err_alt" class="field-error"></div></div>
+<div class="field"><label>Age</label><input name="age" type="text" inputmode="numeric" maxlength="3" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,3)"><div id="err_age" class="field-error"></div></div>
+<div class="field"><label>Gender</label><select name="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+<div class="field"><label>Pincode *</label><input name="pincode" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" id="orderPincode" inputmode="numeric" maxlength="6" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" required pattern="[0-9]{6}"><div id="err_pin" class="field-error"></div></div>
+<div class="field"><label>City *</label><select name="city" id="orderCity" required disabled><option value="">Select City</option></select></div>
+<div class="field"><label>State *</label><select name="state" id="orderState" required><option value="">Select State</option></select></div><div class="field"><label>Email</label><input id="email" type="email" autocomplete="username" required></div>
+<div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" required></div>
+<button class="btn full" type="submit">LOGIN</button><div id="loginMsg" class="msg"></div>
+</form></section></div>
+
+<div id="app" class="app">
+<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><button id="logout" class="logout">Logout</button></div></header>
+<div class="layout">
+<aside class="side" id="nav"></aside>
+<main class="main">
+<section id="dashboard" class="page active">
+<div class="title"><div><h2 id="dashTitle">Dashboard</h2><div class="sub" id="dashSub"></div></div></div>
+<div class="cards"><div class="stat"><span>आज के Orders</span><b id="sOrders">0</b></div><div class="stat"><span>Pending</span><b id="sPending">0</b></div><div class="stat"><span>In Transit</span><b id="sTransit">0</b></div><div class="stat"><span>Delivered</span><b id="sDelivered">0</b></div></div>
+<div class="panel"><h3>Quick Search</h3><div class="search"><input id="globalSearch" placeholder="Order ID / Mobile Number"><button class="btn" id="searchBtn">Search</button></div><div id="searchResult" class="tablewrap" style="margin-top:14px"></div></div>
+</section>
+
+
+<section id="createOrderPage" class="page">
+<div class="title"><div><h2>+ Create Order</h2><div class="sub">Customer और Order की पूरी details एक ही page पर भरें</div></div><button class="btn alt" id="backToOrders">← Orders</button></div>
+<div class="panel"><form id="createOrderPageForm">
+<h3>Customer Details</h3>
+<div class="grid2">
+<div class="field"><label>Customer Name *</label><input name="customer_name" maxlength="80" required pattern="[A-Za-zÀ-ÖØ-öø-ÿ .'-]+" title="Name में numbers नहीं डालें"><div id="err_name" class="field-error"></div></div>
+<div class="field"><label>Mobile Number *</label><input name="mobile" id="pageMobile" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" inputmode="numeric" maxlength="10" required pattern="[6-9][0-9]{9}" placeholder="10 digit mobile"><div id="err_mobile" class="field-error"></div></div>
+<div class="field"><label>Alternate Mobile</label><input name="alternate_mobile" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}"><div id="err_alt" class="field-error"></div></div>
+<div class="field"><label>Age</label><input name="age" type="text" inputmode="numeric" maxlength="3" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,3)"><div id="err_age" class="field-error"></div></div>
+<div class="field"><label>Gender</label><select name="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+<div class="field"><label>Pincode *</label><input name="pincode" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" id="orderPincode" inputmode="numeric" maxlength="6" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" required pattern="[0-9]{6}"><div id="err_pin" class="field-error"></div></div>
+<div class="field"><label>City *</label><select name="city" id="orderCity" required disabled><option value="">Select City</option></select></div><div class="field"><label>Email</label><input id="email" type="email" autocomplete="username" required></div>
+<div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" required></div>
+<button class="btn full" type="submit">LOGIN</button><div id="loginMsg" class="msg"></div>
+</form></section></div>
+
+<div id="app" class="app">
+<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><button id="logout" class="logout">Logout</button></div></header>
+<div class="layout">
+<aside class="side" id="nav"></aside>
+<main class="main">
+<section id="dashboard" class="page active">
+<div class="title"><div><h2 id="dashTitle">Dashboard</h2><div class="sub" id="dashSub"></div></div></div>
+<div class="cards"><div class="stat"><span>आज के Orders</span><b id="sOrders">0</b></div><div class="stat"><span>Pending</span><b id="sPending">0</b></div><div class="stat"><span>In Transit</span><b id="sTransit">0</b></div><div class="stat"><span>Delivered</span><b id="sDelivered">0</b></div></div>
+<div class="panel"><h3>Quick Search</h3><div class="search"><input id="globalSearch" placeholder="Order ID / Mobile Number"><button class="btn" id="searchBtn">Search</button></div><div id="searchResult" class="tablewrap" style="margin-top:14px"></div></div>
+</section>
+
+
+<section id="createOrderPage" class="page">
+<div class="title"><div><h2>+ Create Order</h2><div class="sub">Customer और Order की पूरी details एक ही page पर भरें</div></div><button class="btn alt" id="backToOrders">← Orders</button></div>
+<div class="panel"><form id="createOrderPageForm">
+<h3>Customer Details</h3>
+<div class="grid2">
+<div class="field"><label>Customer Name *</label><input name="customer_name" maxlength="80" required pattern="[A-Za-zÀ-ÖØ-öø-ÿ .'-]+" title="Name में numbers नहीं डालें"><div id="err_name" class="field-error"></div></div>
+<div class="field"><label>Mobile Number *</label><input name="mobile" id="pageMobile" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" inputmode="numeric" maxlength="10" required pattern="[6-9][0-9]{9}" placeholder="10 digit mobile"><div id="err_mobile" class="field-error"></div></div>
+<div class="field"><label>Alternate Mobile</label><input name="alternate_mobile" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}"><div id="err_alt" class="field-error"></div></div>
+<div class="field"><label>Age</label><input name="age" type="text" inputmode="numeric" maxlength="3" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,3)"><div id="err_age" class="field-error"></div></div>
+<div class="field"><label>Gender</label><select name="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+<div class="field"><label>Pincode *</label><input name="pincode" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" id="orderPincode" inputmode="numeric" maxlength="6" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" required pattern="[0-9]{6}"><div id="err_pin" class="field-error"></div></div>
+<div class="field"><label>City *</label><select name="city" id="orderCity" required disabled><option value="">Select City</option></select></div>
+<div class="field"><label>State *</label><select name="state" id="orderState" required><option value="">Select State</option></select></div><div class="field"><label>Email</label><input id="email" type="email" autocomplete="username" required></div>
+<div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" required></div>
+<button class="btn full" type="submit">LOGIN</button><div id="loginMsg" class="msg"></div>
+</form></section></div>
+
+<div id="app" class="app">
+<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><button id="logout" class="logout">Logout</button></div></header>
+<div class="layout">
+<aside class="side" id="nav"></aside>
+<main class="main">
+<section id="dashboard" class="page active">
+<div class="title"><div><h2 id="dashTitle">Dashboard</h2><div class="sub" id="dashSub"></div></div></div>
+<div class="cards"><div class="stat"><span>आज के Orders</span><b id="sOrders">0</b></div><div class="stat"><span>Pending</span><b id="sPending">0</b></div><div class="stat"><span>In Transit</span><b id="sTransit">0</b></div><div class="stat"><span>Delivered</span><b id="sDelivered">0</b></div></div>
+<div class="panel"><h3>Quick Search</h3><div class="search"><input id="globalSearch" placeholder="Order ID / Mobile Number"><button class="btn" id="searchBtn">Search</button></div><div id="searchResult" class="tablewrap" style="margin-top:14px"></div></div>
+</section>
+
+
+<section id="createOrderPage" class="page">
+<div class="title"><div><h2>+ Create Order</h2><div class="sub">Customer और Order की पूरी details एक ही page पर भरें</div></div><button class="btn alt" id="backToOrders">← Orders</button></div>
+<div class="panel"><form id="createOrderPageForm">
+<h3>Customer Details</h3>
+<div class="grid2">
+<div class="field"><label>Customer Name *</label><input name="customer_name" maxlength="80" required pattern="[A-Za-zÀ-ÖØ-öø-ÿ .'-]+" title="Name में numbers नहीं डालें"><div id="err_name" class="field-error"></div></div>
+<div class="field"><label>Mobile Number *</label><input name="mobile" id="pageMobile" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" inputmode="numeric" maxlength="10" required pattern="[6-9][0-9]{9}" placeholder="10 digit mobile"><div id="err_mobile" class="field-error"></div></div>
+<div class="field"><label>Alternate Mobile</label><input name="alternate_mobile" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}"><div id="err_alt" class="field-error"></div></div>
+<div class="field"><label>Age</label><input name="age" type="text" inputmode="numeric" maxlength="3" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,3)"><div id="err_age" class="field-error"></div></div>
+<div class="field"><label>Gender</label><select name="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+<div class="field"><label>Pincode *</label><input name="pincode" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" id="orderPincode" inputmode="numeric" maxlength="6" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" required pattern="[0-9]{6}"><div id="err_pin" class="field-error"></div></div>
+<div class="field"><label>City *</label><select name="city" id="orderCity" required disabled><option value="">Select City</option></select></div><div class="field"><label>Email</label><input id="email" type="email" autocomplete="username" required></div>
 <div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" required></div>
 <button class="btn full" type="submit">LOGIN</button><div id="loginMsg" class="msg"></div>
 </form></section></div>
@@ -47,252 +188,126 @@
 <div class="field"><label>City *</label><select name="city" id="orderCity" required disabled><option value="">Select City</option></select></div>
 <div class="field"><label>State *</label><select name="state" id="orderState" required><option value="">Select State</option></select></div>
 </div>
-<div class="field"><label>Tehsil *</label><select name="tehsil" id="orderTehsil" required disabled><option value="">Select Tehsil</option></select></div><div class="field"><label>Area / Post *</label><select name="post" id="orderPost" required disabled><option value="">Select Area / Post</option></select></div><div class="field"><label>Complete Delivery Address *</label><textarea name="address" maxlength="300" required></textarea></div>
-<div id="pageExistingCustomer" class="sub"></div>
-<h3 style="margin-top:22px">Order Details</h3>
+<div class="field"><label>Tehsil *</label><select name="tehsil" id="orderTehsil" required disabled><option value="">Select Tehsil</option></select></div><div class="field"><label>Email</label><input id="email" type="email" autocomplete="username" required></div>
+<div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" required></div>
+<button class="btn full" type="submit">LOGIN</button><div id="loginMsg" class="msg"></div>
+</form></section></div>
+
+<div id="app" class="app">
+<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><button id="logout" class="logout">Logout</button></div></header>
+<div class="layout">
+<aside class="side" id="nav"></aside>
+<main class="main">
+<section id="dashboard" class="page active">
+<div class="title"><div><h2 id="dashTitle">Dashboard</h2><div class="sub" id="dashSub"></div></div></div>
+<div class="cards"><div class="stat"><span>आज के Orders</span><b id="sOrders">0</b></div><div class="stat"><span>Pending</span><b id="sPending">0</b></div><div class="stat"><span>In Transit</span><b id="sTransit">0</b></div><div class="stat"><span>Delivered</span><b id="sDelivered">0</b></div></div>
+<div class="panel"><h3>Quick Search</h3><div class="search"><input id="globalSearch" placeholder="Order ID / Mobile Number"><button class="btn" id="searchBtn">Search</button></div><div id="searchResult" class="tablewrap" style="margin-top:14px"></div></div>
+</section>
+
+
+<section id="createOrderPage" class="page">
+<div class="title"><div><h2>+ Create Order</h2><div class="sub">Customer और Order की पूरी details एक ही page पर भरें</div></div><button class="btn alt" id="backToOrders">← Orders</button></div>
+<div class="panel"><form id="createOrderPageForm">
+<h3>Customer Details</h3>
 <div class="grid2">
-<div class="field"><label>Product *</label><select name="product_id" id="pageProduct" required><option value="">Loading…</option></select></div>
-<div class="field"><label>Quantity *</label><input name="quantity" id="pageQty" oninput="this.value=this.value.replace(/\D/g,'').slice(0,2)" type="text" inputmode="numeric" maxlength="2" value="1" required><div id="err_qty" class="field-error"></div></div>
-<div class="field"><label>Total Amount (₹) *</label><input name="total_amount" id="pageAmount" type="number" min="0" readonly></div>
-<div class="field"><label>Payment Mode *</label><select name="payment_mode" required><option value="cod">COD</option><option value="prepaid">Prepaid</option><option value="other">Other</option></select></div>
-<div class="field"><label>Lead Source</label><select name="lead_source"><option value="phone">Phone Call</option><option value="whatsapp">WhatsApp</option><option value="facebook">Facebook</option><option value="instagram">Instagram</option><option value="website">Website</option><option value="other">Other</option></select></div>
+<div class="field"><label>Customer Name *</label><input name="customer_name" maxlength="80" required pattern="[A-Za-zÀ-ÖØ-öø-ÿ .'-]+" title="Name में numbers नहीं डालें"><div id="err_name" class="field-error"></div></div>
+<div class="field"><label>Mobile Number *</label><input name="mobile" id="pageMobile" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" inputmode="numeric" maxlength="10" required pattern="[6-9][0-9]{9}" placeholder="10 digit mobile"><div id="err_mobile" class="field-error"></div></div>
+<div class="field"><label>Alternate Mobile</label><input name="alternate_mobile" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}"><div id="err_alt" class="field-error"></div></div>
+<div class="field"><label>Age</label><input name="age" type="text" inputmode="numeric" maxlength="3" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,3)"><div id="err_age" class="field-error"></div></div>
+<div class="field"><label>Gender</label><select name="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+<div class="field"><label>Pincode *</label><input name="pincode" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" id="orderPincode" inputmode="numeric" maxlength="6" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" required pattern="[0-9]{6}"><div id="err_pin" class="field-error"></div></div>
+<div class="field"><label>City *</label><select name="city" id="orderCity" required disabled><option value="">Select City</option></select></div>
+<div class="field"><label>State *</label><select name="state" id="orderState" required><option value="">Select State</option></select></div><div class="field"><label>Email</label><input id="email" type="email" autocomplete="username" required></div>
+<div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" required></div>
+<button class="btn full" type="submit">LOGIN</button><div id="loginMsg" class="msg"></div>
+</form></section></div>
+
+<div id="app" class="app">
+<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><button id="logout" class="logout">Logout</button></div></header>
+<div class="layout">
+<aside class="side" id="nav"></aside>
+<main class="main">
+<section id="dashboard" class="page active">
+<div class="title"><div><h2 id="dashTitle">Dashboard</h2><div class="sub" id="dashSub"></div></div></div>
+<div class="cards"><div class="stat"><span>आज के Orders</span><b id="sOrders">0</b></div><div class="stat"><span>Pending</span><b id="sPending">0</b></div><div class="stat"><span>In Transit</span><b id="sTransit">0</b></div><div class="stat"><span>Delivered</span><b id="sDelivered">0</b></div></div>
+<div class="panel"><h3>Quick Search</h3><div class="search"><input id="globalSearch" placeholder="Order ID / Mobile Number"><button class="btn" id="searchBtn">Search</button></div><div id="searchResult" class="tablewrap" style="margin-top:14px"></div></div>
+</section>
+
+
+<section id="createOrderPage" class="page">
+<div class="title"><div><h2>+ Create Order</h2><div class="sub">Customer और Order की पूरी details एक ही page पर भरें</div></div><button class="btn alt" id="backToOrders">← Orders</button></div>
+<div class="panel"><form id="createOrderPageForm">
+<h3>Customer Details</h3>
+<div class="grid2">
+<div class="field"><label>Customer Name *</label><input name="customer_name" maxlength="80" required pattern="[A-Za-zÀ-ÖØ-öø-ÿ .'-]+" title="Name में numbers नहीं डालें"><div id="err_name" class="field-error"></div></div>
+<div class="field"><label>Mobile Number *</label><input name="mobile" id="pageMobile" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" inputmode="numeric" maxlength="10" required pattern="[6-9][0-9]{9}" placeholder="10 digit mobile"><div id="err_mobile" class="field-error"></div></div>
+<div class="field"><label>Alternate Mobile</label><input name="alternate_mobile" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}"><div id="err_alt" class="field-error"></div></div>
+<div class="field"><label>Age</label><input name="age" type="text" inputmode="numeric" maxlength="3" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,3)"><div id="err_age" class="field-error"></div></div>
+<div class="field"><label>Gender</label><select name="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+<div class="field"><label>Pincode *</label><input name="pincode" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" id="orderPincode" inputmode="numeric" maxlength="6" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" required pattern="[0-9]{6}"><div id="err_pin" class="field-error"></div></div>
+<div class="field"><label>City *</label><select name="city" id="orderCity" required disabled><option value="">Select City</option></select></div><div class="field"><label>Email</label><input id="email" type="email" autocomplete="username" required></div>
+<div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" required></div>
+<button class="btn full" type="submit">LOGIN</button><div id="loginMsg" class="msg"></div>
+</form></section></div>
+
+<div id="app" class="app">
+<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><button id="logout" class="logout">Logout</button></div></header>
+<div class="layout">
+<aside class="side" id="nav"></aside>
+<main class="main">
+<section id="dashboard" class="page active">
+<div class="title"><div><h2 id="dashTitle">Dashboard</h2><div class="sub" id="dashSub"></div></div></div>
+<div class="cards"><div class="stat"><span>आज के Orders</span><b id="sOrders">0</b></div><div class="stat"><span>Pending</span><b id="sPending">0</b></div><div class="stat"><span>In Transit</span><b id="sTransit">0</b></div><div class="stat"><span>Delivered</span><b id="sDelivered">0</b></div></div>
+<div class="panel"><h3>Quick Search</h3><div class="search"><input id="globalSearch" placeholder="Order ID / Mobile Number"><button class="btn" id="searchBtn">Search</button></div><div id="searchResult" class="tablewrap" style="margin-top:14px"></div></div>
+</section>
+
+
+<section id="createOrderPage" class="page">
+<div class="title"><div><h2>+ Create Order</h2><div class="sub">Customer और Order की पूरी details एक ही page पर भरें</div></div><button class="btn alt" id="backToOrders">← Orders</button></div>
+<div class="panel"><form id="createOrderPageForm">
+<h3>Customer Details</h3>
+<div class="grid2">
+<div class="field"><label>Customer Name *</label><input name="customer_name" maxlength="80" required pattern="[A-Za-zÀ-ÖØ-öø-ÿ .'-]+" title="Name में numbers नहीं डालें"><div id="err_name" class="field-error"></div></div>
+<div class="field"><label>Mobile Number *</label><input name="mobile" id="pageMobile" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" inputmode="numeric" maxlength="10" required pattern="[6-9][0-9]{9}" placeholder="10 digit mobile"><div id="err_mobile" class="field-error"></div></div>
+<div class="field"><label>Alternate Mobile</label><input name="alternate_mobile" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}"><div id="err_alt" class="field-error"></div></div>
+<div class="field"><label>Age</label><input name="age" type="text" inputmode="numeric" maxlength="3" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,3)"><div id="err_age" class="field-error"></div></div>
+<div class="field"><label>Gender</label><select name="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+<div class="field"><label>Pincode *</label><input name="pincode" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" id="orderPincode" inputmode="numeric" maxlength="6" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" required pattern="[0-9]{6}"><div id="err_pin" class="field-error"></div></div>
+<div class="field"><label>City *</label><select name="city" id="orderCity" required disabled><option value="">Select City</option></select></div>
+<div class="field"><label>State *</label><select name="state" id="orderState" required><option value="">Select State</option></select></div>
 </div>
-<div class="field"><label>Order Remarks</label><textarea name="remarks" maxlength="500"></textarea></div>
-<div class="actions"><button type="button" class="btn alt" id="pageOrderReset">Reset</button><button type="submit" class="btn">Create Order</button></div>
-<div id="pageOrderMsg" class="msg"></div>
-</form></div>
+<div class="field"><label>Tehsil *</label><select name="tehsil" id="orderTehsil" required disabled><option value="">Select Tehsil</option></select></div><div class="field"><label>Email</label><input id="email" type="email" autocomplete="username" required></div>
+<div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" required></div>
+<button class="btn full" type="submit">LOGIN</button><div id="loginMsg" class="msg"></div>
+</form></section></div>
+
+<div id="app" class="app">
+<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><button id="logout" class="logout">Logout</button></div></header>
+<div class="layout">
+<aside class="side" id="nav"></aside>
+<main class="main">
+<section id="dashboard" class="page active">
+<div class="title"><div><h2 id="dashTitle">Dashboard</h2><div class="sub" id="dashSub"></div></div></div>
+<div class="cards"><div class="stat"><span>आज के Orders</span><b id="sOrders">0</b></div><div class="stat"><span>Pending</span><b id="sPending">0</b></div><div class="stat"><span>In Transit</span><b id="sTransit">0</b></div><div class="stat"><span>Delivered</span><b id="sDelivered">0</b></div></div>
+<div class="panel"><h3>Quick Search</h3><div class="search"><input id="globalSearch" placeholder="Order ID / Mobile Number"><button class="btn" id="searchBtn">Search</button></div><div id="searchResult" class="tablewrap" style="margin-top:14px"></div></div>
 </section>
 
-<section id="users" class="page">
-<div class="title"><div><h2>User Management</h2><div class="sub">Agents, Managers, Dealers और operational users</div></div><button class="btn" id="newUser">+ नया User</button></div>
-<div class="panel"><div id="usersMsg" class="sub"></div><div class="tablewrap"><table><thead><tr><th>Name</th><th>User ID</th><th>Email</th><th>Mobile</th><th>Role</th><th>Status</th></tr></thead><tbody id="usersBody"></tbody></table></div></div>
-</section>
 
-<section id="orders" class="page">
-<div class="title"><div><h2>Orders</h2><div class="sub">Order search, status और dealer assignment</div></div></div>
-<div class="panel"><div class="search"><input id="orderSearch" placeholder="Order ID / Mobile"><button class="btn" id="orderSearchBtn">Search</button></div></div>
-<div class="panel"><div class="tablewrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Mobile</th><th>Product/Qty</th><th>Agent</th><th>Dealer</th><th>Status</th><th>Amount</th></tr></thead><tbody id="ordersBody"></tbody></table></div></div>
-</section>
-
-<section id="dealers" class="page">
-<div class="title"><div><h2>Dealer Orders</h2><div class="sub">Assigned orders और delivery status</div></div></div>
-<div class="panel"><div class="tablewrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Mobile</th><th>Amount</th><th>Status</th><th>Update</th></tr></thead><tbody id="dealerBody"></tbody></table></div></div>
-</section>
-
-<section id="reports" class="page">
-<div class="title"><div><h2>Reports</h2><div class="sub">Current order performance</div></div></div>
-<div class="panel"><h3>Status Summary</h3><div id="reportBody" class="grid3"></div></div>
-</section>
-</main></div></div>
-
-<div id="modal" class="modal"><div class="modalbox"><div class="modalhead"><h3 id="modalTitle"></h3><button class="close" id="closeModal">✕</button></div><div id="modalContent"></div></div></div>
-<div id="toast" class="toast"></div>
-
-<script type="module">
-import {createClient} from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-const SUPABASE_URL="https://envziigrxkmwmamswduv.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY="sb_publishable_6ET5_koDowtTZNOMWBX7ig_DWnPDr09";
-const sb=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
-let me=null,profile=null;
-
-const $=id=>document.getElementById(id);
-const roleName=r=>({super_admin:"Super Admin",management:"Management",order_manager:"Order Manager",agent:"Agent",dealer:"Dealer",warehouse:"Warehouse",courier_manager:"Courier Manager"}[r]||r);
-const esc=x=>String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
-function toast(t){$("toast").textContent=t;$("toast").style.display="block";setTimeout(()=>$("toast").style.display="none",2600)}
-function modal(title,html){$("modalTitle").textContent=title;$("modalContent").innerHTML=html;$("modal").style.display="grid"}
-$("closeModal").onclick=()=>{$("modal").style.display="none"};
-
-$("loginForm").onsubmit=async e=>{
- e.preventDefault();$("loginMsg").textContent="Login हो रहा है…";
- const {data,error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
- if(error){$("loginMsg").textContent="Login failed: "+error.message;return}
- window.location.replace(window.location.pathname);
-};
-
-async function boot(user){
- me=user;
- const r=await sb.from("profiles").select("*").eq("id",user.id).single();
- if(r.error||!r.data){await sb.auth.signOut();$("loginMsg").textContent="CRM profile नहीं मिला।";return}
- profile=r.data;
- if(!profile.is_active){await sb.auth.signOut();$("loginMsg").textContent="Account inactive है।";return}
- $("loginPage").classList.add("hidden");$("app").style.display="block";
- $("userInfo").textContent=`${profile.full_name} • ${roleName(profile.role)}`;
- buildNav(); await loadCreateOrderProducts(); await refreshAll();
-}
-function buildNav(){
-  const n=$("nav");n.innerHTML="";
- const items=[["dashboard","🏠 Dashboard"],["createOrderPage","➕ Create Order"],["orders","📦 Orders"],["dealers","🚚 Dealer Orders"],["reports","📊 Reports"]];
- if(["super_admin","management"].includes(profile.role))items.splice(1,0,["users","👥 User Management"]);
- items.forEach(([id,t])=>{const b=document.createElement("button");b.textContent=t;b.onclick=()=>showPage(id);n.appendChild(b)});
-}
-function showPage(id){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll(".side button").forEach(x=>x.classList.remove("active"));[...document.querySelectorAll(".side button")].find(x=>x.textContent.toLowerCase().includes(id==="customers"?"customers":id))?.classList.add("active");if(id==="createOrderPage")resetCreateOrderForm();refreshAll()}
-async function refreshAll(){await loadStats();if(["super_admin","management"].includes(profile.role))await loadUsers();await loadOrders();await loadDealerOrders();await loadReports()}
-
-async function loadStats(){
- let q=sb.from("orders").select("id,order_status,order_date",{count:"exact",head:false});
- if(profile.role==="agent")q=q.eq("agent_id",me.id);
- const {data}=await q;
- const rows=data||[];$("sOrders").textContent=rows.length;
- $("sPending").textContent=rows.filter(x=>["new","pending","confirmed","dealer_pending","assigned","hold"].includes(x.order_status)).length;
- $("sTransit").textContent=rows.filter(x=>x.order_status==="in_transit").length;
- $("sDelivered").textContent=rows.filter(x=>x.order_status==="delivered").length;
-}
-async function loadUsers(){
- const {data,error}=await sb.from("profiles").select("full_name,employee_code,email,mobile,role,is_active").order("created_at");
- if(error){$("usersMsg").textContent=error.message;return}
- $("usersMsg").textContent=`Total users: ${data?.length||0}`;
- $("usersBody").innerHTML=(data||[]).map(u=>`<tr><td>${esc(u.full_name)}</td><td>${esc(u.employee_code||"-")}</td><td>${esc(u.email)}</td><td>${esc(u.mobile||"-")}</td><td><span class="pill">${esc(roleName(u.role))}</span></td><td>${u.is_active?"Active":"Inactive"}</td></tr>`).join("")||'<tr><td colspan="6" class="empty">No users</td></tr>';
-}
-async function loadOrders(){
- let q=sb.from("orders").select("id,order_no,order_status,total_amount,order_date,customer_id,agent_id,dealer_id,customers(customer_name,mobile),profiles!orders_agent_id_fkey(full_name),dealers(dealer_name)").order("order_date",{ascending:false}).limit(100);
- if(profile.role==="agent")q=q.eq("agent_id",me.id);
- if(profile.role==="dealer"){const d=await sb.from("dealers").select("id").eq("user_id",me.id).maybeSingle();if(d.data)q=q.eq("dealer_id",d.data.id);else q=q.eq("dealer_id","00000000-0000-0000-0000-000000000000")}
- const {data,error}=await q;
- $("ordersBody").innerHTML=error?`<tr><td colspan="8" class="danger">${esc(error.message)}</td></tr>`:(data||[]).map(o=>`<tr><td>#${esc(o.order_no)}</td><td>${esc(o.customers?.customer_name)}</td><td>${esc(o.customers?.mobile)}</td><td>-</td><td>${esc(o.profiles?.full_name||"-")}</td><td>${esc(o.dealers?.dealer_name||"-")}</td><td><span class="pill">${esc(o.order_status)}</span></td><td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td></tr>`).join("")||'<tr><td colspan="8" class="empty">No orders</td></tr>';
-}
-async function loadDealerOrders(){
- if(profile.role!=="dealer"){$("dealerBody").innerHTML='<tr><td colspan="6" class="empty">Dealer login पर assigned orders यहाँ दिखाई देंगे।</td></tr>';return}
- const d=await sb.from("dealers").select("id").eq("user_id",me.id).maybeSingle();
- if(!d.data){$("dealerBody").innerHTML='<tr><td colspan="6" class="empty">Dealer profile linked नहीं है।</td></tr>';return}
- const {data}=await sb.from("orders").select("id,order_no,order_status,total_amount,customers(customer_name,mobile)").eq("dealer_id",d.data.id).order("order_date",{ascending:false});
- $("dealerBody").innerHTML=(data||[]).map(o=>`<tr><td>#${esc(o.order_no)}</td><td>${esc(o.customers?.customer_name)}</td><td>${esc(o.customers?.mobile)}</td><td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td><td><span class="pill">${esc(o.order_status)}</span></td><td><select data-order="${o.id}" class="statusSel"><option>new</option><option>packed</option><option>dispatched</option><option>in_transit</option><option>delivered</option><option>hold</option><option>cancelled</option><option>rto</option></select></td></tr>`).join("")||'<tr><td colspan="6" class="empty">No assigned orders</td></tr>';
- document.querySelectorAll(".statusSel").forEach(s=>s.onchange=async e=>{const id=e.target.dataset.order,newStatus=e.target.value;const {error}=await sb.from("orders").update({order_status:newStatus}).eq("id",id);if(error)toast(error.message);else{await sb.from("order_status_history").insert({order_id:id,new_status:newStatus,changed_by:me.id});toast("Status updated");await refreshAll()}});
-}
-async function loadReports(){
- const {data}=await sb.from("orders").select("order_status");
- const counts={};(data||[]).forEach(o=>counts[o.order_status]=(counts[o.order_status]||0)+1);
- $("reportBody").innerHTML=Object.entries(counts).map(([k,v])=>`<div class="stat"><span>${esc(k)}</span><b>${v}</b></div>`).join("")||'<div class="empty">No orders yet</div>';
-}
-
-$("newUser").onclick=()=>{
- modal("नया CRM User",`
-<form id="createUserForm" onsubmit="return false;">
+<section id="createOrderPage" class="page">
+<div class="title"><div><h2>+ Create Order</h2><div class="sub">Customer और Order की पूरी details एक ही page पर भरें</div></div><button class="btn alt" id="backToOrders">← Orders</button></div>
+<div class="panel"><form id="createOrderPageForm">
+<h3>Customer Details</h3>
 <div class="grid2">
-<div class="field"><label>पूरा नाम</label><input name="full_name" required></div>
-<div class="field"><label>Email</label><input name="email" type="email" required></div>
-<div class="field"><label>Mobile</label><input name="mobile"></div>
-<div class="field"><label>Employee/User ID</label><input name="employee_code" placeholder="AG001" required></div>
-<div class="field"><label>Role</label><select name="role"><option value="agent">Agent</option><option value="order_manager">Order Manager</option><option value="management">Management</option><option value="dealer">Dealer</option><option value="warehouse">Warehouse</option><option value="courier_manager">Courier Manager</option><option value="super_admin">Super Admin</option></select></div>
-<div class="field"><label>Password</label><input name="password" type="password" minlength="8" required></div>
-</div><div class="actions"><button type="submit" class="btn">Create User</button></div><div id="createMsg" class="msg"></div></form>`);
-
- const form=document.getElementById("createUserForm");
- form.addEventListener("submit",async e=>{
-   e.preventDefault();
-   e.stopPropagation();
-   const submit=form.querySelector('button[type="submit"]');
-   submit.disabled=true;
-   $("createMsg").textContent="Creating user…";
-   const f=new FormData(form),body=Object.fromEntries(f.entries());
-
-   try{
-     const {data:sessionData}=await sb.auth.getSession();
-const accessToken=sessionData?.session?.access_token;
-if(!accessToken) throw new Error("Super Admin session expired. Please login again.");
-const {data,error}=await sb.functions.invoke("quick-service",{
-  body,
-  headers:{Authorization:`Bearer ${accessToken}`}
-});
-     if(error){
-       let detail=error.message||"Edge Function call failed";
-       try{
-         const raw=await error.context?.text?.();
-         if(raw) detail+=" — "+raw;
-       }catch(_){}
-       $("createMsg").textContent=detail;
-       submit.disabled=false;
-       return;
-     }
-     if(data?.error){
-       $("createMsg").textContent=data.details?data.error+" — "+data.details:data.error;
-       submit.disabled=false;
-       return;
-     }
-     $("modal").style.display="none";
-     toast("User successfully created");
-     await loadUsers();
-   }catch(err){
-     $("createMsg").textContent="Error: "+(err?.message||String(err));
-     submit.disabled=false;
-   }
- });
-};
-
-async function loadCreateOrderProducts(){
- const sel=$("pageProduct");if(!sel)return;
- const {data,error}=await sb.from("products").select("*");
- if(error){sel.innerHTML='<option value="">Products load नहीं हुए</option>';return}
- sel.innerHTML='<option value="">Select Product</option>';
- (data||[]).filter(p=>p.active===undefined || p.active===true).forEach(p=>{
-   const name=p.product_name ?? p.name ?? p.title ?? p.product_name_hi ?? "";
-   const price=Number(p.price ?? p.sale_price ?? p.selling_price ?? p.amount ?? 0);
-   const o=document.createElement("option");
-   o.value=p.id;
-   o.textContent=name ? `${name} — ₹${price.toLocaleString("en-IN")}` : `Product #${p.id} — ₹${price.toLocaleString("en-IN")}`;
-   o.dataset.price=price;
-   sel.appendChild(o);
- });
-}
-function pageOrderRecalc(){const p=Number($("pageProduct")?.selectedOptions[0]?.dataset.price||0),q=Number($("pageQty")?.value||1);if($("pageAmount"))$("pageAmount").value=p>0?p*q:""}
-function resetCreateOrderForm(){const f=$("createOrderPageForm");if(!f)return;f.reset();$("pageExistingCustomer").textContent="";$("pageAmount").value="";$("pageProduct").selectedIndex=0;$("pageQty").value="1";document.querySelectorAll(".field-error").forEach(x=>x.textContent="");document.querySelectorAll(".invalid").forEach(x=>x.classList.remove("invalid"));if($("orderState"))$("orderState").value="";if($("orderCity")){ $("orderCity").innerHTML='<option value="">Select City</option>';$("orderCity").disabled=true}if($("orderTehsil")){ $("orderTehsil").innerHTML='<option value="">Select Tehsil</option>';$("orderTehsil").disabled=true}if($("orderPost")){ $("orderPost").innerHTML='<option value="">Select Area / Post</option>';$("orderPost").disabled=true}}
-
-$("pageProduct")?.addEventListener("change",pageOrderRecalc);$("pageQty")?.addEventListener("input",pageOrderRecalc);
-$("backToOrders")?.addEventListener("click",()=>showPage("orders"));
-$("pageOrderReset")?.addEventListener("click",()=>{const f=$("createOrderPageForm");f.reset();f.elements.state.value="Madhya Pradesh";$("pageExistingCustomer").textContent="";$("pageOrderMsg").textContent="";$("pageAmount").value=""});
-$("pageMobile")?.addEventListener("input",async e=>{
- const el=e.target;el.value=el.value.replace(/\D/g,"").slice(0,10);
- if(!/^[6-9][0-9]{9}$/.test(el.value)){ $("pageExistingCustomer").textContent="";return}
- const {data}=await sb.from("customers").select("customer_name,alternate_mobile,age,gender,pincode,city,state,address").eq("mobile",el.value).maybeSingle();
- if(!data){$("pageExistingCustomer").textContent="New customer — details भरें.";return}
- $("pageExistingCustomer").textContent="Existing customer मिला — details auto-fill की गई हैं.";
- const f=$("createOrderPageForm");["customer_name","alternate_mobile","age","gender","pincode","city","state","address"].forEach(k=>{if(data[k]!=null&&f.elements[k])f.elements[k].value=data[k]});
-});
-document.addEventListener("submit",async e=>{if(e.target?.id!=="createOrderPageForm")return;e.preventDefault();const f=e.target,btn=f.querySelector('button[type="submit"]');f.querySelectorAll(".field-error").forEach(x=>x.textContent="");f.querySelectorAll(".invalid").forEach(x=>x.classList.remove("invalid"));const b=Object.fromEntries(new FormData(f).entries()),bad=(n,id,t)=>{f.elements[n]?.classList.add("invalid");$(id).textContent=t};let ok=true;if(!/^[\p{L} .'-]+$/u.test((b.customer_name||"").trim())){bad("customer_name","err_name","Name में numbers नहीं डालें।");ok=false}if(!/^[6-9][0-9]{9}$/.test(b.mobile||"")){bad("mobile","err_mobile","Mobile exactly 10 digits होना चाहिए।");ok=false}if(b.alternate_mobile&&!/^[6-9][0-9]{9}$/.test(b.alternate_mobile)){bad("alternate_mobile","err_alt","Alternate mobile exactly 10 digits होना चाहिए।");ok=false}if(b.age&&(!/^[0-9]+$/.test(b.age)||+b.age>120||+b.age<1)){bad("age","err_age","Age 1 से 120 के बीच होना चाहिए।");ok=false}if(!/^[0-9]{6}$/.test(b.pincode||"")){bad("pincode","err_pin","Pincode exactly 6 digits होना चाहिए।");ok=false}if(!/^[0-9]+$/.test(b.quantity||"")||+b.quantity<1||+b.quantity>99){bad("quantity","err_qty","Quantity 1–99 whole number होनी चाहिए।");ok=false}if(!ok)return;const enquiry=e.submitter?.id==="createEnquiry";$("confirmTitle").textContent=enquiry?"Create Enquiry":"Create Order";$("confirmText").textContent=enquiry?"क्या आप enquiry create करना चाहते हैं?":"क्या आप order create करना चाहते हैं?";$("confirmOverlay").classList.remove("hidden");$("confirmNo").onclick=()=>$("confirmOverlay").classList.add("hidden");$("confirmYes").onclick=async()=>{$("confirmOverlay").classList.add("hidden");await createOrderOrEnquiry(f,btn,enquiry)}});
-async function createOrderOrEnquiry(f,btn,enquiry){const msg=$("pageOrderMsg");btn.disabled=true;try{const {data:{session}}=await sb.auth.getSession();if(!session)throw Error("Session expired. Please login again.");const b=Object.fromEntries(new FormData(f).entries()),found=await sb.from("customers").select("id").eq("mobile",b.mobile).maybeSingle();if(found.error)throw found.error;const cp={customer_name:b.customer_name.trim(),mobile:b.mobile,alternate_mobile:b.alternate_mobile||null,age:b.age?+b.age:null,gender:b.gender||null,pincode:b.pincode,city:b.city,state:b.state,address:b.address};let cid;if(found.data){cid=found.data.id;const r=await sb.from("customers").update(cp).eq("id",cid);if(r.error)throw r.error}else{const r=await sb.from("customers").insert({...cp,created_by:session.user.id}).select("id").single();if(r.error)throw r.error;cid=r.data.id}if(enquiry){const q=await sb.from("orders").insert({customer_id:cid,total_amount:0,payment_mode:b.payment_mode||"cod",remarks:(b.remarks||"")+" [ENQUIRY]",agent_id:session.user.id,order_status:"enquiry"}).select("id,order_no").single();if(q.error)throw q.error;$("successText").textContent=`Enquiry place हो गई है। Enquiry No: #${q.data.order_no||q.data.id}`}else{const pr=await sb.from("products").select("price,sale_price,selling_price,amount").eq("id",b.product_id).single();if(pr.error)throw pr.error;const unitPrice=+((pr.data.price??pr.data.sale_price??pr.data.selling_price??pr.data.amount)??0);if(unitPrice<=0)throw Error("Selected product का price database में नहीं मिला।");const qty=+b.quantity,total=unitPrice*qty;const o=await sb.from("orders").insert({customer_id:cid,total_amount:total,payment_mode:b.payment_mode,remarks:b.remarks||null,agent_id:session.user.id,order_status:"new"}).select("id,order_no").single();if(o.error)throw o.error;const i=await sb.from("order_items").insert({order_id:o.data.id,product_id:b.product_id,quantity:qty,unit_price:unitPrice});if(i.error)throw i.error;$("successText").textContent=`Order place हो गया है। Order No: #${o.data.order_no||o.data.id}`}$("successOverlay").classList.remove("hidden");$("successOk").onclick=()=>{$("successOverlay").classList.add("hidden");resetCreateOrderForm()}}catch(err){msg.textContent=err?.message||String(err)}finally{btn.disabled=false}}
-async function searchOrders(inputId,resultId){
- const term=$(inputId).value.trim();
- if(!term){$(resultId).innerHTML="";return}
- try{
-  let orders=[];
-  if(/^\d{10}$/.test(term)){
-   const {data:customers,error:ce}=await sb.from("customers").select("id").eq("mobile",term);
-   if(ce)throw ce;
-   const ids=(customers||[]).map(c=>c.id);
-   if(!ids.length){$(resultId).innerHTML='<div class="empty">इस mobile number से कोई customer/order नहीं मिला।</div>';return}
-   const {data,error}=await sb.from("orders").select("order_no,order_status,total_amount,customers(customer_name,mobile),dealers(dealer_name)").in("customer_id",ids).order("order_date",{ascending:false}).limit(100);
-   if(error)throw error;orders=data||[];
-  }else{
-   const {data,error}=await sb.from("orders").select("order_no,order_status,total_amount,customers(customer_name,mobile),dealers(dealer_name)").eq("order_no",Number(term)).limit(100);
-   if(error)throw error;orders=data||[];
-  }
-  $(resultId).innerHTML=orders.map(o=>`<div class="panel"><strong>#${esc(o.order_no)}</strong> — ${esc(o.customers?.customer_name||"-")} — ${esc(o.customers?.mobile||"-")} — <span class="pill">${esc(o.order_status||"-")}</span> — ₹${Number(o.total_amount||0).toLocaleString("en-IN")}</div>`).join("")||'<div class="empty">Order नहीं मिला</div>';
- }catch(err){
-  $(resultId).innerHTML=`<div class="danger">${esc(err?.message||String(err))}`;
- }
-}
-$("searchBtn").onclick=()=>searchOrders("globalSearch","searchResult");$("orderSearchBtn").onclick=()=>searchOrders("orderSearch","ordersBody");
-
-
-async function doLogout(){try{await sb.auth.signOut({scope:"local"})}catch(e){}try{Object.keys(localStorage).forEach(k=>{if(k.startsWith("sb-")||k.toLowerCase().includes("supabase"))localStorage.removeItem(k)});Object.keys(sessionStorage).forEach(k=>{if(k.startsWith("sb-")||k.toLowerCase().includes("supabase"))sessionStorage.removeItem(k)})}catch(e){}window.location.replace(window.location.pathname+"?loggedout=1")}
-$("logout").addEventListener("click",doLogout);
-
-sb.auth.onAuthStateChange((event, session)=>{
-  if(event==="SIGNED_OUT" && !session){
-    $("app").style.display="none";
-    $("loginPage").classList.remove("hidden");
-  }
-});
-
-// Restore an existing Supabase session. Explicit Logout clears it.
-const {data:{session:initialSession}}=await sb.auth.getSession();
-if(initialSession){
-  await boot(initialSession.user);
-}else{
-  $("app").style.display="none";
-  $("loginPage").classList.remove("hidden");
-}
-const PINAPI="https://aniket-thapa.github.io/india-pincode-api";const slugify=x=>String(x||"").toLowerCase().trim().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");async function initLocation(){const st=$("orderState"),city=$("orderCity"),teh=$("orderTehsil"),post=$("orderPost"),pin=$("orderPincode");if(!st)return;try{const states=await fetch(PINAPI+"/states.json").then(r=>r.json());st.innerHTML='<option value="">Select State</option>'+states.map(x=>`<option value="${x.slug}">${x.name}</option>`).join("")}catch(e){return}st.onchange=async()=>{city.disabled=true;teh.disabled=true;post.disabled=true;city.innerHTML='<option>Loading…</option>';try{const d=await fetch(PINAPI+"/states/"+st.value+".json").then(r=>r.json());city.innerHTML='<option value="">Select City / District</option>'+d.districts.map(x=>`<option value="${x.slug}">${x.name}</option>`).join("");city.disabled=false}catch(e){}};city.onchange=async()=>{teh.disabled=true;post.disabled=true;try{const d=await fetch(PINAPI+"/districts/"+st.value+"/"+city.value+".json").then(r=>r.json());teh._offices=d.offices||[];const vals=[...new Set(teh._offices.map(x=>x.taluk||x.subdistrict||x.block).filter(Boolean))];teh.innerHTML='<option value="">Select Tehsil</option>'+vals.map(x=>`<option>${x}</option>`).join("");teh.disabled=false}catch(e){}};teh.onchange=()=>{const v=teh.value.toLowerCase(),offices=(teh._offices||[]).filter(x=>String(x.taluk||x.subdistrict||x.block||"").toLowerCase()===v);post.innerHTML='<option value="">Select Area / Post</option>'+offices.map(x=>`<option data-pin="${x.pincode}">${x.officeName}</option>`).join("");post.disabled=false};post.onchange=()=>{const p=post.selectedOptions[0]?.dataset.pin;if(p)pin.value=p};pin.addEventListener("blur",async()=>{if(!/^[0-9]{6}$/.test(pin.value))return;try{const d=await fetch(PINAPI+"/pincodes/"+pin.value+".json").then(r=>r.json()),offices=d.offices||[];if(!offices.length)return;st.value=slugify(d.state);await new Promise(r=>setTimeout(r,100));st.dispatchEvent(new Event("change"));await new Promise(r=>setTimeout(r,400));city.value=slugify(d.district);city.dispatchEvent(new Event("change"));await new Promise(r=>setTimeout(r,400));teh._offices=offices;const vals=[...new Set(offices.map(x=>x.taluk||x.subdistrict||x.block).filter(Boolean))];teh.innerHTML='<option value="">Select Tehsil</option>'+vals.map(x=>`<option>${x}</option>`).join("");teh.disabled=false;post.innerHTML='<option value="">Select Area / Post</option>'+offices.map(x=>`<option data-pin="${pin.value}">${x.officeName}</option>`).join("");post.disabled=false}catch(e){}})}initLocation();</script>
-<div id="confirmOverlay" class="confirmOverlay hidden"><div class="confirmBox"><h3 id="confirmTitle">Confirmation</h3><p id="confirmText"></p><div class="confirmActions"><button type="button" class="btn alt" id="confirmNo">No</button><button type="button" class="btn" id="confirmYes">Yes</button></div></div></div><div id="successOverlay" class="confirmOverlay hidden"><div class="confirmBox"><h3>Success</h3><p id="successText"></p><div class="confirmActions"><button type="button" class="btn" id="successOk">OK</button></div></div></div><div id="confirmOverlay" class="confirmOverlay hidden"><div class="confirmBox"><h3 id="confirmTitle">Confirmation</h3><p id="confirmText"></p><div class="confirmActions"><button type="button" class="btn alt" id="confirmNo">No</button><button type="button" class="btn" id="confirmYes">Yes</button></div></div></div><div id="successOverlay" class="confirmOverlay hidden"><div class="confirmBox"><h3>Success</h3><p id="successText"></p><div class="confirmActions"><button type="button" class="btn" id="successOk">OK</button></div></div></div></body></html   const qty=Number(b.quantity);
+<div class="field"><label>Customer Name *</label><input name="customer_name" maxlength="80" required pattern="[A-Za-zÀ-ÖØ-öø-ÿ .'-]+" title="Name में numbers नहीं डालें"><div id="err_name" class="field-error"></div></div>
+<div class="field"><label>Mobile Number *</label><input name="mobile" id="pageMobile" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" inputmode="numeric" maxlength="10" required pattern="[6-9][0-9]{9}" placeholder="10 digit mobile"><div id="err_mobile" class="field-error"></div></div>
+<div class="field"><label>Alternate Mobile</label><input name="alternate_mobile" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}"><div id="err_alt" class="field-error"></div></div>
+<div class="field"><label>Age</label><input name="age" type="text" inputmode="numeric" maxlength="3" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,3)"><div id="err_age" class="field-error"></div></div>
+<div class="field"><label>Gender</label><select name="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+<div class="field"><label>Pincode *</label><input name="pincode" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" id="orderPincode" inputmode="numeric" maxlength="6" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" required pattern="[0-9]{6}"><div id="err_pin" class="field-error"></div></div>
+<div class="field"><label>City *</label><select name="city" id="orderCity" required disabled><option value="">Select City</option></select></div>
+<div class="field"><label>State *</label><select name="state" id="orderState" required><option value="">Select State</option></select></div>
+</div>
+<div class="field"><label>Tehsil *</label><select name="tehsil" id="orderTehsil" required disabled><option value="">Select Tehsil</option></select></div><div class="field"><label>Area / Post *</label><select name="post" id="orderPost" required disabled><option value="">Select Area / Post</option></select></div></div>ay" class="confirmOverlay hidden"><div class="confirmBox"><h3 id="confirmTitle">Confirmation</h3><p id="confirmText"></p><div class="confirmActions"><button type="button" class="btn alt" id="confirmNo">No</button><button type="button" class="btn" id="confirmYes">Yes</button></div></div></div><div id="successOverlay" class="confirmOverlay hidden"><div class="confirmBox"><h3>Success</h3><p id="successText"></p><div class="confirmActions"><button type="button" class="btn" id="successOk">OK</button></div></div></div></body></html   const qty=Number(b.quantity);
    if(qty<1)throw new Error("Quantity सही डालें।");
    const productCheck=await sb.from("products").select("*").eq("id",b.product_id).single();
    if(productCheck.error)throw new Error("Product load failed: "+productCheck.error.message);
