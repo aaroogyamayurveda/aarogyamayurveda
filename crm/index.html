@@ -38,6 +38,38 @@
 <div class="panel"><h3>Quick Search</h3><div class="search"><input id="globalSearch" placeholder="Order ID / Mobile Number"><button class="btn" id="searchBtn">Search</button></div><div id="searchResult" class="tablewrap" style="margin-top:14px"></div></div>
 </section>
 
+
+<section id="createOrderPage" class="page">
+<div class="title"><div><h2>+ Create Order</h2><div class="sub">Customer और Order की पूरी details एक ही page पर भरें</div></div><button class="btn alt" id="backToOrders">← Orders</button></div>
+<div class="panel"><form id="createOrderPageForm">
+<h3>Customer Details</h3>
+<div class="grid2">
+<div class="field"><label>Customer Name *</label><input name="customer_name" maxlength="80" required pattern="[A-Za-zÀ-ÖØ-öø-ÿ .'-]+" title="Name में numbers नहीं डालें"></div>
+<div class="field"><label>Mobile Number *</label><input name="mobile" id="pageMobile" inputmode="numeric" maxlength="10" required pattern="[6-9][0-9]{9}" placeholder="10 digit mobile"></div>
+<div class="field"><label>Alternate Mobile</label><input name="alternate_mobile" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}"></div>
+<div class="field"><label>Age</label><input name="age" type="number" min="1" max="120"></div>
+<div class="field"><label>Gender</label><select name="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+<div class="field"><label>Pincode *</label><input name="pincode" inputmode="numeric" maxlength="6" required pattern="[0-9]{6}"></div>
+<div class="field"><label>City *</label><input name="city" maxlength="60" required></div>
+<div class="field"><label>State *</label><input name="state" value="Madhya Pradesh" maxlength="60" required></div>
+</div>
+<div class="field"><label>Complete Delivery Address *</label><textarea name="address" maxlength="300" required></textarea></div>
+<div id="pageExistingCustomer" class="sub"></div>
+<h3 style="margin-top:22px">Order Details</h3>
+<div class="grid2">
+<div class="field"><label>Product *</label><select name="product_id" id="pageProduct" required><option value="">Loading…</option></select></div>
+<div class="field"><label>Quantity *</label><input name="quantity" id="pageQty" type="number" min="1" max="99" value="1" required></div>
+<div class="field"><label>Total Amount (₹) *</label><input name="total_amount" id="pageAmount" type="number" min="0" required></div>
+<div class="field"><label>Payment Mode *</label><select name="payment_mode" required><option value="cod">COD</option><option value="prepaid">Prepaid</option><option value="other">Other</option></select></div>
+<div class="field"><label>Scheme / Offer</label><input name="scheme" maxlength="150"></div>
+<div class="field"><label>Lead Source</label><select name="lead_source"><option value="phone">Phone Call</option><option value="whatsapp">WhatsApp</option><option value="facebook">Facebook</option><option value="instagram">Instagram</option><option value="website">Website</option><option value="other">Other</option></select></div>
+</div>
+<div class="field"><label>Order Remarks</label><textarea name="remarks" maxlength="500"></textarea></div>
+<div class="actions"><button type="button" class="btn alt" id="pageOrderReset">Reset</button><button type="submit" class="btn">Create Order</button></div>
+<div id="pageOrderMsg" class="msg"></div>
+</form></div>
+</section>
+
 <section id="users" class="page">
 <div class="title"><div><h2>User Management</h2><div class="sub">Agents, Managers, Dealers और operational users</div></div><button class="btn" id="newUser">+ नया User</button></div>
 <div class="panel"><div id="usersMsg" class="sub"></div><div class="tablewrap"><table><thead><tr><th>Name</th><th>User ID</th><th>Email</th><th>Mobile</th><th>Role</th><th>Status</th></tr></thead><tbody id="usersBody"></tbody></table></div></div>
@@ -102,7 +134,7 @@ async function boot(user){
 function buildNav(){
  $("agentQuick").classList.toggle("hidden", profile.role!=="agent");
  const n=$("nav");n.innerHTML="";
- const items=[["dashboard","🏠 Dashboard"],["customers","👤 Customers / Enquiry"],["orders","📦 Orders"],["dealers","🚚 Dealer Orders"],["reports","📊 Reports"]];
+ const items=[["dashboard","🏠 Dashboard"],["customers","👤 Customers / Enquiry"],["createOrderPage","➕ Create Order"],["orders","📦 Orders"],["dealers","🚚 Dealer Orders"],["reports","📊 Reports"]];
  if(["super_admin","management"].includes(profile.role))items.splice(1,0,["users","👥 User Management"]);
  items.forEach(([id,t])=>{const b=document.createElement("button");b.textContent=t;b.onclick=()=>showPage(id);n.appendChild(b)});
 }
@@ -331,13 +363,58 @@ document.addEventListener("submit",async e=>{
 });
 
 
+
+async function loadCreateOrderProducts(){
+ const sel=$("pageProduct");if(!sel)return;
+ const {data,error}=await sb.from("products").select("id,product_name,price").eq("active",true).order("product_name");
+ if(error){sel.innerHTML='<option value="">Products load नहीं हुए</option>';return}
+ sel.innerHTML='<option value="">Select Product</option>';
+ (data||[]).forEach(p=>{const o=document.createElement("option");o.value=p.id;o.textContent=`${p.product_name} — ₹${Number(p.price||0).toLocaleString("en-IN")}`;o.dataset.price=p.price;sel.appendChild(o)});
+}
+function pageOrderRecalc(){const p=Number($("pageProduct")?.selectedOptions[0]?.dataset.price||0),q=Number($("pageQty")?.value||1);if(p&&$("pageAmount"))$("pageAmount").value=p*q}
+$("pageProduct")?.addEventListener("change",pageOrderRecalc);$("pageQty")?.addEventListener("input",pageOrderRecalc);
+$("backToOrders")?.addEventListener("click",()=>showPage("orders"));
+$("pageOrderReset")?.addEventListener("click",()=>{const f=$("createOrderPageForm");f.reset();f.elements.state.value="Madhya Pradesh";$("pageExistingCustomer").textContent="";$("pageOrderMsg").textContent="";$("pageAmount").value=""});
+$("pageMobile")?.addEventListener("input",async e=>{
+ const el=e.target;el.value=el.value.replace(/\D/g,"").slice(0,10);
+ if(!/^[6-9][0-9]{9}$/.test(el.value)){ $("pageExistingCustomer").textContent="";return}
+ const {data}=await sb.from("customers").select("customer_name,alternate_mobile,age,gender,pincode,city,state,address").eq("mobile",el.value).maybeSingle();
+ if(!data){$("pageExistingCustomer").textContent="New customer — details भरें.";return}
+ $("pageExistingCustomer").textContent="Existing customer मिला — details auto-fill की गई हैं.";
+ const f=$("createOrderPageForm");["customer_name","alternate_mobile","age","gender","pincode","city","state","address"].forEach(k=>{if(data[k]!=null&&f.elements[k])f.elements[k].value=data[k]});
+});
+document.addEventListener("submit",async e=>{
+ if(e.target?.id!=="createOrderPageForm")return;e.preventDefault();
+ const f=e.target,btn=f.querySelector('button[type="submit"]'),msg=$("pageOrderMsg");btn.disabled=true;msg.textContent="Customer और Order save हो रहा है…";
+ try{
+  const {data:{session}}=await sb.auth.getSession();if(!session)throw new Error("Session expired. Please login again.");
+  const b=Object.fromEntries(new FormData(f).entries()),name=(b.customer_name||"").trim();
+  if(!/^[\p{L} .'-]+$/u.test(name))throw new Error("Customer Name में numbers नहीं डालें।");
+  if(!/^[6-9][0-9]{9}$/.test(b.mobile||""))throw new Error("Mobile exactly 10 digits होना चाहिए।");
+  if(b.alternate_mobile&&!/^[6-9][0-9]{9}$/.test(b.alternate_mobile))throw new Error("Alternate Mobile exactly 10 digits होना चाहिए।");
+  if(!/^[0-9]{6}$/.test(b.pincode||""))throw new Error("Pincode exactly 6 digits होना चाहिए।");
+  if(!b.product_id)throw new Error("Product select करें।");
+  const qty=Number(b.quantity),total=Number(b.total_amount);if(qty<1||total<0)throw new Error("Quantity/Amount सही डालें।");
+  const found=await sb.from("customers").select("id").eq("mobile",b.mobile).maybeSingle();if(found.error)throw new Error("Customer search failed: "+found.error.message);
+  const cp={customer_name:name,mobile:b.mobile,alternate_mobile:b.alternate_mobile||null,age:b.age?Number(b.age):null,gender:b.gender||null,pincode:b.pincode,city:b.city,state:b.state,address:b.address};
+  let customerId;
+  if(found.data){customerId=found.data.id;const r=await sb.from("customers").update(cp).eq("id",customerId);if(r.error)throw new Error("Customer update failed: "+r.error.message)}
+  else{const r=await sb.from("customers").insert({...cp,created_by:me.id}).select("id").single();if(r.error)throw new Error("Customer save failed: "+r.error.message);customerId=r.data.id}
+  const order=await sb.from("orders").insert({customer_id:customerId,total_amount:total,payment_mode:b.payment_mode,scheme:b.scheme||null,remarks:b.remarks||null,agent_id:me.id,order_status:"new"}).select("id,order_no").single();
+  if(order.error)throw new Error("Order save failed: "+order.error.message);
+  const item=await sb.from("order_items").insert({order_id:order.data.id,product_id:b.product_id,quantity:qty,unit_price:total/qty});
+  if(item.error)throw new Error("Order item save failed: "+item.error.message);
+  msg.textContent=`Order #${order.data.order_no} created successfully.`;msg.style.color="var(--g)";f.reset();f.elements.state.value="Madhya Pradesh";$("pageExistingCustomer").textContent="";$("pageAmount").value="";await refreshAll();
+ }catch(err){msg.textContent=err?.message||String(err);msg.style.color="var(--red)"}finally{btn.disabled=false}
+});
+
 async function searchOrders(inputId,resultId){
  const term=$(inputId).value.trim();
  if(!term){$(resultId).innerHTML="";return}
 
  try{
    let orders=[];
-   if(/^\d+$/.test(term)){
+   if(!/^\d{10}$/.test(term)){
      const {data,error}=await sb.from("orders")
        .select("order_no,order_status,total_amount,customers(customer_name,mobile),dealers(dealer_name)")
        .eq("order_no",Number(term)).limit(30);
@@ -376,7 +453,7 @@ async function searchOrders(inputId,resultId){
 }
 $("searchBtn").onclick=()=>searchOrders("globalSearch","searchResult");$("orderSearchBtn").onclick=()=>searchOrders("orderSearch","ordersBody");
 
-document.getElementById("agentOrderBtn")?.addEventListener("click",()=>document.getElementById("newOrder").click());
+document.getElementById("agentOrderBtn")?.addEventListener("click",()=>showPage("createOrderPage"));
 
 async function doLogout(){
   try{
