@@ -21,7 +21,7 @@
 </form></section></div>
 
 <div id="app" class="app">
-<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><a id="logout" class="logout" href="?logout=1" style="text-decoration:none;display:inline-block">Logout</a></div></header>
+<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><button type="button" id="logout" class="logout" onclick="window.__crmLogout && window.__crmLogout();">Logout</button></div></header>
 <div class="layout">
 <aside class="side" id="nav"></aside>
 <main class="main">
@@ -69,6 +69,30 @@
 <div id="modal" class="modal"><div class="modalbox"><div class="modalhead"><h3 id="modalTitle"></h3><button class="close" id="closeModal">✕</button></div><div id="modalContent"></div></div></div>
 <div id="toast" class="toast"></div>
 
+<script>
+window.__crmLogout = function () {
+  try {
+    var keys = [];
+    for (var i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
+    keys.forEach(function(k) {
+      if (k && (k.indexOf("sb-") === 0 || k.toLowerCase().indexOf("supabase") !== -1)) {
+        localStorage.removeItem(k);
+      }
+    });
+    var skeys = [];
+    for (var j = 0; j < sessionStorage.length; j++) skeys.push(sessionStorage.key(j));
+    skeys.forEach(function(k) {
+      if (k && (k.indexOf("sb-") === 0 || k.toLowerCase().indexOf("supabase") !== -1)) {
+        sessionStorage.removeItem(k);
+      }
+    });
+  } catch (e) {
+    console.error("logout storage cleanup:", e);
+  }
+  // Force a fresh CRM page. The startup code sees logout=1 and shows login.
+  window.location.href = window.location.pathname + "?logout=1";
+};
+</script>
 <script type="module">
 import {createClient} from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 const SUPABASE_URL="https://envziigrxkmwmamswduv.supabase.co";
@@ -314,21 +338,7 @@ async function doLogout(e){
   }
 }
 
-// Navigation-based logout is intentionally used here.
-// It cannot be blocked by form submission, module timing, or Supabase network errors.
-document.addEventListener("click",function(e){
-  const target=e.target.closest("#logout");
-  if(target){
-    e.preventDefault();
-    window.location.assign("?logout=1");
-  }
-},true);
-
-if(FORCE_LOGOUT){
-  try{ history.replaceState(null,"",location.pathname); }catch(e){}
-  showLoginScreen();
-}else{
-  const {data:{session}}=await sb.auth.getSession();
+const {data:{session}}=await sb.auth.getSession();
   if(session) await boot(session.user);
 }
 </script>
