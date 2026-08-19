@@ -165,7 +165,7 @@ $("newUser").onclick=()=>{
    const f=new FormData(form),body=Object.fromEntries(f.entries());
 
    try{
-     const {data,error}=await sb.functions.invoke("create-crm-user",{body});
+     const {data,error}=await sb.functions.invoke("quick-service",{body});
      if(error){
        let detail=error.message||"Edge Function call failed";
        try{
