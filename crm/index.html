@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aaroogyam Ayurveda CRM</title>
+<style>
+:root{--g:#164b30;--g2:#246743;--bg:#f5f7f4;--card:#fff;--text:#1c2922;--muted:#69756e;--border:#e2e8e3}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
+.wrap{min-height:100vh;display:grid;place-items:center;padding:25px}.login{width:min(430px,100%);background:#fff;border:1px solid var(--border);border-radius:26px;padding:34px;box-shadow:0 20px 55px #164b3014}
+.brand{text-align:center}.logo{width:78px;height:78px;object-fit:contain;margin:0 auto 10px}.brand h1{font:700 30px Georgia,serif;color:var(--g);margin:0}.brand p{color:var(--muted);margin:6px 0 25px}
+.field{margin:15px 0}.field label{display:block;font-size:13px;font-weight:800;color:var(--g);margin-bottom:7px}.field input{width:100%;padding:13px 14px;border:1px solid var(--border);border-radius:12px;outline:none}.field input:focus{border-color:var(--g)}
+.btn{width:100%;border:0;border-radius:12px;padding:14px;background:var(--g);color:#fff;font-weight:800;margin-top:8px}.msg{min-height:22px;color:#a33;font-size:13px;margin-top:13px;text-align:center}.hint{font-size:11px;color:var(--muted);text-align:center;margin-top:18px}
+.app{display:none;min-height:100vh}.top{height:70px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 25px;position:sticky;top:0;z-index:10}.top strong{font:700 22px Georgia,serif;color:var(--g)}.user{font-size:13px;color:var(--muted)}.logout{border:1px solid var(--border);background:#fff;border-radius:10px;padding:9px 13px;font-weight:800;color:var(--g);margin-left:12px}
+.main{width:min(1180px,94%);margin:30px auto}.welcome h2{color:var(--g);margin:10px 0 4px}.welcome p{color:var(--muted)}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:25px}.stat{background:#fff;border:1px solid var(--border);border-radius:18px;padding:20px}.stat span{font-size:12px;color:var(--muted)}.stat b{display:block;font-size:28px;color:var(--g);margin-top:5px}.notice{background:#fff;border:1px solid var(--border);border-radius:18px;padding:25px;margin-top:22px}.notice h3{color:var(--g);margin-top:0}.role{display:inline-block;background:#edf5ea;color:var(--g);padding:7px 11px;border-radius:999px;font-size:12px;font-weight:900}.hidden{display:none!important}
+@media(max-width:750px){.cards{grid-template-columns:1fr 1fr}.top{padding:0 14px}.top strong{font-size:18px}.user{display:none}}@media(max-width:480px){.cards{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="loginPage" class="wrap">
+<section class="login">
+<div class="brand">
+<img class="logo" src="https://aaroogyamayurveda.in/aaroogyam-ayurveda-logo-circle.png" alt="Aaroogyam Ayurveda">
+<h1>Aaroogyam Ayurveda</h1><p>CRM Login</p>
+</div>
+<form id="loginForm">
+<div class="field"><label>Email / Login ID</label><input id="email" type="email" autocomplete="username" required placeholder="Enter your email"></div>
+<div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" required placeholder="Enter password"></div>
+<button class="btn" type="submit">LOGIN</button><div id="loginMsg" class="msg"></div>
+</form>
+<div class="hint">Secure CRM • Aaroogyam Ayurveda</div>
+</section>
+</div>
+
+<div id="app" class="app">
+<header class="top"><strong>Aaroogyam CRM</strong><div><span id="userInfo" class="user"></span><button id="logout" class="logout">Logout</button></div></header>
+<main class="main">
+<div class="welcome"><span id="roleBadge" class="role"></span><h2 id="welcomeTitle">Dashboard</h2><p id="welcomeText">आपके role के अनुसार CRM dashboard तैयार किया जाएगा।</p></div>
+<div class="cards">
+<div class="stat"><span>आज के Orders</span><b>—</b></div><div class="stat"><span>Pending</span><b>—</b></div><div class="stat"><span>In Transit</span><b>—</b></div><div class="stat"><span>Delivered</span><b>—</b></div>
+</div>
+<div class="notice"><h3>CRM Foundation Ready</h3><p>Login और role detection तैयार है। इसी foundation में Customer Entry, Orders, Dealer Assignment, Courier और Reports जोड़े जाएंगे।</p><p><strong>Security:</strong> Database permissions Supabase RLS पर आधारित हैं।</p></div>
+</main>
+</div>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+const SUPABASE_URL = "https://envziigrxkmwmamswduv.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_6ET5_koDowtTZNOMWBX7ig_DWnPDr09";
+
+const loginPage=document.getElementById("loginPage"), app=document.getElementById("app");
+const form=document.getElementById("loginForm"), msg=document.getElementById("loginMsg");
+const userInfo=document.getElementById("userInfo"), roleBadge=document.getElementById("roleBadge");
+const welcomeTitle=document.getElementById("welcomeTitle"), welcomeText=document.getElementById("welcomeText");
+let supabase=null;
+
+const roleText=r=>({super_admin:"Super Admin",management:"Management",order_manager:"Order Manager",agent:"Agent",dealer:"Dealer",warehouse:"Warehouse",courier_manager:"Courier Manager"}[r]||r);
+
+async function start(){
+ if(SUPABASE_URL.startsWith("PASTE_")||SUPABASE_PUBLISHABLE_KEY.startsWith("PASTE_")){
+  msg.textContent="Supabase connection details अभी add नहीं किए गए हैं।";return;
+ }
+ supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+ const {data:{session}}=await supabase.auth.getSession();
+ if(session) await openDashboard(session.user);
+}
+form.addEventListener("submit",async e=>{
+ e.preventDefault(); if(!supabase){msg.textContent="Supabase connection अभी configure नहीं है।";return;}
+ msg.textContent="Login हो रहा है…";
+ const {data,error}=await supabase.auth.signInWithPassword({
+  email:document.getElementById("email").value.trim(),
+  password:document.getElementById("password").value
+ });
+ if(error){msg.textContent="Login failed: "+error.message;return}
+ await openDashboard(data.user);
+});
+async function openDashboard(user){
+ const {data:profile,error}=await supabase.from("profiles").select("full_name,email,role,is_active,employee_code").eq("id",user.id).single();
+ if(error||!profile){await supabase.auth.signOut();msg.textContent="CRM profile नहीं मिला।";return;}
+ if(!profile.is_active){await supabase.auth.signOut();msg.textContent="आपका CRM account inactive है।";return;}
+ loginPage.classList.add("hidden");app.style.display="block";
+ userInfo.textContent=profile.full_name+" • "+roleText(profile.role);
+ roleBadge.textContent=roleText(profile.role);
+ welcomeTitle.textContent=profile.full_name+" का Dashboard";
+ welcomeText.textContent=profile.role==="agent"?"आप customer enquiry और orders manage कर सकेंगे।":profile.role==="dealer"?"आपको केवल assigned orders दिखाई देंगे।":profile.role==="order_manager"?"आप orders verify करके dealer assign कर सकेंगे।":"आपके role के अनुसार management controls यहाँ दिखाई देंगे।";
+}
+document.getElementById("logout").addEventListener("click",async()=>{
+ if(supabase) await supabase.auth.signOut();app.style.display="none";loginPage.classList.remove("hidden");form.reset();msg.textContent="";
+});
+start();
+</script>
+</body>
+</html>
