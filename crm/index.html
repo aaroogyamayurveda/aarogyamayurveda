@@ -28,6 +28,14 @@
 <section id="dashboard" class="page active">
 <div class="title"><div><h2 id="dashTitle">Dashboard</h2><div class="sub" id="dashSub"></div></div></div>
 <div class="cards"><div class="stat"><span>आज के Orders</span><b id="sOrders">0</b></div><div class="stat"><span>Pending</span><b id="sPending">0</b></div><div class="stat"><span>In Transit</span><b id="sTransit">0</b></div><div class="stat"><span>Delivered</span><b id="sDelivered">0</b></div></div>
+<div id="agentQuick" class="panel hidden">
+<h3>📞 Agent Quick Entry</h3>
+<p class="sub">Call complete होने के बाद Customer save करें और फिर Orders में order create करें।</p>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+<button class="btn" id="agentCustomerBtn">+ Customer Entry</button>
+<button class="btn alt" id="agentOrderBtn">+ New Order</button>
+</div>
+</div>
 <div class="panel"><h3>Quick Search</h3><div class="search"><input id="globalSearch" placeholder="Order ID / Mobile Number"><button class="btn" id="searchBtn">Search</button></div><div id="searchResult" class="tablewrap" style="margin-top:14px"></div></div>
 </section>
 
@@ -93,6 +101,7 @@ async function boot(user){
  buildNav(); await refreshAll();
 }
 function buildNav(){
+ $("agentQuick").classList.toggle("hidden", profile.role!=="agent");
  const n=$("nav");n.innerHTML="";
  const items=[["dashboard","🏠 Dashboard"],["customers","👤 Customers / Enquiry"],["orders","📦 Orders"],["dealers","🚚 Dealer Orders"],["reports","📊 Reports"]];
  if(["super_admin","management"].includes(profile.role))items.splice(1,0,["users","👥 User Management"]);
@@ -165,23 +174,7 @@ $("newUser").onclick=()=>{
    const f=new FormData(form),body=Object.fromEntries(f.entries());
 
    try{
-     const { data: sessionData } = await sb.auth.getSession();
-
-const accessToken = sessionData?.session?.access_token;
-
-if (!accessToken) {
-  $("createMsg").textContent =
-    "आपका CRM session expire हो गया है। कृपया Logout करके फिर Login करें।";
-  submit.disabled = false;
-  return;
-}
-
-const { data, error } = await sb.functions.invoke("quick-service", {
-  body,
-  headers: {
-    Authorization: `Bearer ${accessToken}`
-  }
-});
+     const {data,error}=await sb.functions.invoke("create-crm-user",{body});
      if(error){
        let detail=error.message||"Edge Function call failed";
        try{
@@ -233,7 +226,38 @@ async function searchOrders(inputId,resultId){
 }
 $("searchBtn").onclick=()=>searchOrders("globalSearch","searchResult");$("orderSearchBtn").onclick=()=>searchOrders("orderSearch","ordersBody");
 
-$("logout").onclick=async()=>{await sb.auth.signOut();location.reload()};
-const {data:{session}}=await sb.auth.getSession();if(session)await boot(session.user);
+document.getElementById("agentCustomerBtn")?.addEventListener("click",()=>document.getElementById("newCustomer").click());
+document.getElementById("agentOrderBtn")?.addEventListener("click",()=>document.getElementById("newOrder").click());
+
+async function doLogout(){
+  try{
+    $("logout").disabled=true;
+    await sb.auth.signOut({scope:"local"});
+  }catch(e){
+    console.error("Logout error:",e);
+  }finally{
+    // Always clear the local Supabase session/UI even if the network call fails.
+    try{ localStorage.clear(); sessionStorage.clear(); }catch(e){}
+    me=null; profile=null;
+    $("app").style.display="none";
+    $("loginPage").classList.remove("hidden");
+    $("email").value="";
+    $("password").value="";
+    $("loginMsg").textContent="आप successfully logout हो गए हैं।";
+    $("logout").disabled=false;
+    history.replaceState(null,"",location.pathname);
+  }
+}
+$("logout").addEventListener("click",doLogout);
+
+sb.auth.onAuthStateChange((event, session)=>{
+  if(event==="SIGNED_OUT" && !session){
+    $("app").style.display="none";
+    $("loginPage").classList.remove("hidden");
+  }
+});
+
+const {data:{session}}=await sb.auth.getSession();
+if(session) await boot(session.user);
 </script>
 </body></html>
