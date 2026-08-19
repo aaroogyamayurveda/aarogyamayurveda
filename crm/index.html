@@ -207,7 +207,36 @@ $("newCustomer").onclick=()=>modal("नया Customer / Enquiry",`
 <div class="field"><label>Pincode</label><input name="pincode"></div><div class="field"><label>City</label><input name="city"></div><div class="field"><label>State</label><input name="state" value="Madhya Pradesh"></div>
 </div><div class="field"><label>Address</label><textarea name="address"></textarea></div>
 <div class="actions"><button class="btn">Save Customer</button></div><div id="customerMsg" class="msg"></div></form>`);
-$("customerForm").onsubmit=async e=>{e.preventDefault();const b=Object.fromEntries(new FormData(e.target).entries());b.age=b.age?Number(b.age):null;b.created_by=me.id;const {error}=await sb.from("customers").insert(b);if(error)$("customerMsg").textContent=error.message;else{$("modal").style.display="none";toast("Customer saved");await loadCustomers()}};
+
+document.addEventListener("submit",async e=>{
+  if(e.target?.id!=="customerForm") return;
+  e.preventDefault();
+  const form=e.target;
+  const msg=document.getElementById("customerMsg");
+  const btn=form.querySelector('button[type="submit"]');
+  btn.disabled=true;
+  try{
+    const b=Object.fromEntries(new FormData(form).entries());
+    const name=(b.customer_name||"").trim();
+    if(!/^[\\p{L} .'-]+$/u.test(name)) throw new Error("Customer Name में numbers नहीं डालें।");
+    if(!/^[6-9][0-9]{9}$/.test(b.mobile||"")) throw new Error("Mobile Number exactly 10 digits का होना चाहिए।");
+    if(b.alternate_mobile&&!/^[6-9][0-9]{9}$/.test(b.alternate_mobile)) throw new Error("Alternate Mobile exactly 10 digits का होना चाहिए।");
+    if(b.pincode&&!/^[0-9]{6}$/.test(b.pincode)) throw new Error("Pincode exactly 6 digits का होना चाहिए।");
+    const payload={
+      customer_name:name,mobile:b.mobile,alternate_mobile:b.alternate_mobile||null,
+      age:b.age?Number(b.age):null,gender:b.gender||null,pincode:b.pincode||null,
+      city:b.city||null,state:b.state||null,address:b.address||null,created_by:me.id
+    };
+    const {error}=await sb.from("customers").insert(payload);
+    if(error) throw new Error(error.message);
+    $("modal").style.display="none";
+    toast("Customer saved");
+    await loadCustomers();
+  }catch(err){
+    msg.textContent=err?.message||String(err);
+    btn.disabled=false;
+  }
+});
 
 $("newOrder").onclick=async()=>{
  const {data:products,error:productError}=await sb.from("products").select("id,product_name,price").eq("active",true);
@@ -315,7 +344,14 @@ async function doLogout(){
     console.error("Logout error:",e);
   }finally{
     // Always clear the local Supabase session/UI even if the network call fails.
-    try{ localStorage.clear(); sessionStorage.clear(); }catch(e){}
+    try{
+      Object.keys(localStorage).forEach(k=>{
+        if(k.startsWith("sb-") || k.toLowerCase().includes("supabase")) localStorage.removeItem(k);
+      });
+      Object.keys(sessionStorage).forEach(k=>{
+        if(k.startsWith("sb-") || k.toLowerCase().includes("supabase")) sessionStorage.removeItem(k);
+      });
+    }catch(e){}
     me=null; profile=null;
     $("app").style.display="none";
     $("loginPage").classList.remove("hidden");
@@ -335,9 +371,13 @@ sb.auth.onAuthStateChange((event, session)=>{
   }
 });
 
-// Do not auto-login on page refresh. CRM always starts at the login screen.
-try{ await sb.auth.signOut({scope:"local"}); }catch(e){}
-$("app").style.display="none";
-$("loginPage").classList.remove("hidden");
+// Restore an existing Supabase session. Explicit Logout clears it.
+const {data:{session:initialSession}}=await sb.auth.getSession();
+if(initialSession){
+  await boot(initialSession.user);
+}else{
+  $("app").style.display="none";
+  $("loginPage").classList.remove("hidden");
+}
 </script>
 </body></html>
