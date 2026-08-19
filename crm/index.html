@@ -165,7 +165,23 @@ $("newUser").onclick=()=>{
    const f=new FormData(form),body=Object.fromEntries(f.entries());
 
    try{
-     const {data,error}=await sb.functions.invoke("quick-service",{body});
+     const { data: sessionData } = await sb.auth.getSession();
+
+const accessToken = sessionData?.session?.access_token;
+
+if (!accessToken) {
+  $("createMsg").textContent =
+    "आपका CRM session expire हो गया है। कृपया Logout करके फिर Login करें।";
+  submit.disabled = false;
+  return;
+}
+
+const { data, error } = await sb.functions.invoke("quick-service", {
+  body,
+  headers: {
+    Authorization: `Bearer ${accessToken}`
+  }
+});
      if(error){
        let detail=error.message||"Edge Function call failed";
        try{
