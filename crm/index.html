@@ -36,7 +36,7 @@
 .date-filter-panel{margin-bottom:14px}
 .dateFilters{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .dateFilters label{display:flex;align-items:center;gap:7px;font-size:14px}
-.dateFilters select,.dateFilters input{height:38px;box-sizing:border-box}
+.dateFilters select,.dateFilters input{height:38px;box-sizing:border-box}.dateTo{font-size:13px;opacity:.75}
 @media(max-width:560px){.dateFilters{align-items:stretch}.dateFilters label{flex:1}.dateFilters input{flex:1;min-width:150px}}
 </style></head>
 <body>
@@ -57,7 +57,7 @@
 <div class="title"><div><h2 id="dashTitle">Dashboard</h2><div class="sub" id="dashSub"></div></div></div>
 <div class="panel date-filter-panel"><div class="dateFilters">
 <label>View <select id="dashFilterType"><option value="day">Date Wise</option><option value="month">Month Wise</option><option value="year">Year Wise</option></select></label>
-<input id="dashFilterValue" type="date">
+<input id="dashFilterFrom" type="date"><span class="dateTo">to</span><input id="dashFilterTo" type="date">
 <button class="btn alt" id="dashFilterToday">Today</button>
 </div></div>
 <div class="cards"><div class="stat"><span id="sOrdersLabel">आज के Orders</span><b id="sOrders">0</b></div><div class="stat"><span>Pending</span><b id="sPending">0</b></div><div class="stat"><span>In Transit</span><b id="sTransit">0</b></div><div class="stat"><span>Delivered</span><b id="sDelivered">0</b></div><div class="stat"><span>Cancelled</span><b id="sCancelled">0</b></div></div>
@@ -106,7 +106,7 @@
 <div class="title"><div><h2>Orders</h2><div class="sub">Order search, status और dealer assignment</div></div></div>
 <div class="panel date-filter-panel"><div class="dateFilters">
 <label>View <select id="ordersFilterType"><option value="day">Date Wise</option><option value="month">Month Wise</option><option value="year">Year Wise</option></select></label>
-<input id="ordersFilterValue" type="date">
+<input id="ordersFilterFrom" type="date"><span class="dateTo">to</span><input id="ordersFilterTo" type="date">
 <button class="btn alt" id="ordersFilterToday">Today</button>
 </div></div>
 <div class="panel"><div class="search"><input id="orderSearch" placeholder="Order ID / Mobile"><button class="btn" id="orderSearchBtn">Search</button></div></div>
@@ -122,7 +122,7 @@
 <div class="title"><div><h2>Reports</h2><div class="sub">Current order performance</div></div></div>
 <div class="panel date-filter-panel"><div class="dateFilters">
 <label>View <select id="reportsFilterType"><option value="day">Date Wise</option><option value="month">Month Wise</option><option value="year">Year Wise</option></select></label>
-<input id="reportsFilterValue" type="date">
+<input id="reportsFilterFrom" type="date"><span class="dateTo">to</span><input id="reportsFilterTo" type="date">
 <button class="btn alt" id="reportsFilterToday">Today</button>
 </div></div>
 <div class="panel"><h3>Status Summary</h3><div id="reportBody" class="grid3"></div></div>
@@ -173,56 +173,88 @@ function showPage(id){document.querySelectorAll(".page").forEach(x=>x.classList.
 async function refreshAll(){await loadStats();if(["super_admin","management"].includes(profile.role))await loadUsers();await loadOrders();await loadDealerOrders();await loadReports()}
 
 
+async function loadUsers(){
+ const body=$("usersBody"), msg=$("usersMsg");
+ if(!body)return;
+ body.innerHTML='<tr><td colspan="6" class="sub">Loading users...</td></tr>';
+ if(msg)msg.textContent="";
+ const {data,error}=await sb.from("profiles")
+   .select("id,full_name,employee_code,email,mobile,role,is_active,created_at")
+   .order("created_at",{ascending:false});
+ if(error){
+   body.innerHTML=`<tr><td colspan="6" class="danger">${esc(error.message)}</td></tr>`;
+   return;
+ }
+ body.innerHTML=(data||[]).map(u=>`<tr>
+   <td>${esc(u.full_name)}</td>
+   <td>${esc(u.employee_code||"-")}</td>
+   <td>${esc(u.email||"-")}</td>
+   <td>${esc(u.mobile||"-")}</td>
+   <td>${esc(roleName(u.role))}</td>
+   <td>${u.is_active===false?'<span class="danger">Inactive</span>':'<span class="ok">Active</span>'}</td>
+ </tr>`).join("")||'<tr><td colspan="6" class="empty">No users found</td></tr>';
+ if(msg)msg.textContent=`${(data||[]).length} user(s) found`;
+}
+
 function localISO(d=new Date()){
  const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);
  return x.toISOString().slice(0,10);
 }
 function setFilterInput(section){
- const type=$(section+"FilterType"), input=$(section+"FilterValue");
- if(!type||!input)return;
+ const type=$(section+"FilterType"), from=$(section+"FilterFrom"), to=$(section+"FilterTo");
+ if(!type||!from||!to)return;
  const today=localISO();
  if(type.value==="day"){
-   input.type="date"; input.value=input.value&&/^\d{4}-\d{2}-\d{2}$/.test(input.value)?input.value:today;
+   from.type="date";to.type="date";
+   if(!/^\d{4}-\d{2}-\d{2}$/.test(from.value))from.value=today;
+   if(!/^\d{4}-\d{2}-\d{2}$/.test(to.value))to.value=from.value||today;
+   from.style.display="";to.style.display="";document.querySelector(`#${section} .dateTo`)?.style.setProperty("display","");
  }else if(type.value==="month"){
-   input.type="month"; input.value=today.slice(0,7);
+   from.type="month";to.type="month";from.value=today.slice(0,7);to.value=from.value;
+   from.style.display="";to.style.display="";document.querySelector(`#${section} .dateTo`)?.style.setProperty("display","");
  }else{
-   input.type="number"; input.min="2000"; input.max="2100"; input.step="1"; input.value=today.slice(0,4);
+   from.type="number";to.type="number";from.min=to.min="2000";from.max=to.max="2100";from.step=to.step="1";
+   from.value=today.slice(0,4);to.value=from.value;
+   from.style.display="";to.style.display="";document.querySelector(`#${section} .dateTo`)?.style.setProperty("display","");
  }
 }
+function nextDayISO(v){const d=new Date(v+"T00:00:00");d.setDate(d.getDate()+1);return localISO(d)}
+function monthStart(v){return v+"-01"}
+function nextMonthISO(v){const [y,m]=v.split("-").map(Number);return localISO(new Date(y,m,1))}
 function getFilterRange(section){
  const type=$(section+"FilterType")?.value||"day";
- const value=$(section+"FilterValue")?.value||localISO();
+ let from=$(section+"FilterFrom")?.value||"", to=$(section+"FilterTo")?.value||"";
  if(type==="month"){
-   const [y,m]=value.split("-").map(Number);
-   if(!y||!m)return null;
-   const from=`${String(y).padStart(4,"0")}-${String(m).padStart(2,"0")}-01`;
-   const next=new Date(y,m,1);
-   return {from,to:localISO(next),label:value};
+   if(!/^\d{4}-\d{2}$/.test(from))from=localISO().slice(0,7);
+   if(!/^\d{4}-\d{2}$/.test(to))to=from;
+   if(to<from)[from,to]=[to,from];
+   return {from:monthStart(from),to:nextMonthISO(to),label:from===to?from:`${from} to ${to}`};
  }
  if(type==="year"){
-   const y=Number(value);
-   if(!y)return null;
-   return {from:`${y}-01-01`,to:`${y+1}-01-01`,label:String(y)};
+   let fy=Number(from),ty=Number(to);
+   if(!fy)fy=Number(localISO().slice(0,4));if(!ty)ty=fy;
+   if(ty<fy)[fy,ty]=[ty,fy];
+   return {from:`${fy}-01-01`,to:`${ty+1}-01-01`,label:fy===ty?String(fy):`${fy} to ${ty}`};
  }
- const from=/^\d{4}-\d{2}-\d{2}$/.test(value)?value:localISO();
- const next=new Date(from+"T00:00:00"); next.setDate(next.getDate()+1);
- return {from,to:localISO(next),label:from};
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(from))from=localISO();
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(to))to=from;
+ if(to<from)[from,to]=[to,from];
+ return {from,to:nextDayISO(to),label:from===to?from:`${from} to ${to}`};
 }
 function applyDateRange(q,section){
  const r=getFilterRange(section);
  return r?q.gte("order_date",r.from).lt("order_date",r.to):q;
 }
 function bindDateFilter(section,loader){
- const type=$(section+"FilterType"), value=$(section+"FilterValue"), todayBtn=$(section+"FilterToday");
- if(!type||!value)return;
+ const type=$(section+"FilterType"), from=$(section+"FilterFrom"), to=$(section+"FilterTo"), todayBtn=$(section+"FilterToday");
+ if(!type||!from||!to)return;
  setFilterInput(section);
  type.addEventListener("change",()=>{setFilterInput(section);loader()});
- value.addEventListener("change",loader);
+ from.addEventListener("change",loader);to.addEventListener("change",loader);
  todayBtn?.addEventListener("click",()=>{
-   type.value="day"; value.type="date"; value.value=localISO(); loader();
+   type.value="day";from.type="date";to.type="date";from.value=localISO();to.value=localISO();loader();
  });
 }
-
 async function loadStats(){
  let q=sb.from("orders").select("id,order_status,order_date",{count:"exact",head:false});
  if(profile.role==="agent")q=q.eq("agent_id",me.id);
