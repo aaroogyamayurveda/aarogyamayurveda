@@ -467,17 +467,27 @@ $("pageMobile")?.addEventListener("input",async e=>{
  // after the State -> City cascade has loaded its valid Area/Post options.
  // Restore the Area/Post saved with this customer after State -> City has loaded its options.
  const savedPost=String(data.area_post||"").trim();
- if(savedPost){
-   const postOpt=[...post.options].find(o=>
-     String(o.value).trim().toLowerCase()===savedPost.toLowerCase() ||
-     o.text.trim().toLowerCase()===savedPost.toLowerCase()
-   );
-   if(postOpt) post.value=postOpt.value;
- }
- notice.textContent=post.value
-   ?"Existing customer मिला — customer details और पूरा saved location auto-fill हो गया है."
-   :"Existing customer मिला — customer details और State/City auto-fill हो गए हैं. कृपया PINcode par enter press kar ke Area / Post select करें.";
- liveValidateCreateOrder();
+// Wait for the State -> City cascade to finish populating Area/Post options,
+// then select the customer's saved Area/Post automatically.
+if(savedPost){
+  let postOpt=null;
+  for(let i=0;i<20;i++){
+    postOpt=[...post.options].find(o=>
+      String(o.value).trim().toLowerCase()===savedPost.toLowerCase() ||
+      o.text.trim().toLowerCase()===savedPost.toLowerCase()
+    );
+    if(postOpt)break;
+    await new Promise(resolve=>setTimeout(resolve,100));
+  }
+  if(postOpt){
+    post.value=postOpt.value;
+    post.dispatchEvent(new Event("change"));
+  }
+}
+notice.textContent=post.value
+  ?"Existing customer मिला — customer details और पूरा saved location auto-fill हो गया है."
+  :"Existing customer मिला — customer details और State/City/PIN auto-fill हो गए हैं. कृपया Area / Post select करें.";
+liveValidateCreateOrder();
 });
 
 function liveValidateCreateOrder(){
