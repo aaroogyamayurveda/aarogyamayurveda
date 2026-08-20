@@ -419,6 +419,12 @@ async function loadDashboardOrders(){
    q=d.data?q.eq("dealer_id",d.data.id):q.eq("dealer_id","00000000-0000-0000-0000-000000000000");
  }
 
+ // Courier Manager must see only orders assigned to the currently logged-in courier.
+ // courier_manager_id stores the assigned user's profile/auth id.
+ if(profile.role==="courier_manager"){
+   q=q.eq("courier_manager_id",me.id);
+ }
+
  q=applyDateRange(q,"dash");
  const {data,error}=await q;
  await loadDeliveryPartnerMap();
