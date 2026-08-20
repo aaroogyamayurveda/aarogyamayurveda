@@ -108,6 +108,16 @@
 <div class="panel"><div class="tablewrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Mobile</th><th>Product/Qty</th><th>Agent</th><th>Dealer</th><th>Status</th><th>Amount</th></tr></thead><tbody id="ordersBody"></tbody></table></div></div>
 </section>
 
+<section id="orderManager" class="page">
+<div class="title"><div><h2>Order Assignment</h2><div class="sub">Assign orders to Dealer or Courier Manager</div></div></div>
+<div class="panel"><div class="tablewrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Mobile</th><th>Amount</th><th>Status</th><th>Current Assignment</th><th>Assign To</th><th>Action</th></tr></thead><tbody id="assignmentBody"></tbody></table></div></div>
+</section>
+
+<section id="courierOrders" class="page">
+<div class="title"><div><h2>Courier Orders</h2><div class="sub">Orders assigned to this Courier Manager</div></div></div>
+<div class="panel"><div class="tablewrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Mobile</th><th>Amount</th><th>Status</th><th>Update</th></tr></thead><tbody id="courierBody"></tbody></table></div></div>
+</section>
+
 <section id="dealers" class="page">
 <div class="title"><div><h2>Dealer Orders</h2><div class="sub">Assigned orders और delivery status</div></div></div>
 <div class="panel"><div class="tablewrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Mobile</th><th>Amount</th><th>Status</th><th>Update</th></tr></thead><tbody id="dealerBody"></tbody></table></div></div>
@@ -161,15 +171,23 @@ async function boot(user){
 function buildNav(){
   const n=$("nav");n.innerHTML="";
  const items=[["dashboard","🏠 Dashboard"],["createOrderPage","➕ Create Order"],["orders","📦 Order Search"]];
- // Dealer Orders page is visible only to dealer, management and super admin.
- // Agents must not see this page in navigation.
- if(["dealer","management","super_admin"].includes(profile.role))items.push(["dealers","🚚 Dealer Orders"]);
+ // Order Manager handles assignment. Management and Super Admin can also review/manage assignments.
+ if(["order_manager","management","super_admin"].includes(profile.role))items.push(["orderManager","📋 Order Assignment"]);
+ if(profile.role==="dealer")items.push(["dealers","🚚 Dealer Orders"]);
+ if(profile.role==="courier_manager")items.push(["courierOrders","🚛 Courier Orders"]);
  items.push(["reports","📊 Reports"]);
  if(["super_admin","management"].includes(profile.role))items.splice(1,0,["users","👥 User Management"]);
  items.forEach(([id,t])=>{const b=document.createElement("button");b.textContent=t;b.onclick=()=>showPage(id);n.appendChild(b)});
 }
 function showPage(id){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll(".side button").forEach(x=>x.classList.remove("active"));[...document.querySelectorAll(".side button")].find(x=>x.textContent.toLowerCase().includes(id==="customers"?"customers":id))?.classList.add("active");if(id==="createOrderPage")resetCreateOrderForm();refreshAll()}
-async function refreshAll(){await loadStats();await loadDashboardOrders();if(["super_admin","management"].includes(profile.role))await loadUsers();await loadOrders();await loadDealerOrders();await loadReports()}
+async function refreshAll(){
+ await loadStats();await loadDashboardOrders();
+ if(["super_admin","management"].includes(profile.role))await loadUsers();
+ if(["order_manager","management","super_admin"].includes(profile.role))await loadOrderAssignments();
+ if(profile.role==="dealer")await loadDealerOrders();
+ if(profile.role==="courier_manager")await loadCourierOrders();
+ await loadOrders();await loadReports();
+}
 
 
 async function loadUsers(){
@@ -320,6 +338,77 @@ async function loadOrders(){
  const body=$("ordersBody"); if(!body)return;
  body.innerHTML='<tr><td colspan="8" class="empty">Order No या 10 digit Mobile Number डालकर Search करें।</td></tr>';
 }
+
+async function loadOrderAssignments(){
+ const body=$("assignmentBody"); if(!body)return;
+ body.innerHTML='<tr><td colspan="8" class="sub">Loading orders and assignment users...</td></tr>';
+
+ const [{data:orders,error},{data:dealerRows,error:dealerErr},{data:couriers,error:courierErr}]=await Promise.all([
+   sb.from("orders").select("id,order_no,order_status,total_amount,dealer_id,courier_manager_id,customers(customer_name,mobile),dealers(dealer_name)").order("order_date",{ascending:false}).limit(200),
+   sb.from("dealers").select("id,dealer_name,user_id").order("dealer_name"),
+   sb.from("profiles").select("id,full_name,employee_code,role,is_active").eq("role","courier_manager").eq("is_active",true).order("full_name")
+ ]);
+ if(error){body.innerHTML=`<tr><td colspan="8" class="danger">${esc(error.message)}</td></tr>`;return}
+ if(dealerErr||courierErr){body.innerHTML=`<tr><td colspan="8" class="danger">${esc((dealerErr||courierErr).message)}</td></tr>`;return}
+
+ const dealerMap=new Map((dealerRows||[]).map(x=>[x.id,x]));
+ const courierMap=new Map((couriers||[]).map(x=>[x.id,x]));
+ body.innerHTML=(orders||[]).map(o=>{
+   const current=o.dealer_id
+     ? `Dealer: ${esc(dealerMap.get(o.dealer_id)?.dealer_name||o.dealers?.dealer_name||"Assigned")}`
+     : o.courier_manager_id
+       ? `Courier: ${esc(courierMap.get(o.courier_manager_id)?.full_name||"Assigned")}`
+       : '<span class="sub">Unassigned</span>';
+   const dealerOptions=(dealerRows||[]).map(d=>`<option value="dealer:${esc(d.id)}">Dealer — ${esc(d.dealer_name||d.id)}</option>`).join("");
+   const courierOptions=(couriers||[]).map(c=>`<option value="courier:${esc(c.id)}">Courier — ${esc(c.full_name)}${c.employee_code?` (${esc(c.employee_code)})`:""}</option>`).join("");
+   return `<tr>
+    <td>#${esc(o.order_no)}</td><td>${esc(o.customers?.customer_name||"-")}</td><td>${esc(o.customers?.mobile||"-")}</td>
+    <td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td><td><span class="pill">${esc(o.order_status||"-")}</span></td>
+    <td>${current}</td>
+    <td><select class="assignSel" data-order="${esc(o.id)}"><option value="">Select Dealer / Courier</option>${dealerOptions}${courierOptions}</select></td>
+    <td><button class="btn assignBtn" data-order="${esc(o.id)}">Assign</button></td>
+   </tr>`;
+ }).join("")||'<tr><td colspan="8" class="empty">No orders found</td></tr>';
+
+ document.querySelectorAll(".assignBtn").forEach(btn=>btn.onclick=async()=>{
+   const orderId=btn.dataset.order;
+   const sel=body.querySelector(`.assignSel[data-order="${CSS.escape(orderId)}"]`);
+   const value=sel?.value||"";
+   if(!value){toast("पहले Dealer या Courier Manager select करें");return}
+   const [type,id]=value.split(":");
+   btn.disabled=true;
+   const payload=type==="dealer"
+     ? {dealer_id:id,courier_manager_id:null,order_status:"assigned"}
+     : {dealer_id:null,courier_manager_id:id,order_status:"assigned"};
+   const {error:updateError}=await sb.from("orders").update(payload).eq("id",orderId);
+   if(updateError){toast(updateError.message);btn.disabled=false;return}
+   await sb.from("order_status_history").insert({order_id:orderId,new_status:"assigned",changed_by:me.id});
+   toast(type==="dealer"?"Order assigned to Dealer":"Order assigned to Courier Manager");
+   await loadOrderAssignments();
+ });
+}
+
+async function loadCourierOrders(){
+ const body=$("courierBody"); if(!body)return;
+ const {data,error}=await sb.from("orders")
+   .select("id,order_no,order_status,total_amount,customers(customer_name,mobile)")
+   .eq("courier_manager_id",me.id).order("order_date",{ascending:false});
+ if(error){body.innerHTML=`<tr><td colspan="6" class="danger">${esc(error.message)}</td></tr>`;return}
+ body.innerHTML=(data||[]).map(o=>`<tr>
+   <td>#${esc(o.order_no)}</td><td>${esc(o.customers?.customer_name||"-")}</td><td>${esc(o.customers?.mobile||"-")}</td>
+   <td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td><td><span class="pill">${esc(o.order_status||"-")}</span></td>
+   <td><select data-order="${esc(o.id)}" class="courierStatusSel">
+     ${["assigned","packed","dispatched","in_transit","delivered","hold","cancelled","rto"].map(x=>`<option value="${x}" ${o.order_status===x?"selected":""}>${x}</option>`).join("")}
+   </select></td></tr>`).join("")||'<tr><td colspan="6" class="empty">No assigned courier orders</td></tr>';
+ document.querySelectorAll(".courierStatusSel").forEach(sel=>sel.onchange=async e=>{
+   const id=e.target.dataset.order,newStatus=e.target.value;
+   const {error:updateError}=await sb.from("orders").update({order_status:newStatus}).eq("id",id);
+   if(updateError){toast(updateError.message);return}
+   await sb.from("order_status_history").insert({order_id:id,new_status:newStatus,changed_by:me.id});
+   toast("Status updated");await refreshAll();
+ });
+}
+
 async function loadDealerOrders(){
  if(profile.role!=="dealer"){$("dealerBody").innerHTML='<tr><td colspan="6" class="empty">Dealer login पर assigned orders यहाँ दिखाई देंगे।</td></tr>';return}
  const d=await sb.from("dealers").select("id").eq("user_id",me.id).maybeSingle();
