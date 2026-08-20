@@ -1173,6 +1173,18 @@ async function createOrderOrEnquiry(f,btn,enquiry){
  }
 }
 
+function formatCrmDateTime(value){
+  if(!value)return "-";
+  const d=new Date(value);
+  if(Number.isNaN(d.getTime()))return String(value);
+  return new Intl.DateTimeFormat("en-IN",{
+    timeZone:"Asia/Kolkata",
+    day:"2-digit",month:"short",year:"numeric",
+    hour:"2-digit",minute:"2-digit",second:"2-digit",
+    hour12:true
+  }).format(d);
+}
+
 async function searchOrders(inputId,resultId){
  const term=$(inputId).value.trim();
  const target=$(resultId);
@@ -1207,7 +1219,7 @@ async function searchOrders(inputId,resultId){
     <td><span class="pill">${esc(o.order_status||"-")}</span>${String(o.remarks||"").includes("[ENQUIRY]")?'<div class="sub">Enquiry</div>':''}</td>
     <td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td>
    </tr>
-   <tr><td colspan="8" class="sub">Created: ${esc(o.order_date||"-")} | Address: ${esc([o.customers?.address,o.customers?.city,o.customers?.state,o.customers?.pincode].filter(Boolean).join(", ")||"-")}</td></tr>`).join("");
+   <tr><td colspan="8" class="sub">Created: ${esc(formatCrmDateTime(o.order_date))} | Address: ${esc([o.customers?.address,o.customers?.city,o.customers?.state,o.customers?.pincode].filter(Boolean).join(", ")||"-")}</td></tr>`).join("");
  }catch(err){
    target.innerHTML=`<tr><td colspan="8" class="danger">Search error: ${esc(err?.message||String(err))}</td></tr>`;
  }
@@ -1407,11 +1419,24 @@ function crmAttachPager(tableId, enableFilters=false){
 function crmRenderPager(tableId){
  const table=document.getElementById(tableId),state=crmPagerState.get(tableId);
  if(!table||!state||!table.tBodies[0])return;
- const rows=[...table.tBodies[0].rows].filter(r=>r.cells.length>1);
- const matched=rows.filter(r=>Object.entries(state.filters).every(([i,v])=>!v||(r.cells[+i]?.innerText||"").toLowerCase().includes(v)));
+ const all=[...table.tBodies[0].rows].filter(r=>r.cells.length>1);
+ const groups=[];
+ for(let i=0;i<all.length;i++){
+   const main=all[i], group=[main];
+   const next=all[i+1];
+   // Order Search renders one full detail row (colspan) immediately after each order row.
+   if(next && next.cells.length===1 && next.cells[0].hasAttribute("colspan")){
+     group.push(next);i++;
+   }
+   groups.push(group);
+ }
+ const matched=groups.filter(g=>{
+   const r=g[0];
+   return Object.entries(state.filters).every(([i,v])=>!v||(r.cells[+i]?.innerText||"").toLowerCase().includes(v));
+ });
  const pages=Math.max(1,Math.ceil(matched.length/state.size));state.page=Math.min(state.page,pages);
- rows.forEach(r=>r.style.display="none");
- matched.slice((state.page-1)*state.size,state.page*state.size).forEach(r=>r.style.display="");
+ all.forEach(r=>r.style.display="none");
+ matched.slice((state.page-1)*state.size,state.page*state.size).forEach(g=>g.forEach(r=>r.style.display=""));
  const bar=document.getElementById(tableId+"Toolbar");if(!bar)return;
  bar.querySelector(".crm-table-summary").textContent=`${matched.length} record${matched.length===1?"":"s"}`;
  const holder=bar.querySelector(".crm-pages");holder.innerHTML="";
@@ -1524,8 +1549,17 @@ document.addEventListener("DOMContentLoaded",()=>{
   function render(tableId){
     const table=document.getElementById(tableId), state=states.get(tableId);
     if(!table || !state || !table.tBodies[0]) return;
-    const rows=Array.from(table.tBodies[0].rows).filter(r=>r.cells && r.cells.length>1);
-    const matched=rows.filter(function(r){
+    const all=Array.from(table.tBodies[0].rows).filter(r=>r.cells && r.cells.length>0);
+    const groups=[];
+    for(let i=0;i<all.length;i++){
+      const main=all[i];
+      if(main.cells.length===1 && main.cells[0].hasAttribute("colspan")) continue;
+      const group=[main], next=all[i+1];
+      if(next && next.cells.length===1 && next.cells[0].hasAttribute("colspan")){group.push(next);i++;}
+      groups.push(group);
+    }
+    const matched=groups.filter(function(g){
+      const r=g[0];
       return Object.keys(state.filters).every(function(k){
         const q=state.filters[k]; if(!q) return true;
         return String((r.cells[Number(k)]||{}).innerText||'').toLowerCase().includes(q);
@@ -1533,8 +1567,8 @@ document.addEventListener("DOMContentLoaded",()=>{
     });
     const pages=Math.max(1,Math.ceil(matched.length/state.size));
     state.page=Math.min(Math.max(1,state.page),pages);
-    rows.forEach(r=>r.style.display='none');
-    matched.slice((state.page-1)*state.size,state.page*state.size).forEach(r=>r.style.display='');
+    all.forEach(r=>r.style.display='none');
+    matched.slice((state.page-1)*state.size,state.page*state.size).forEach(g=>g.forEach(r=>r.style.display=''));
     const bar=document.getElementById('crmV2_'+tableId); if(!bar) return;
     bar.querySelector('.crm-v2-summary').textContent=matched.length+' record'+(matched.length===1?'':'s');
     const holder=bar.querySelector('.crm-v2-pages'); holder.innerHTML='';
@@ -1610,13 +1644,24 @@ tbody tr:hover{background:#f4faf6!important}
       b.addEventListener('click',function(e){
         e.preventDefault();e.stopPropagation();
         const st=state[tableId]; st.dir=(st.col===i)?-st.dir:1; st.col=i;
-        Array.from(table.tBodies[0].rows).filter(r=>r.cells.length>1).sort((a,b)=>{
-          let x=(a.cells[i]?.innerText||'').trim(),y=(b.cells[i]?.innerText||'').trim();
+        const rows=Array.from(table.tBodies[0].rows);
+        const groups=[];
+        for(let j=0;j<rows.length;j++){
+          const main=rows[j];
+          if(main.cells.length===1 && main.cells[0].hasAttribute("colspan")) continue;
+          const group=[main], next=rows[j+1];
+          if(next && next.cells.length===1 && next.cells[0].hasAttribute("colspan")){group.push(next);j++;}
+          groups.push(group);
+        }
+        groups.sort((ga,gb)=>{
+          const a=ga[0],brow=gb[0];
+          let x=(a.cells[i]?.innerText||'').trim(),y=(brow.cells[i]?.innerText||'').trim();
           const nx=parseFloat(x.replace(/[^\d.-]/g,'')),ny=parseFloat(y.replace(/[^\d.-]/g,''));
           if(x!==''&&y!==''&&!Number.isNaN(nx)&&!Number.isNaN(ny)){x=nx;y=ny;}
           else{x=x.toLowerCase();y=y.toLowerCase();}
           if(x<y)return -st.dir;if(x>y)return st.dir;return 0;
-        }).forEach(r=>table.tBodies[0].appendChild(r));
+        });
+        groups.forEach(g=>g.forEach(r=>table.tBodies[0].appendChild(r)));
         table.querySelectorAll('.crm-sort').forEach(x=>{x.classList.remove('crm-sort-active');x.textContent='↕';});
         b.classList.add('crm-sort-active');b.textContent=st.dir===1?'↑':'↓';
         // Trigger existing pagination refresh by dispatching a filter input event if available.
