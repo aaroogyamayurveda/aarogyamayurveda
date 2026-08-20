@@ -370,31 +370,34 @@ function renderOrderRows(rows){
    <td>${esc(o.customers?.mobile||"-")}</td>
    <td>${productSummary(o.order_items)}</td>
    <td>${esc(o.profiles?.full_name||"-")}</td>
-   <td>${esc(o.dealers?.dealer_name||await getCourierName(o.courier_manager_id)||"-")}</td>
+   <td>${esc(getDeliveryPartnerName(o))}</td>
    <td><span class="pill">${esc(o.order_status||"-")}</span></td>
    <td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td>
  </tr>`).join("");
 }
-async function loadDeliveryPartnerMap(){
- const [{data:dealers},{data:couriers}]=await Promise.all([
-  sb.from("dealers").select("id,dealer_name"),
-  sb.from("profiles").select("id,full_name").eq("role","courier_manager")
- ]);
- return {dealers:new Map((dealers||[]).map(x=>[x.id,x.dealer_name])),couriers:new Map((couriers||[]).map(x=>[x.id,x.full_name]))};
-}
-function getDeliveryPartnerName(o,m){
- if(o?.dealer_id)return m.dealers.get(o.dealer_id)||o.dealers?.dealer_name||"-";
- if(o?.courier_manager_id)return m.couriers.get(o.courier_manager_id)||"-";
- return "-";
+let partnerMap={dealers:new Map(),couriers:new Map()};
+
+async function refreshDeliveryPartnerMap(){
+  const [{data:dealers,error:dealerError},{data:couriers,error:courierError}]=await Promise.all([
+    sb.from("dealers").select("id,dealer_name"),
+    sb.from("profiles").select("id,full_name").eq("role","courier_manager")
+  ]);
+  if(dealerError) console.warn("Dealer lookup:",dealerError.message);
+  if(courierError) console.warn("Courier lookup:",courierError.message);
+  partnerMap={
+    dealers:new Map((dealers||[]).map(x=>[x.id,x.dealer_name])),
+    couriers:new Map((couriers||[]).map(x=>[x.id,x.full_name]))
+  };
 }
 
-async function getCourierName(courierId){
-  if(!courierId) return "";
-  const {data}=await sb.from("profiles")
-    .select("full_name")
-    .eq("id",courierId)
-    .maybeSingle();
-  return data?.full_name||"";
+function getDeliveryPartnerName(o){
+  if(o?.dealer_id){
+    return partnerMap.dealers.get(o.dealer_id)||o.dealers?.dealer_name||"-";
+  }
+  if(o?.courier_manager_id){
+    return partnerMap.couriers.get(o.courier_manager_id)||o.courier_manager?.full_name||"-";
+  }
+  return "-";
 }
 
 async function loadDashboardOrders(){
@@ -415,6 +418,7 @@ async function loadDashboardOrders(){
 
  q=applyDateRange(q,"dash");
  const {data,error}=await q;
+ if(!error) await refreshDeliveryPartnerMap();
  const body=$("dashboardOrdersBody"); if(!body)return;
  body.innerHTML=error?`<tr><td colspan="8" class="danger">${esc(error.message)}</td></tr>`:
    (data||[]).length?renderOrderRows(data):'<tr><td colspan="8" class="empty">No orders</td></tr>';
@@ -879,13 +883,13 @@ async function searchOrders(inputId,resultId){
     target.innerHTML='<tr><td colspan="8" class="empty">Order नहीं मिला। अगर order दूसरे agent ने बनाया है और वह मौजूद होने के बावजूद नहीं दिख रहा, तो Supabase RLS SELECT policy cross-user access रोक रही है।</td></tr>';
     return;
   }
-  target.innerHTML=orders.map(o=>`<tr>
+  await refreshDeliveryPartnerMap();\n   target.innerHTML=orders.map(o=>`<tr>
     <td>#${esc(o.order_no)}</td>
     <td>${esc(o.customers?.customer_name||"-")}</td>
     <td>${esc(o.customers?.mobile||"-")}</td>
     <td>${productSummary(o.order_items)}</td>
     <td>${esc(o.profiles?.full_name||"-")}</td>
-    <td>${esc(o.dealers?.dealer_name||await getCourierName(o.courier_manager_id)||"-")}</td>
+    <td>${esc(getDeliveryPartnerName(o))}</td>
     <td><span class="pill">${esc(o.order_status||"-")}</span></td>
     <td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td>
    </tr>
