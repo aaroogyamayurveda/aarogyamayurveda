@@ -370,11 +370,24 @@ function renderOrderRows(rows){
    <td>${esc(o.customers?.mobile||"-")}</td>
    <td>${productSummary(o.order_items)}</td>
    <td>${esc(o.profiles?.full_name||"-")}</td>
-   <td>${esc(o.dealers?.dealer_name||"-")}</td>
+   <td>${esc(getDeliveryPartnerName(o,partnerMap))}</td>
    <td><span class="pill">${esc(o.order_status||"-")}</span></td>
    <td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td>
  </tr>`).join("");
 }
+async function loadDeliveryPartnerMap(){
+ const [{data:dealers},{data:couriers}]=await Promise.all([
+  sb.from("dealers").select("id,dealer_name"),
+  sb.from("profiles").select("id,full_name").eq("role","courier_manager")
+ ]);
+ return {dealers:new Map((dealers||[]).map(x=>[x.id,x.dealer_name])),couriers:new Map((couriers||[]).map(x=>[x.id,x.full_name]))};
+}
+function getDeliveryPartnerName(o,m){
+ if(o?.dealer_id)return m.dealers.get(o.dealer_id)||o.dealers?.dealer_name||"-";
+ if(o?.courier_manager_id)return m.couriers.get(o.courier_manager_id)||"-";
+ return "-";
+}
+
 async function loadDashboardOrders(){
  let q=sb.from("orders").select("id,order_no,order_status,total_amount,order_date,customer_id,agent_id,dealer_id,courier_manager_id,customers(customer_name,mobile),profiles!orders_agent_id_fkey(full_name),courier_manager:profiles!orders_courier_manager_id_fkey(full_name),dealers(dealer_name),order_items(quantity,unit_price,products(*))").order("order_date",{ascending:false}).limit(100);
 
@@ -840,7 +853,7 @@ async function searchOrders(inputId,resultId){
  if(!term){target.innerHTML='<tr><td colspan="8" class="empty">Order No या 10 digit Mobile Number डालें।</td></tr>';return}
  try{
   let orders=[];
-  const fullSelect="id,order_no,order_status,total_amount,order_date,customer_id,agent_id,dealer_id,customers(customer_name,mobile,alternate_mobile,address,state,city,pincode),profiles!orders_agent_id_fkey(full_name),dealers(dealer_name),order_items(quantity,unit_price,products(*))";
+  const fullSelect="id,order_no,order_status,total_amount,order_date,customer_id,agent_id,dealer_id,courier_manager_id,customers(customer_name,mobile,alternate_mobile,address,state,city,pincode),profiles!orders_agent_id_fkey(full_name),dealers(dealer_name),order_items(quantity,unit_price,products(*))";
   if(/^\d{10}$/.test(term)){
    const {data:customers,error:ce}=await sb.from("customers").select("id").eq("mobile",term);
    if(ce)throw ce;
@@ -863,7 +876,7 @@ async function searchOrders(inputId,resultId){
     <td>${esc(o.customers?.mobile||"-")}</td>
     <td>${productSummary(o.order_items)}</td>
     <td>${esc(o.profiles?.full_name||"-")}</td>
-    <td>${esc(o.dealers?.dealer_name||o.courier_manager?.full_name||"-")}</td>
+    <td>${esc(getDeliveryPartnerName(o,partnerMap))}</td>
     <td><span class="pill">${esc(o.order_status||"-")}</span></td>
     <td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td>
    </tr>
