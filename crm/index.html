@@ -1336,6 +1336,67 @@ tbody tr:hover{background:#f4faf6!important}
 })();
 </script>
 
+
+<script id="crmReportAutoRefreshAfterCreate">
+(function(){
+  let pendingReportRefresh=false;
+
+  function isReportVisible(){
+    const candidates=['reportPage','reportsPage','pageReports','reports'];
+    for(const id of candidates){
+      const el=document.getElementById(id);
+      if(el && el.offsetParent!==null) return true;
+    }
+    const active=document.querySelector('.page.active,[data-page].active,.nav-item.active,.tab.active');
+    return !!(active && /report/i.test((active.id||'')+' '+(active.dataset?.page||'')+' '+active.textContent));
+  }
+
+  function refreshReportSafely(){
+    if(!pendingReportRefresh) return;
+    pendingReportRefresh=false;
+    const names=['loadReports','loadReport','renderReport','refreshReports','fetchReports'];
+    for(const n of names){
+      if(typeof window[n]==='function'){
+        try{ window[n](); return; }catch(e){ console.warn('Report refresh skipped:',e); }
+      }
+    }
+    // If no globally exposed loader exists, re-trigger the existing Reports navigation click.
+    const btn=[...document.querySelectorAll('button,a,.nav-item,.menu-item')]
+      .find(el=>/^\s*reports?\s*$/i.test(el.textContent||''));
+    if(btn) btn.click();
+  }
+
+  // Watch successful create-order/enquiry success messages/modals, without touching create logic.
+  const observer=new MutationObserver(function(mutations){
+    for(const m of mutations){
+      for(const node of m.addedNodes){
+        if(!(node instanceof HTMLElement)) continue;
+        const text=(node.innerText||node.textContent||'').toLowerCase();
+        if(/order\s*(placed|created|success)|enquiry\s*(placed|created|success)/i.test(text)){
+          pendingReportRefresh=true;
+          setTimeout(refreshReportSafely,250);
+        }
+      }
+    }
+  });
+
+  function start(){
+    observer.observe(document.body,{childList:true,subtree:true});
+    // Also refresh whenever the user opens the report page after a newly created order.
+    document.addEventListener('click',function(e){
+      const el=e.target.closest('button,a,.nav-item,.menu-item,[data-page]');
+      if(!el) return;
+      const label=((el.dataset?.page||'')+' '+(el.textContent||'')+' '+(el.id||'')).toLowerCase();
+      if(label.includes('report')){
+        pendingReportRefresh=true;
+        setTimeout(refreshReportSafely,100);
+      }
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();
+</script>
+
 </body></html   const qty=Number(b.quantity);
    if(qty<1)throw new Error("Quantity सही डालें।");
    const productCheck=await sb.from("products").select("*").eq("id",b.product_id).single();
