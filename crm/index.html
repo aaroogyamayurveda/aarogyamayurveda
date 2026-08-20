@@ -866,6 +866,18 @@ async function createOrderOrEnquiry(f,btn,enquiry){
      `Order place हो गया है। Order No: #${o.data.order_no||o.data.id}`;
   }
 
+  // Refresh the same data loaders used by the Dashboard/Report "Today" actions.
+  // This updates counts immediately without changing the selected date filters.
+  try{
+    await Promise.all([
+      typeof loadStats==="function" ? loadStats() : Promise.resolve(),
+      typeof loadDashboardOrders==="function" ? loadDashboardOrders() : Promise.resolve(),
+      typeof loadReports==="function" ? loadReports() : Promise.resolve()
+    ]);
+  }catch(refreshErr){
+    console.warn("Post-create dashboard/report refresh failed:",refreshErr);
+  }
+
   $("successOverlay").classList.remove("hidden");
   $("successOk").onclick=()=>{
    $("successOverlay").classList.add("hidden");
@@ -1469,6 +1481,17 @@ tbody tr:hover{background:#f4faf6!important}
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start);
   else start();
 })();
+</script>
+
+
+<script id="crmExactTodayRefresh">
+document.addEventListener("crm:order-created",async()=>{
+  try{
+    if(typeof loadStats==="function") await loadStats();
+    if(typeof loadDashboardOrders==="function") await loadDashboardOrders();
+    if(typeof loadReports==="function") await loadReports();
+  }catch(e){console.warn("CRM refresh event failed",e);}
+});
 </script>
 
 </body></html   const qty=Number(b.quantity);
