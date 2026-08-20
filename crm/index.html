@@ -571,8 +571,25 @@ async function crmConfirm(message,title="Confirm Action"){
         <button class="btn" id="crmConfirmYes" type="button">Yes</button>
       </div>
     `);
-    $("crmConfirmYes").onclick=()=>{closeModal();resolve(true)};
-    $("crmConfirmNo").onclick=()=>{closeModal();resolve(false)};
+
+    const yes=document.getElementById("crmConfirmYes");
+    const no=document.getElementById("crmConfirmNo");
+    let done=false;
+
+    const finish=(value)=>{
+      if(done)return;
+      done=true;
+      if(yes)yes.removeEventListener("click",onYes);
+      if(no)no.removeEventListener("click",onNo);
+      const m=document.getElementById("modal");
+      if(m)m.style.display="none";
+      resolve(value);
+    };
+    const onYes=(e)=>{e.preventDefault();e.stopPropagation();finish(true)};
+    const onNo=(e)=>{e.preventDefault();e.stopPropagation();finish(false)};
+
+    if(yes)yes.addEventListener("click",onYes);
+    if(no)no.addEventListener("click",onNo);
   });
 }
 
