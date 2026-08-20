@@ -370,27 +370,31 @@ function renderOrderRows(rows){
    <td>${esc(o.customers?.mobile||"-")}</td>
    <td>${productSummary(o.order_items)}</td>
    <td>${esc(o.profiles?.full_name||"-")}</td>
-   <td>${esc(deliveryPartnerName(o,partnerMap))}</td>
+   <td>${esc(o.dealers?.dealer_name||await getCourierName(o.courier_manager_id)||"-")}</td>
    <td><span class="pill">${esc(o.order_status||"-")}</span></td>
    <td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td>
  </tr>`).join("");
 }
 async function loadDeliveryPartnerMap(){
- const [{data:dealers,error:de},{data:couriers,error:ce}]=await Promise.all([
+ const [{data:dealers},{data:couriers}]=await Promise.all([
   sb.from("dealers").select("id,dealer_name"),
   sb.from("profiles").select("id,full_name").eq("role","courier_manager")
  ]);
- if(de) console.warn("Dealer partner lookup:",de.message);
- if(ce) console.warn("Courier partner lookup:",ce.message);
- return {
-  dealers:new Map((dealers||[]).map(x=>[x.id,x.dealer_name])),
-  couriers:new Map((couriers||[]).map(x=>[x.id,x.full_name]))
- };
+ return {dealers:new Map((dealers||[]).map(x=>[x.id,x.dealer_name])),couriers:new Map((couriers||[]).map(x=>[x.id,x.full_name]))};
 }
-function deliveryPartnerName(o,m){
- if(o?.dealer_id) return m.dealers.get(o.dealer_id)||o.dealers?.dealer_name||"-";
- if(o?.courier_manager_id) return m.couriers.get(o.courier_manager_id)||"-";
+function getDeliveryPartnerName(o,m){
+ if(o?.dealer_id)return m.dealers.get(o.dealer_id)||o.dealers?.dealer_name||"-";
+ if(o?.courier_manager_id)return m.couriers.get(o.courier_manager_id)||"-";
  return "-";
+}
+
+async function getCourierName(courierId){
+  if(!courierId) return "";
+  const {data}=await sb.from("profiles")
+    .select("full_name")
+    .eq("id",courierId)
+    .maybeSingle();
+  return data?.full_name||"";
 }
 
 async function loadDashboardOrders(){
@@ -416,7 +420,6 @@ async function loadDashboardOrders(){
    (data||[]).length?renderOrderRows(data):'<tr><td colspan="8" class="empty">No orders</td></tr>';
 }
 async function loadOrders(){
- const partnerMap=await loadDeliveryPartnerMap();
  // Order Search is search-only: no date/month/year filter and no user/agent restriction.
  const body=$("ordersBody"); if(!body)return;
  body.innerHTML='<tr><td colspan="8" class="empty">Order No या 10 digit Mobile Number डालकर Search करें।</td></tr>';
@@ -882,7 +885,7 @@ async function searchOrders(inputId,resultId){
     <td>${esc(o.customers?.mobile||"-")}</td>
     <td>${productSummary(o.order_items)}</td>
     <td>${esc(o.profiles?.full_name||"-")}</td>
-    <td>${esc(deliveryPartnerName(o,partnerMap))}</td>
+    <td>${esc(o.dealers?.dealer_name||await getCourierName(o.courier_manager_id)||"-")}</td>
     <td><span class="pill">${esc(o.order_status||"-")}</span></td>
     <td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td>
    </tr>
