@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="hi">
 <head>
@@ -1157,7 +1158,128 @@ document.addEventListener("DOMContentLoaded",()=>{
  });
 });
 </script>
-</div></div><div id="confirmOverlay" class="confirmOverlay hidden"><div class="confirmBox"><h3 id="confirmTitle">Confirmation</h3><p id="confirmText"></p><div class="confirmActions"><button type="button" class="btn alt" id="confirmNo">No</button><button type="button" class="btn" id="confirmYes">Yes</button></div></div></div><div id="successOverlay" class="confirmOverlay hidden"><div class="confirmBox"><h3>Success</h3><p id="successText"></p><div class="confirmActions"><button type="button" class="btn" id="successOk">OK</button></div></div></body></html   const qty=Number(b.quantity);
+</div></div><div id="confirmOverlay" class="confirmOverlay hidden"><div class="confirmBox"><h3 id="confirmTitle">Confirmation</h3><p id="confirmText"></p><div class="confirmActions"><button type="button" class="btn alt" id="confirmNo">No</button><button type="button" class="btn" id="confirmYes">Yes</button></div></div></div><div id="successOverlay" class="confirmOverlay hidden"><div class="confirmBox"><h3>Success</h3><p id="successText"></p><div class="confirmActions"><button type="button" class="btn" id="successOk">OK</button></div></div>
+<style id="crmModernV2Style">
+.crm-v2-toolbar{display:flex!important;align-items:center!important;gap:10px!important;flex-wrap:wrap!important;margin:12px 0 18px!important;padding:10px 12px!important;background:#fff!important;border:1px solid #dfe7e1!important;border-radius:12px!important}
+.crm-v2-toolbar select,.crm-v2-filter{padding:7px 9px!important;border:1px solid #cfd8d2!important;border-radius:8px!important;background:#fff!important;color:#18241d!important}
+.crm-v2-filter{display:block!important;width:100%!important;min-width:70px!important;margin-top:6px!important;font-size:11px!important;box-sizing:border-box!important}
+.crm-v2-summary{font-size:12px!important;color:#69756e!important}
+.crm-v2-pages{margin-left:auto!important;display:flex!important;gap:5px!important;align-items:center!important;flex-wrap:wrap!important}
+.crm-v2-pages button,.crm-v2-clear{border:1px solid #cfd8d2!important;background:#fff!important;border-radius:8px!important;padding:7px 11px!important;color:#164b30!important;font-weight:700!important;cursor:pointer!important}
+.crm-v2-pages button.crm-v2-active{background:#164b30!important;color:#fff!important;border-color:#164b30!important}
+.crm-v2-pages button:disabled{opacity:.45!important;cursor:not-allowed!important}
+@media(max-width:700px){.crm-v2-pages{margin-left:0!important;width:100%!important}}
+</style>
+
+<script id="crmModernV2">
+(function(){
+  const configs = [
+    ['dashboardOrdersTable', true],
+    ['usersTable', true],
+    ['ordersTable', true],
+    ['assignmentTable', true],
+    ['courierOrdersTable', true],
+    ['dealerOrdersTable', true]
+  ];
+  const states = new Map();
+
+  function setup(tableId, filters){
+    const table=document.getElementById(tableId);
+    if(!table || !table.tBodies || !table.tBodies[0]) return false;
+    const tbody=table.tBodies[0];
+    let state=states.get(tableId);
+    if(!state){
+      state={page:1,size:10,filters:{}};
+      states.set(tableId,state);
+    }
+    let bar=document.getElementById('crmV2_'+tableId);
+    if(!bar){
+      bar=document.createElement('div');
+      bar.id='crmV2_'+tableId;
+      bar.className='crm-v2-toolbar';
+      bar.innerHTML='<span>Show <select class="crm-v2-size"><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option></select> per page</span><span class="crm-v2-summary"></span><button type="button" class="crm-v2-clear">Clear Filters</button><span class="crm-v2-pages"></span>';
+      table.parentNode.insertBefore(bar, table.nextSibling);
+      bar.querySelector('.crm-v2-size').addEventListener('change',function(){state.size=Number(this.value);state.page=1;render(tableId);});
+      bar.querySelector('.crm-v2-clear').addEventListener('click',function(){
+        state.filters={};
+        table.querySelectorAll('.crm-v2-filter').forEach(x=>x.value='');
+        state.page=1; render(tableId);
+      });
+      if(filters && table.tHead && table.tHead.rows.length){
+        Array.from(table.tHead.rows[0].cells).forEach(function(th,i){
+          if(th.querySelector('.crm-v2-filter')) return;
+          const input=document.createElement('input');
+          input.type='search'; input.className='crm-v2-filter'; input.placeholder='Filter';
+          input.addEventListener('input',function(){state.filters[i]=input.value.trim().toLowerCase();state.page=1;render(tableId);});
+          input.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();render(tableId);}});
+          th.appendChild(input);
+        });
+      }
+      const oldObserver=states.get(tableId).observer;
+      if(!oldObserver && window.MutationObserver){
+        const observer=new MutationObserver(function(){render(tableId);});
+        observer.observe(tbody,{childList:true});
+        state.observer=observer;
+      }
+    }
+    render(tableId);
+    return true;
+  }
+
+  function render(tableId){
+    const table=document.getElementById(tableId), state=states.get(tableId);
+    if(!table || !state || !table.tBodies[0]) return;
+    const rows=Array.from(table.tBodies[0].rows).filter(r=>r.cells && r.cells.length>1);
+    const matched=rows.filter(function(r){
+      return Object.keys(state.filters).every(function(k){
+        const q=state.filters[k]; if(!q) return true;
+        return String((r.cells[Number(k)]||{}).innerText||'').toLowerCase().includes(q);
+      });
+    });
+    const pages=Math.max(1,Math.ceil(matched.length/state.size));
+    state.page=Math.min(Math.max(1,state.page),pages);
+    rows.forEach(r=>r.style.display='none');
+    matched.slice((state.page-1)*state.size,state.page*state.size).forEach(r=>r.style.display='');
+    const bar=document.getElementById('crmV2_'+tableId); if(!bar) return;
+    bar.querySelector('.crm-v2-summary').textContent=matched.length+' record'+(matched.length===1?'':'s');
+    const holder=bar.querySelector('.crm-v2-pages'); holder.innerHTML='';
+    function add(label,page,disabled,active){
+      const b=document.createElement('button'); b.type='button'; b.textContent=label; b.disabled=!!disabled;
+      if(active)b.className='crm-v2-active';
+      b.onclick=function(){state.page=page;render(tableId);}; holder.appendChild(b);
+    }
+    add('‹',state.page-1,state.page<=1,false);
+    let start=Math.max(1,state.page-2),end=Math.min(pages,start+4); start=Math.max(1,end-4);
+    for(let p=start;p<=end;p++) add(String(p),p,false,p===state.page);
+    add('›',state.page+1,state.page>=pages,false);
+  }
+
+  function enhance(){
+    configs.forEach(x=>setup(x[0],x[1]));
+    document.querySelectorAll('.search input, input[placeholder*="Search" i]').forEach(function(inp){
+      if(inp.dataset.crmV2Enter) return;
+      inp.dataset.crmV2Enter='1';
+      inp.addEventListener('keydown',function(e){
+        if(e.key!=='Enter') return;
+        const box=inp.closest('.search') || inp.parentElement;
+        const btn=box && Array.from(box.querySelectorAll('button')).find(b=>/search/i.test(b.textContent));
+        if(btn){e.preventDefault();btn.click();}
+      });
+    });
+  }
+
+  function start(){
+    enhance();
+    setTimeout(enhance,500);
+    setTimeout(enhance,1500);
+    setTimeout(enhance,3000);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start);
+  else start();
+})();
+</script>
+
+</body></html   const qty=Number(b.quantity);
    if(qty<1)throw new Error("Quantity सही डालें।");
    const productCheck=await sb.from("products").select("*").eq("id",b.product_id).single();
    if(productCheck.error)throw new Error("Product load failed: "+productCheck.error.message);
