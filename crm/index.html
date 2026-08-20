@@ -47,7 +47,15 @@
 .dateFilters label{display:flex;align-items:center;gap:7px;font-size:14px}
 .dateFilters select,.dateFilters input{height:38px;box-sizing:border-box}.dateTo{font-size:13px;opacity:.75}
 @media(max-width:560px){.dateFilters{align-items:stretch}.dateFilters label{flex:1}.dateFilters input{flex:1;min-width:150px}}
-</style></head>
+</style>
+<style id="crmUserEditStyle">
+#usersTable .crm-user-edit-btn,#usersTable .crm-user-save-btn,#usersTable .crm-user-cancel-btn,#usersTable .crm-pass-btn{padding:6px 9px;border-radius:7px;border:1px solid #d7e0da;background:#fff;cursor:pointer;margin:2px}
+#usersTable .crm-user-save-btn{background:#166534;color:#fff;border-color:#166534}
+#usersTable .user-edit{width:100%;min-width:90px;box-sizing:border-box;padding:6px}
+#usersTable .password-mask{letter-spacing:2px;color:#667085}
+</style>
+
+</head>
 <body>
 <div id="loginPage" class="wrap"><section class="login">
 <div class="brand"><img class="logo" src="https://aaroogyamayurveda.in/aaroogyam-ayurveda-logo-circle.png" alt="Aaroogyam Ayurveda"><h1>Aaroogyam Ayurveda</h1><p>Secure CRM Login</p></div>
@@ -108,7 +116,7 @@
 
 <section id="users" class="page">
 <div class="title"><div><h2>User Management</h2><div class="sub">Agents, Managers, Dealers और operational users</div></div><button class="btn" id="newUser">+ नया User</button></div>
-<div class="panel"><div id="usersMsg" class="sub"></div><div class="tablewrap"><table id="usersTable"><thead><tr><th>Name</th><th>User ID</th><th>Email</th><th>Mobile</th><th>Role</th><th>Status</th></tr></thead><tbody id="usersBody"></tbody></table></div></div>
+<div class="panel"><div id="usersMsg" class="sub"></div><div class="tablewrap"><table id="usersTable"><thead><tr><th>Name</th><th>User ID</th><th>Email</th><th>Mobile</th><th>Role</th><th>Status</th><th>Password</th><th>Action</th></tr></thead><tbody id="usersBody"></tbody></table></div></div>
 </section>
 
 <section id="orders" class="page">
@@ -271,27 +279,80 @@ async function refreshAll(){
 async function loadUsers(){
  const body=$("usersBody"), msg=$("usersMsg");
  if(!body)return;
- body.innerHTML='<tr><td colspan="6" class="sub">Loading users...</td></tr>';
+ body.innerHTML='<tr><td colspan="8" class="sub">Loading users...</td></tr>';
  if(msg)msg.textContent="";
  const {data,error}=await sb.from("profiles")
    .select("id,full_name,employee_code,email,mobile,role,is_active,created_at")
    .order("created_at",{ascending:false});
  if(error){
-   body.innerHTML=`<tr><td colspan="6" class="danger">${esc(error.message)}</td></tr>`;
+   body.innerHTML=`<tr><td colspan="8" class="danger">${esc(error.message)}</td></tr>`;
    return;
  }
- body.innerHTML=(data||[]).map(u=>`<tr>
-   <td>${esc(u.full_name)}</td>
-   <td>${esc(u.employee_code||"-")}</td>
-   <td>${esc(u.email||"-")}</td>
-   <td>${esc(u.mobile||"-")}</td>
-   <td>${esc(roleName(u.role))}</td>
-   <td>${u.is_active===false?'<span class="danger">Inactive</span>':'<span class="ok">Active</span>'}</td>
- </tr>`).join("")||'<tr><td colspan="6" class="empty">No users found</td></tr>';
+ const roles=["agent","order_manager","management","dealer","warehouse","courier_manager","super_admin"];
+ body.innerHTML=(data||[]).map(u=>{
+   const safeId=esc(u.id);
+   const roleOptions=roles.map(r=>`<option value="${esc(r)}" ${u.role===r?"selected":""}>${esc(roleName(r))}</option>`).join("");
+   return `<tr data-user-id="${safeId}">
+   <td><span class="user-view">${esc(u.full_name||"-")}</span><input class="user-edit" name="full_name" value="${esc(u.full_name||"")}" style="display:none"></td>
+   <td><span class="user-view">${esc(u.employee_code||"-")}</span><input class="user-edit" name="employee_code" value="${esc(u.employee_code||"")}" style="display:none"></td>
+   <td><span class="user-view">${esc(u.email||"-")}</span><input class="user-edit" name="email" type="email" value="${esc(u.email||"")}" style="display:none"></td>
+   <td><span class="user-view">${esc(u.mobile||"-")}</span><input class="user-edit" name="mobile" value="${esc(u.mobile||"")}" style="display:none"></td>
+   <td><span class="user-view">${esc(roleName(u.role))}</span><select class="user-edit" name="role" style="display:none">${roleOptions}</select></td>
+   <td><span class="user-view">${u.is_active===false?'<span class="danger">Inactive</span>':'<span class="ok">Active</span>'}</span><select class="user-edit" name="is_active" style="display:none"><option value="true" ${u.is_active!==false?"selected":""}>Active</option><option value="false" ${u.is_active===false?"selected":""}>Inactive</option></select></td>
+   <td><span class="password-mask">••••••••</span><button type="button" class="crm-pass-btn" title="Password cannot be displayed; click to set a new password">🔑 Change</button></td>
+   <td><button type="button" class="crm-user-edit-btn" title="Edit user">✏️ Edit</button><button type="button" class="crm-user-save-btn" style="display:none">Save</button><button type="button" class="crm-user-cancel-btn" style="display:none">Cancel</button></td>
+ </tr>`;
+ }).join("")||'<tr><td colspan="8" class="empty">No users found</td></tr>';
  if(msg)msg.textContent=`${(data||[]).length} user(s) found`;
 }
 
-function localISO(d=new Date()){
+async function crmSaveProfileRow(row){
+ const id=row.dataset.userId;
+ const values={};
+ row.querySelectorAll(".user-edit").forEach(x=>{
+   values[x.name]=x.name==="is_active"?x.value==="true":x.value.trim();
+ });
+ if(!values.full_name){toast("Name required");return;}
+ const {error}=await sb.from("profiles").update(values).eq("id",id);
+ if(error){toast("Update failed: "+error.message);return;}
+ toast("User updated successfully");
+ await loadUsers();
+}
+
+function crmBindUserManagement(){
+ const body=$("usersBody"); if(!body||body.dataset.crmUserBound)return;
+ body.dataset.crmUserBound="1";
+ body.addEventListener("click",async e=>{
+   const row=e.target.closest("tr[data-user-id]"); if(!row)return;
+   if(e.target.closest(".crm-user-edit-btn")){
+     row.querySelectorAll(".user-view").forEach(x=>x.style.display="none");
+     row.querySelectorAll(".user-edit").forEach(x=>x.style.display="");
+     row.querySelector(".crm-user-edit-btn").style.display="none";
+     row.querySelector(".crm-user-save-btn").style.display="";
+     row.querySelector(".crm-user-cancel-btn").style.display="";
+   }else if(e.target.closest(".crm-user-cancel-btn")){
+     await loadUsers();
+   }else if(e.target.closest(".crm-user-save-btn")){
+     await crmSaveProfileRow(row);
+   }else if(e.target.closest(".crm-pass-btn")){
+     const id=row.dataset.userId;
+     modal("Change Password",`<form id="crmChangePasswordForm" onsubmit="return false;">
+       <div class="field"><label>New Password</label><div style="display:flex;gap:8px"><input id="crmNewPassword" type="password" minlength="8" required style="flex:1"><button type="button" id="crmTogglePassword">👁</button></div><small class="sub">Minimum 8 characters. Existing password cannot be viewed.</small></div>
+       <div class="actions"><button type="button" class="btn alt" id="crmPassCancel">Cancel</button><button type="submit" class="btn">Change Password</button></div><div id="crmPassMsg" class="msg"></div></form>`);
+     const form=$("crmChangePasswordForm");
+     $("crmTogglePassword").onclick=()=>{const x=$("crmNewPassword");x.type=x.type==="password"?"text":"password";};
+     $("crmPassCancel").onclick=()=>{$("modal").style.display="none";};
+     form.addEventListener("submit",async ev=>{
+       ev.preventDefault();
+       const password=$("crmNewPassword").value;
+       if(password.length<8){$("crmPassMsg").textContent="Password must be at least 8 characters.";return;}
+       $("crmPassMsg").textContent="Password backend update endpoint is required.";
+     });
+   }
+ });
+}
+
+document.addEventListener("DOMContentLoaded",()=>setTimeout(crmBindUserManagement,0));function localISO(d=new Date()){
  const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);
  return x.toISOString().slice(0,10);
 }
