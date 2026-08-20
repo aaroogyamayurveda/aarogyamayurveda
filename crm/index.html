@@ -1179,17 +1179,17 @@ async function searchOrders(inputId,resultId){
  if(!term){target.innerHTML='<tr><td colspan="8" class="empty">Order No या 10 digit Mobile Number डालें।</td></tr>';return}
  try{
   let orders=[];
-  const fullSelect="id,order_no,order_status,total_amount,order_date,customer_id,agent_id,dealer_id,courier_manager_id,customers(customer_name,mobile,alternate_mobile,address,state,city,pincode),profiles!orders_agent_id_fkey(full_name),dealers(dealer_name),order_items(quantity,unit_price,products(*))";
+  const fullSelect="id,order_no,order_status,remarks,total_amount,order_date,customer_id,agent_id,dealer_id,courier_manager_id,customers(customer_name,mobile,alternate_mobile,address,state,city,pincode),profiles!orders_agent_id_fkey(full_name),dealers(dealer_name),order_items(quantity,unit_price,products(*))";
   if(/^\d{10}$/.test(term)){
    const {data:customers,error:ce}=await sb.from("customers").select("id").eq("mobile",term);
    if(ce)throw ce;
    const ids=(customers||[]).map(c=>c.id);
    if(!ids.length){target.innerHTML='<tr><td colspan="8" class="empty">इस mobile number से कोई customer/order नहीं मिला।</td></tr>';return}
-   const {data,error}=await onlyRealOrders(sb.from("orders").select(fullSelect)).in("customer_id",ids).order("order_date",{ascending:false}).limit(100);
+   const {data,error}=await sb.from("orders").select(fullSelect).in("customer_id",ids).order("order_date",{ascending:false}).limit(100);
    if(error)throw error;orders=data||[];
   }else{
    const orderNo=String(term).replace(/^#?/,"");
-   const {data,error}=await onlyRealOrders(sb.from("orders").select(fullSelect)).eq("order_no",orderNo).order("order_date",{ascending:false}).limit(100);
+   const {data,error}=await sb.from("orders").select(fullSelect).eq("order_no",orderNo).order("order_date",{ascending:false}).limit(100);
    if(error)throw error;orders=data||[];
   }
   if(!orders.length){
@@ -1204,7 +1204,7 @@ async function searchOrders(inputId,resultId){
     <td>${productSummary(o.order_items)}</td>
     <td>${esc(o.profiles?.full_name||"-")}</td>
     <td>${esc(getDeliveryPartnerName(o,partnerMap))}</td>
-    <td><span class="pill">${esc(o.order_status||"-")}</span></td>
+    <td><span class="pill">${esc(o.order_status||"-")}</span>${String(o.remarks||"").includes("[ENQUIRY]")?'<div class="sub">Enquiry</div>':''}</td>
     <td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td>
    </tr>
    <tr><td colspan="8" class="sub">Created: ${esc(o.order_date||"-")} | Address: ${esc([o.customers?.address,o.customers?.city,o.customers?.state,o.customers?.pincode].filter(Boolean).join(", ")||"-")}</td></tr>`).join("");
