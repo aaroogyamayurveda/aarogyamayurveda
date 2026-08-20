@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="hi">
 <head>
@@ -313,10 +312,34 @@ async function crmSaveProfileRow(row){
    values[x.name]=x.name==="is_active"?x.value==="true":x.value.trim();
  });
  if(!values.full_name){toast("Name required");return;}
- const {error}=await sb.from("profiles").update(values).eq("id",id);
- if(error){toast("Update failed: "+error.message);return;}
- toast("User updated successfully");
- await loadUsers();
+
+ const emailInput=row.querySelector('input[name="email"]');
+ const originalEmail=(emailInput?.defaultValue||"").trim().toLowerCase();
+ const newEmail=(values.email||"").trim().toLowerCase();
+
+ try{
+   if(newEmail && newEmail!==originalEmail){
+     const {data:emailData,error:emailError}=await sb.functions.invoke("quick-service",{
+       body:{action:"update_user_email",user_id:id,email:newEmail}
+     });
+     if(emailError) throw emailError;
+     if(emailData && emailData.error) throw new Error(emailData.error);
+   }
+
+   const profileValues={...values};
+   if(newEmail && newEmail!==originalEmail) delete profileValues.email;
+
+   const {error}=await sb.from("profiles").update(profileValues).eq("id",id);
+   if(error) throw error;
+
+   toast(newEmail!==originalEmail
+     ? "User and login email updated successfully"
+     : "User updated successfully");
+   await loadUsers();
+ }catch(err){
+   console.error("User update failed:",err);
+   toast("Update failed: "+(err?.message||"Unknown error"));
+ }
 }
 
 function crmBindUserManagement(){
