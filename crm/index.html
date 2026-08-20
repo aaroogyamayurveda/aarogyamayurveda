@@ -226,6 +226,15 @@ function showPage(id){
   const page=$(id);
   if(page) page.classList.add("active");
 
+  // Refresh live data whenever these pages are opened, so a newly created order
+  // appears immediately without a browser refresh.
+  if(id==="dashboard" && typeof loadDashboardOrders==="function"){
+    loadDashboardOrders();
+  }
+  if(id==="orderManager" && typeof loadOrderAssignments==="function"){
+    loadOrderAssignments();
+  }
+
   document.querySelectorAll(".side button").forEach(x=>x.classList.remove("active"));
   const activeBtn=[...document.querySelectorAll(".side button")]
     .find(x=>x.onclick && x.textContent && (
