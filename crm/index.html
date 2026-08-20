@@ -169,17 +169,77 @@ async function boot(user){
  buildNav(); await loadCreateOrderProducts(); await refreshAll();
 }
 function buildNav(){
-  const n=$("nav");n.innerHTML="";
- const items=[["dashboard","🏠 Dashboard"],["createOrderPage","➕ Create Order"],["orders","📦 Order Search"]];
- // Order Manager handles assignment. Management and Super Admin can also review/manage assignments.
- if(["order_manager","management","super_admin"].includes(profile.role))items.push(["orderManager","📋 Order Assignment"]);
- if(profile.role==="dealer")items.push(["dealers","🚚 Dealer Orders"]);
- if(profile.role==="courier_manager")items.push(["courierOrders","🚛 Courier Orders"]);
- items.push(["reports","📊 Reports"]);
- if(["super_admin","management"].includes(profile.role))items.splice(1,0,["users","👥 User Management"]);
- items.forEach(([id,t])=>{const b=document.createElement("button");b.textContent=t;b.onclick=()=>showPage(id);n.appendChild(b)});
+  const n=$("nav"); n.innerHTML="";
+  const role=profile?.role||"";
+  const rolePages={
+    super_admin:[
+      ["dashboard","🏠 Dashboard"],["users","👥 User Management"],
+      ["createOrderPage","➕ Create Order"],["orders","📦 Order Search"],
+      ["orderManager","📋 Order Assignment"],["reports","📊 Reports"]
+    ],
+    management:[
+      ["dashboard","🏠 Dashboard"],["users","👥 User Management"],
+      ["orders","📦 Order Search"],["orderManager","📋 Order Assignment"],
+      ["reports","📊 Reports"]
+    ],
+    order_manager:[
+      ["dashboard","🏠 Dashboard"],["orders","📦 Order Search"],
+      ["orderManager","📋 Order Assignment"],["reports","📊 Reports"]
+    ],
+    agent:[
+      ["dashboard","🏠 Dashboard"],["createOrderPage","➕ Create Order"],
+      ["orders","📦 Order Search"],["reports","📊 Reports"]
+    ],
+    dealer:[
+      ["dashboard","🏠 Dashboard"],["dealers","🚚 Dealer Orders"]
+    ],
+    courier_manager:[
+      ["dashboard","🏠 Dashboard"],["courierOrders","🚛 Courier Orders"]
+    ],
+    warehouse:[
+      ["dashboard","🏠 Dashboard"]
+    ]
+  };
+  const items=rolePages[role]||[["dashboard","🏠 Dashboard"]];
+  items.forEach(([id,label])=>{
+    const b=document.createElement("button");
+    b.textContent=label;
+    b.onclick=()=>showPage(id);
+    n.appendChild(b);
+  });
 }
-function showPage(id){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll(".side button").forEach(x=>x.classList.remove("active"));[...document.querySelectorAll(".side button")].find(x=>x.textContent.toLowerCase().includes(id==="customers"?"customers":id))?.classList.add("active");if(id==="createOrderPage")resetCreateOrderForm();refreshAll()}
+function showPage(id){
+  const role=profile?.role||"";
+  const allowed={
+    super_admin:["dashboard","users","createOrderPage","orders","orderManager","reports"],
+    management:["dashboard","users","orders","orderManager","reports"],
+    order_manager:["dashboard","orders","orderManager","reports"],
+    agent:["dashboard","createOrderPage","orders","reports"],
+    dealer:["dashboard","dealers"],
+    courier_manager:["dashboard","courierOrders"],
+    warehouse:["dashboard"]
+  }[role]||["dashboard"];
+
+  if(!allowed.includes(id)) id="dashboard";
+
+  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+  const page=$(id);
+  if(page) page.classList.add("active");
+
+  document.querySelectorAll(".side button").forEach(x=>x.classList.remove("active"));
+  const activeBtn=[...document.querySelectorAll(".side button")]
+    .find(x=>x.onclick && x.textContent && (
+      (id==="dashboard" && x.textContent.includes("Dashboard")) ||
+      (id==="users" && x.textContent.includes("User Management")) ||
+      (id==="createOrderPage" && x.textContent.includes("Create Order")) ||
+      (id==="orders" && x.textContent.includes("Order Search")) ||
+      (id==="orderManager" && x.textContent.includes("Order Assignment")) ||
+      (id==="reports" && x.textContent.includes("Reports")) ||
+      (id==="dealers" && x.textContent.includes("Dealer Orders")) ||
+      (id==="courierOrders" && x.textContent.includes("Courier Orders"))
+    ));
+  activeBtn?.classList.add("active");
+}
 async function refreshAll(){
  await loadStats();await loadDashboardOrders();
  if(["super_admin","management"].includes(profile.role))await loadUsers();
