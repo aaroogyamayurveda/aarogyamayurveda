@@ -125,8 +125,26 @@
 </section>
 
 <section id="orderManager" class="page">
-<div class="title"><div><h2>Order Assignment</h2><div class="sub">Assign orders to Dealer or Courier Manager</div></div></div>
-<div class="panel"><div class="tablewrap"><table id="assignmentTable"><thead><tr><th>Order</th><th>Customer</th><th>Mobile</th><th>Amount</th><th>Status</th><th>Current Assignment</th><th>Assign To</th><th>Action</th></tr></thead><tbody id="assignmentBody"></tbody></table></div></div>
+<div class="title"><div><h2>Order Assignment</h2><div class="sub">Filter by PIN Code, select single or multiple orders, then assign Dealer or Courier Manager</div></div></div>
+<div class="panel">
+  <div class="search">
+    <input id="assignmentPinFilter" placeholder="Filter by PIN Code">
+    <button class="btn alt" id="assignmentPinClear" type="button">Clear</button>
+    <span id="assignmentSelectedCount" class="sub">0 selected</span>
+  </div>
+</div>
+<div class="panel">
+  <div class="tablewrap"><table id="assignmentTable"><thead><tr>
+    <th><input type="checkbox" id="assignmentSelectAll" title="Select all visible orders"></th>
+    <th>Order</th><th>Customer</th><th>Mobile</th><th>PIN Code</th><th>Amount</th><th>Status</th><th>Current Assignment</th><th>Assign To</th><th>Action</th>
+  </tr></thead><tbody id="assignmentBody"></tbody></table></div>
+</div>
+<div class="panel">
+  <div class="search">
+    <select id="bulkAssignSel"><option value="">Select Dealer / Courier for selected orders</option></select>
+    <button class="btn" id="bulkAssignBtn" type="button">Assign Selected</button>
+  </div>
+</div>
 </section>
 
 <section id="courierOrders" class="page">
@@ -544,83 +562,227 @@ async function loadOrders(){
  body.innerHTML='<tr><td colspan="8" class="empty">Order No या 10 digit Mobile Number डालकर Search करें।</td></tr>';
 }
 
+async function crmConfirm(message,title="Confirm Action"){
+  return new Promise(resolve=>{
+    modal(title,`
+      <div style="padding:6px 0 12px">${esc(message)}</div>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn alt" id="crmConfirmNo" type="button">No</button>
+        <button class="btn" id="crmConfirmYes" type="button">Yes</button>
+      </div>
+    `);
+    $("crmConfirmYes").onclick=()=>{closeModal();resolve(true)};
+    $("crmConfirmNo").onclick=()=>{closeModal();resolve(false)};
+  });
+}
+
+let assignmentOrdersCache=[];
+let assignmentPartnerOptions="";
+
+function updateAssignmentSelectedCount(){
+  const selected=document.querySelectorAll("#assignmentBody .assignmentCheck:checked").length;
+  const label=$("assignmentSelectedCount");
+  if(label) label.textContent=`${selected} selected`;
+  const all=$("assignmentSelectAll");
+  const checks=[...document.querySelectorAll("#assignmentBody .assignmentCheck")];
+  if(all){
+    all.checked=checks.length>0 && checks.every(x=>x.checked);
+    all.indeterminate=checks.some(x=>x.checked) && !all.checked;
+  }
+}
+
+function renderOrderAssignments(){
+  const body=$("assignmentBody"); if(!body)return;
+  const pinFilter=($("assignmentPinFilter")?.value||"").trim().toLowerCase();
+  const orders=assignmentOrdersCache.filter(o=>!pinFilter || String(o.customers?.pin_code||"").toLowerCase().includes(pinFilter));
+
+  body.innerHTML=orders.map(o=>{
+    const current=o.dealer_id
+      ? `Dealer: ${esc(o.dealer_name||"Assigned")}`
+      : o.courier_manager_id
+        ? `Courier: ${esc(o.courier_name||"Assigned")}`
+        : '<span class="sub">Unassigned</span>';
+
+    return `<tr>
+      <td><input type="checkbox" class="assignmentCheck" data-order="${esc(o.id)}"></td>
+      <td>#${esc(o.order_no)}</td>
+      <td>${esc(o.customers?.customer_name||"-")}</td>
+      <td>${esc(o.customers?.mobile||"-")}</td>
+      <td>${esc(o.customers?.pin_code||"-")}</td>
+      <td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td>
+      <td><span class="pill">${esc(o.order_status||"-")}</span></td>
+      <td>${current}</td>
+      <td><select class="assignSel" data-order="${esc(o.id)}">${assignmentPartnerOptions}</select></td>
+      <td><button class="btn assignBtn" data-order="${esc(o.id)}">Assign</button></td>
+    </tr>`;
+  }).join("")||'<tr><td colspan="10" class="empty">No orders found for this PIN Code</td></tr>';
+
+  document.querySelectorAll(".assignmentCheck").forEach(x=>x.onchange=updateAssignmentSelectedCount);
+
+  document.querySelectorAll(".assignBtn").forEach(btn=>btn.onclick=async()=>{
+    const orderId=btn.dataset.order;
+    const sel=body.querySelector(`.assignSel[data-order="${CSS.escape(orderId)}"]`);
+    const value=sel?.value||"";
+    if(!value){toast("पहले Dealer या Courier Manager select करें");return}
+    const [type,id]=value.split(":");
+    const partnerText=sel.options[sel.selectedIndex]?.text||"selected partner";
+    const ok=await crmConfirm(`Assign this order to ${partnerText}?`,"Confirm Assignment");
+    if(!ok) return;
+
+    btn.disabled=true;
+    const payload=type==="dealer"
+      ? {dealer_id:id,courier_manager_id:null,order_status:"assigned"}
+      : {dealer_id:null,courier_manager_id:id,order_status:"assigned"};
+
+    const {error:updateError}=await sb.from("orders").update(payload).eq("id",orderId);
+    if(updateError){toast(updateError.message);btn.disabled=false;return}
+    await sb.from("order_status_history").insert({order_id:orderId,new_status:"assigned",changed_by:me.id});
+    toast(type==="dealer"?"Order assigned to Dealer":"Order assigned to Courier Manager");
+    await loadOrderAssignments();
+  });
+
+  updateAssignmentSelectedCount();
+}
+
 async function loadOrderAssignments(){
- const body=$("assignmentBody"); if(!body)return;
- body.innerHTML='<tr><td colspan="8" class="sub">Loading orders and assignment users...</td></tr>';
+  const body=$("assignmentBody"); if(!body)return;
+  body.innerHTML='<tr><td colspan="10" class="sub">Loading orders and assignment users...</td></tr>';
 
- const [{data:orders,error},{data:dealerRows,error:dealerErr},{data:couriers,error:courierErr}]=await Promise.all([
-   sb.from("orders").select("id,order_no,order_status,total_amount,dealer_id,courier_manager_id,customers(customer_name,mobile),dealers(dealer_name)").order("order_date",{ascending:false}).limit(200),
-   sb.from("dealers").select("id,dealer_name,user_id").order("dealer_name"),
-   sb.from("profiles").select("id,full_name,employee_code,role,is_active").eq("role","courier_manager").eq("is_active",true).order("full_name")
- ]);
- if(error){body.innerHTML=`<tr><td colspan="8" class="danger">${esc(error.message)}</td></tr>`;return}
- if(dealerErr||courierErr){body.innerHTML=`<tr><td colspan="8" class="danger">${esc((dealerErr||courierErr).message)}</td></tr>`;return}
+  const [{data:orders,error},{data:dealerRows,error:dealerErr},{data:couriers,error:courierErr}]=await Promise.all([
+    sb.from("orders")
+      .select("id,order_no,order_status,total_amount,dealer_id,courier_manager_id,customers(customer_name,mobile,pin_code),dealers(dealer_name)")
+      .order("order_date",{ascending:false}).limit(500),
+    sb.from("dealers").select("id,dealer_name,user_id").order("dealer_name"),
+    sb.from("profiles").select("id,full_name,employee_code,role,is_active").eq("role","courier_manager").eq("is_active",true).order("full_name")
+  ]);
 
- const dealerMap=new Map((dealerRows||[]).map(x=>[x.id,x]));
- const courierMap=new Map((couriers||[]).map(x=>[x.id,x]));
- body.innerHTML=(orders||[]).map(o=>{
-   const current=o.dealer_id
-     ? `Dealer: ${esc(dealerMap.get(o.dealer_id)?.dealer_name||o.dealers?.dealer_name||"Assigned")}`
-     : o.courier_manager_id
-       ? `Courier: ${esc(courierMap.get(o.courier_manager_id)?.full_name||"Assigned")}`
-       : '<span class="sub">Unassigned</span>';
-   const dealerOptions=(dealerRows||[]).map(d=>`<option value="dealer:${esc(d.id)}">Dealer — ${esc(d.dealer_name||d.id)}</option>`).join("");
-   const courierOptions=(couriers||[]).map(c=>`<option value="courier:${esc(c.id)}">Courier — ${esc(c.full_name)}${c.employee_code?` (${esc(c.employee_code)})`:""}</option>`).join("");
-   return `<tr>
-    <td>#${esc(o.order_no)}</td><td>${esc(o.customers?.customer_name||"-")}</td><td>${esc(o.customers?.mobile||"-")}</td>
-    <td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td><td><span class="pill">${esc(o.order_status||"-")}</span></td>
-    <td>${current}</td>
-    <td><select class="assignSel" data-order="${esc(o.id)}"><option value="">Select Dealer / Courier</option>${dealerOptions}${courierOptions}</select></td>
-    <td><button class="btn assignBtn" data-order="${esc(o.id)}">Assign</button></td>
-   </tr>`;
- }).join("")||'<tr><td colspan="8" class="empty">No orders found</td></tr>';
+  if(error){body.innerHTML=`<tr><td colspan="10" class="danger">${esc(error.message)}</td></tr>`;return}
+  if(dealerErr||courierErr){body.innerHTML=`<tr><td colspan="10" class="danger">${esc((dealerErr||courierErr).message)}</td></tr>`;return}
 
- document.querySelectorAll(".assignBtn").forEach(btn=>btn.onclick=async()=>{
-   const orderId=btn.dataset.order;
-   const sel=body.querySelector(`.assignSel[data-order="${CSS.escape(orderId)}"]`);
-   const value=sel?.value||"";
-   if(!value){toast("पहले Dealer या Courier Manager select करें");return}
-   const [type,id]=value.split(":");
-   btn.disabled=true;
-   const payload=type==="dealer"
-     ? {dealer_id:id,courier_manager_id:null,order_status:"assigned"}
-     : {dealer_id:null,courier_manager_id:id,order_status:"assigned"};
-   const {error:updateError}=await sb.from("orders").update(payload).eq("id",orderId);
-   if(updateError){toast(updateError.message);btn.disabled=false;return}
-   await sb.from("order_status_history").insert({order_id:orderId,new_status:"assigned",changed_by:me.id});
-   toast(type==="dealer"?"Order assigned to Dealer":"Order assigned to Courier Manager");
-   await loadOrderAssignments();
- });
+  const dealerMap=new Map((dealerRows||[]).map(x=>[x.id,x]));
+  const courierMap=new Map((couriers||[]).map(x=>[x.id,x]));
+
+  assignmentOrdersCache=(orders||[]).map(o=>({
+    ...o,
+    dealer_name:dealerMap.get(o.dealer_id)?.dealer_name||o.dealers?.dealer_name||"",
+    courier_name:courierMap.get(o.courier_manager_id)?.full_name||""
+  }));
+
+  const dealerOptions=(dealerRows||[]).map(d=>`<option value="dealer:${esc(d.id)}">Dealer — ${esc(d.dealer_name||d.id)}</option>`).join("");
+  const courierOptions=(couriers||[]).map(c=>`<option value="courier:${esc(c.id)}">Courier — ${esc(c.full_name)}${c.employee_code?` (${esc(c.employee_code)})`:""}</option>`).join("");
+  assignmentPartnerOptions=`<option value="">Select Dealer / Courier</option>${dealerOptions}${courierOptions}`;
+
+  const bulk=$("bulkAssignSel");
+  if(bulk) bulk.innerHTML=assignmentPartnerOptions.replace('<option value="">Select Dealer / Courier</option>','<option value="">Select Dealer / Courier for selected orders</option>');
+
+  renderOrderAssignments();
+
+  const pin=$("assignmentPinFilter");
+  if(pin && !pin.dataset.bound){
+    pin.dataset.bound="1";
+    pin.addEventListener("input",renderOrderAssignments);
+    pin.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();renderOrderAssignments()}});
+  }
+
+  const clear=$("assignmentPinClear");
+  if(clear && !clear.dataset.bound){
+    clear.dataset.bound="1";
+    clear.onclick=()=>{if(pin)pin.value="";renderOrderAssignments()};
+  }
+
+  const selectAll=$("assignmentSelectAll");
+  if(selectAll && !selectAll.dataset.bound){
+    selectAll.dataset.bound="1";
+    selectAll.onchange=e=>{
+      document.querySelectorAll("#assignmentBody .assignmentCheck").forEach(x=>x.checked=e.target.checked);
+      updateAssignmentSelectedCount();
+    };
+  }
+
+  const bulkBtn=$("bulkAssignBtn");
+  if(bulkBtn && !bulkBtn.dataset.bound){
+    bulkBtn.dataset.bound="1";
+    bulkBtn.onclick=async()=>{
+      const selected=[...document.querySelectorAll("#assignmentBody .assignmentCheck:checked")].map(x=>x.dataset.order);
+      const value=bulk?.value||"";
+      if(!selected.length){toast("कम से कम एक order select करें");return}
+      if(!value){toast("Dealer या Courier Manager select करें");return}
+
+      const [type,id]=value.split(":");
+      const partnerText=bulk.options[bulk.selectedIndex]?.text||"selected partner";
+      const ok=await crmConfirm(`${selected.length} selected order(s) को ${partnerText} को assign करना है?`,"Confirm Bulk Assignment");
+      if(!ok) return;
+
+      bulkBtn.disabled=true;
+      const payload=type==="dealer"
+        ? {dealer_id:id,courier_manager_id:null,order_status:"assigned"}
+        : {dealer_id:null,courier_manager_id:id,order_status:"assigned"};
+
+      const {error:updateError}=await sb.from("orders").update(payload).in("id",selected);
+      if(updateError){toast(updateError.message);bulkBtn.disabled=false;return}
+
+      const historyRows=selected.map(order_id=>({order_id,new_status:"assigned",changed_by:me.id}));
+      const {error:historyError}=await sb.from("order_status_history").insert(historyRows);
+      if(historyError) console.error("Assignment history error:",historyError);
+
+      toast(`${selected.length} order(s) assigned successfully`);
+      bulkBtn.disabled=false;
+      await loadOrderAssignments();
+    };
+  }
 }
 
 async function loadCourierOrders(){
- const body=$("courierBody"); if(!body)return;
- const {data,error}=await sb.from("orders")
-   .select("id,order_no,order_status,total_amount,customers(customer_name,mobile)")
-   .eq("courier_manager_id",me.id).order("order_date",{ascending:false});
- if(error){body.innerHTML=`<tr><td colspan="6" class="danger">${esc(error.message)}</td></tr>`;return}
- body.innerHTML=(data||[]).map(o=>`<tr>
-   <td>#${esc(o.order_no)}</td><td>${esc(o.customers?.customer_name||"-")}</td><td>${esc(o.customers?.mobile||"-")}</td>
-   <td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td><td><span class="pill">${esc(o.order_status||"-")}</span></td>
-   <td><select data-order="${esc(o.id)}" class="courierStatusSel">
-     ${["assigned","packed","dispatched","in_transit","delivered","hold","cancelled","rto"].map(x=>`<option value="${x}" ${o.order_status===x?"selected":""}>${x}</option>`).join("")}
-   </select></td></tr>`).join("")||'<tr><td colspan="6" class="empty">No assigned courier orders</td></tr>';
- document.querySelectorAll(".courierStatusSel").forEach(sel=>sel.onchange=async e=>{
-   const id=e.target.dataset.order,newStatus=e.target.value;
-   const {error:updateError}=await sb.from("orders").update({order_status:newStatus}).eq("id",id);
-   if(updateError){toast(updateError.message);return}
-   await sb.from("order_status_history").insert({order_id:id,new_status:newStatus,changed_by:me.id});
-   toast("Status updated");await refreshAll();
- });
+  const body=$("courierBody"); if(!body)return;
+  const {data,error}=await sb.from("orders")
+    .select("id,order_no,order_status,total_amount,customers(customer_name,mobile)")
+    .eq("courier_manager_id",me.id).order("order_date",{ascending:false});
+  if(error){body.innerHTML=`<tr><td colspan="6" class="danger">${esc(error.message)}</td></tr>`;return}
+
+  body.innerHTML=(data||[]).map(o=>`<tr>
+    <td>#${esc(o.order_no)}</td><td>${esc(o.customers?.customer_name||"-")}</td><td>${esc(o.customers?.mobile||"-")}</td>
+    <td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td><td><span class="pill">${esc(o.order_status||"-")}</span></td>
+    <td><select data-order="${esc(o.id)}" data-old="${esc(o.order_status||"")}" class="courierStatusSel">
+      ${["assigned","packed","dispatched","in_transit","delivered","hold","cancelled","rto"].map(x=>`<option value="${x}" ${o.order_status===x?"selected":""}>${x}</option>`).join("")}
+    </select></td></tr>`).join("")||'<tr><td colspan="6" class="empty">No assigned courier orders</td></tr>';
+
+  document.querySelectorAll(".courierStatusSel").forEach(sel=>sel.onchange=async e=>{
+    const target=e.target,id=target.dataset.order,newStatus=target.value,oldStatus=target.dataset.old||"";
+    if(newStatus===oldStatus)return;
+    const ok=await crmConfirm(`Change order status from "${oldStatus}" to "${newStatus}"?`,"Confirm Status Update");
+    if(!ok){target.value=oldStatus;return}
+
+    const {error:updateError}=await sb.from("orders").update({order_status:newStatus}).eq("id",id);
+    if(updateError){toast(updateError.message);target.value=oldStatus;return}
+    await sb.from("order_status_history").insert({order_id:id,new_status:newStatus,changed_by:me.id});
+    toast("Status updated");await refreshAll();
+  });
 }
 
 async function loadDealerOrders(){
- if(profile.role!=="dealer"){$("dealerBody").innerHTML='<tr><td colspan="6" class="empty">Dealer login पर assigned orders यहाँ दिखाई देंगे।</td></tr>';return}
- const d=await sb.from("dealers").select("id").eq("user_id",me.id).maybeSingle();
- if(!d.data){$("dealerBody").innerHTML='<tr><td colspan="6" class="empty">Dealer profile linked नहीं है।</td></tr>';return}
- const {data}=await sb.from("orders").select("id,order_no,order_status,total_amount,customers(customer_name,mobile)").eq("dealer_id",d.data.id).order("order_date",{ascending:false});
- $("dealerBody").innerHTML=(data||[]).map(o=>`<tr><td>#${esc(o.order_no)}</td><td>${esc(o.customers?.customer_name)}</td><td>${esc(o.customers?.mobile)}</td><td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td><td><span class="pill">${esc(o.order_status)}</span></td><td><select data-order="${o.id}" class="statusSel"><option>new</option><option>packed</option><option>dispatched</option><option>in_transit</option><option>delivered</option><option>hold</option><option>cancelled</option><option>rto</option></select></td></tr>`).join("")||'<tr><td colspan="6" class="empty">No assigned orders</td></tr>';
- document.querySelectorAll(".statusSel").forEach(s=>s.onchange=async e=>{const id=e.target.dataset.order,newStatus=e.target.value;const {error}=await sb.from("orders").update({order_status:newStatus}).eq("id",id);if(error)toast(error.message);else{await sb.from("order_status_history").insert({order_id:id,new_status:newStatus,changed_by:me.id});toast("Status updated");await refreshAll()}});
+  if(profile.role!=="dealer"){$("dealerBody").innerHTML='<tr><td colspan="6" class="empty">Dealer login पर assigned orders यहाँ दिखाई देंगे।</td></tr>';return}
+  const d=await sb.from("dealers").select("id").eq("user_id",me.id).maybeSingle();
+  if(!d.data){$("dealerBody").innerHTML='<tr><td colspan="6" class="empty">Dealer profile linked नहीं है।</td></tr>';return}
+  const {data}=await sb.from("orders").select("id,order_no,order_status,total_amount,customers(customer_name,mobile)").eq("dealer_id",d.data.id).order("order_date",{ascending:false});
+
+  $("dealerBody").innerHTML=(data||[]).map(o=>`<tr>
+    <td>#${esc(o.order_no)}</td><td>${esc(o.customers?.customer_name)}</td><td>${esc(o.customers?.mobile)}</td>
+    <td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td><td><span class="pill">${esc(o.order_status)}</span></td>
+    <td><select data-order="${esc(o.id)}" data-old="${esc(o.order_status||"")}" class="statusSel">
+      ${["new","packed","dispatched","in_transit","delivered","hold","cancelled","rto"].map(x=>`<option value="${x}" ${o.order_status===x?"selected":""}>${x}</option>`).join("")}
+    </select></td></tr>`).join("")||'<tr><td colspan="6" class="empty">No assigned orders</td></tr>';
+
+  document.querySelectorAll(".statusSel").forEach(sel=>sel.onchange=async e=>{
+    const target=e.target,id=target.dataset.order,newStatus=target.value,oldStatus=target.dataset.old||"";
+    if(newStatus===oldStatus)return;
+    const ok=await crmConfirm(`Change order status from "${oldStatus}" to "${newStatus}"?`,"Confirm Status Update");
+    if(!ok){target.value=oldStatus;return}
+
+    const {error}=await sb.from("orders").update({order_status:newStatus}).eq("id",id);
+    if(error){toast(error.message);target.value=oldStatus;return}
+    await sb.from("order_status_history").insert({order_id:id,new_status:newStatus,changed_by:me.id});
+    toast("Status updated");await refreshAll();
+  });
 }
 
 async function loadReports(){
