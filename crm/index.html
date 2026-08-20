@@ -104,11 +104,6 @@
 
 <section id="orders" class="page">
 <div class="title"><div><h2>Order Search</h2><div class="sub">किसी भी user द्वारा बनाया गया order search करें</div></div></div>
-<div class="panel date-filter-panel"><div class="dateFilters">
-<label>View <select id="ordersFilterType"><option value="day">Date Wise</option><option value="month">Month Wise</option><option value="year">Year Wise</option></select></label>
-<input id="ordersFilterFrom" type="date"><span class="dateTo">to</span><input id="ordersFilterTo" type="date">
-<button class="btn alt" id="ordersFilterToday">Today</button>
-</div></div>
 <div class="panel"><div class="search"><input id="orderSearch" placeholder="Order No / Mobile Number"><button class="btn" id="orderSearchBtn">Search</button></div></div>
 <div class="panel"><div class="tablewrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Mobile</th><th>Product/Qty</th><th>Agent</th><th>Dealer</th><th>Status</th><th>Amount</th></tr></thead><tbody id="ordersBody"></tbody></table></div></div>
 </section>
@@ -165,7 +160,7 @@ async function boot(user){
 }
 function buildNav(){
   const n=$("nav");n.innerHTML="";
- const items=[["dashboard","🏠 Dashboard"],["createOrderPage","➕ Create Order"],["orders","📦 Orders"]];
+ const items=[["dashboard","🏠 Dashboard"],["createOrderPage","➕ Create Order"],["orders","📦 Order Search"]];
  // Dealer Orders page is visible only to dealer, management and super admin.
  // Agents must not see this page in navigation.
  if(["dealer","management","super_admin"].includes(profile.role))items.push(["dealers","🚚 Dealer Orders"]);
@@ -311,16 +306,9 @@ async function loadDashboardOrders(){
    (data||[]).length?renderOrderRows(data):'<tr><td colspan="8" class="empty">No orders</td></tr>';
 }
 async function loadOrders(){
- // Order Search must show/search orders created by any user, so no agent_id filter is applied.
- let q=sb.from("orders").select("id,order_no,order_status,total_amount,order_date,customer_id,agent_id,dealer_id,customers(customer_name,mobile),profiles!orders_agent_id_fkey(full_name),dealers(dealer_name),order_items(quantity,unit_price,products(*))").order("order_date",{ascending:false}).limit(100);
- if(profile.role==="dealer"){
-   const d=await sb.from("dealers").select("id").eq("user_id",me.id).maybeSingle();
-   q=d.data?q.eq("dealer_id",d.data.id):q.eq("dealer_id","00000000-0000-0000-0000-000000000000");
- }
- q=applyDateRange(q,"orders");
- const {data,error}=await q;
- $("ordersBody").innerHTML=error?`<tr><td colspan="8" class="danger">${esc(error.message)}</td></tr>`:
-   (data||[]).length?renderOrderRows(data):'<tr><td colspan="8" class="empty">No orders</td></tr>';
+ // Order Search is search-only: no date/month/year filter and no user/agent restriction.
+ const body=$("ordersBody"); if(!body)return;
+ body.innerHTML='<tr><td colspan="8" class="empty">Order No या 10 digit Mobile Number डालकर Search करें।</td></tr>';
 }
 async function loadDealerOrders(){
  if(profile.role!=="dealer"){$("dealerBody").innerHTML='<tr><td colspan="6" class="empty">Dealer login पर assigned orders यहाँ दिखाई देंगे।</td></tr>';return}
@@ -345,8 +333,7 @@ async function loadReports(){
  $("reportBody").innerHTML=Object.entries(counts).map(([k,v])=>`<div class="stat"><span>${esc(k)}</span><b>${v}</b></div>`).join("")||'<div class="empty">No orders for selected period</div>';
 }
 
-bindDateFilter("dash",loadStats);
-bindDateFilter("orders",loadOrders);
+bindDateFilter("dash",async()=>{await loadStats();await loadDashboardOrders();});
 bindDateFilter("reports",loadReports);
 
 $("newUser").onclick=()=>{
@@ -615,7 +602,7 @@ async function createOrderOrEnquiry(f,btn,enquiry){
 async function searchOrders(inputId,resultId){
  const term=$(inputId).value.trim();
  const target=$(resultId);
- if(!term){target.innerHTML="";return}
+ if(!term){target.innerHTML='<tr><td colspan="8" class="empty">Order No या 10 digit Mobile Number डालें।</td></tr>';return}
  try{
   let orders=[];
   const fullSelect="id,order_no,order_status,total_amount,order_date,customer_id,agent_id,dealer_id,customers(customer_name,mobile,alternate_mobile,address,state,city,pincode),profiles!orders_agent_id_fkey(full_name),dealers(dealer_name),order_items(quantity,unit_price,products(*))";
@@ -631,8 +618,11 @@ async function searchOrders(inputId,resultId){
    const {data,error}=await sb.from("orders").select(fullSelect).eq("order_no",orderNo).order("order_date",{ascending:false}).limit(100);
    if(error)throw error;orders=data||[];
   }
-  if(resultId==="ordersBody"){
-   target.innerHTML=orders.length?orders.map(o=>`<tr>
+  if(!orders.length){
+    target.innerHTML='<tr><td colspan="8" class="empty">Order नहीं मिला। अगर order दूसरे agent ने बनाया है और वह मौजूद होने के बावजूद नहीं दिख रहा, तो Supabase RLS SELECT policy cross-user access रोक रही है।</td></tr>';
+    return;
+  }
+  target.innerHTML=orders.map(o=>`<tr>
     <td>#${esc(o.order_no)}</td>
     <td>${esc(o.customers?.customer_name||"-")}</td>
     <td>${esc(o.customers?.mobile||"-")}</td>
@@ -642,16 +632,10 @@ async function searchOrders(inputId,resultId){
     <td><span class="pill">${esc(o.order_status||"-")}</span></td>
     <td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td>
    </tr>
-   <tr><td colspan="8" class="sub">Created: ${esc(o.order_date||"-")} | Address: ${esc([o.customers?.address,o.customers?.city,o.customers?.state,o.customers?.pincode].filter(Boolean).join(", ")||"-")}</td></tr>`).join(""):'<tr><td colspan="8" class="empty">Order नहीं मिला</td></tr>';
-  }else{
-   target.innerHTML=orders.map(o=>`<div class="panel"><strong>#${esc(o.order_no)}</strong><br>
-    Customer: ${esc(o.customers?.customer_name||"-")} | ${esc(o.customers?.mobile||"-")}<br>
-    Product: ${productSummary(o.order_items)}<br>
-    Created: ${esc(o.order_date||"-")}<br>
-    Address: ${esc([o.customers?.address,o.customers?.city,o.customers?.state,o.customers?.pincode].filter(Boolean).join(", ")||"-")}
-   </div>`).join("")||'<div class="empty">Order नहीं मिला</div>';
-  }
- }catch(err){target.innerHTML=`<tr><td colspan="8" class="danger">${esc(err?.message||String(err))}</td></tr>`}
+   <tr><td colspan="8" class="sub">Created: ${esc(o.order_date||"-")} | Address: ${esc([o.customers?.address,o.customers?.city,o.customers?.state,o.customers?.pincode].filter(Boolean).join(", ")||"-")}</td></tr>`).join("");
+ }catch(err){
+   target.innerHTML=`<tr><td colspan="8" class="danger">Search error: ${esc(err?.message||String(err))}</td></tr>`;
+ }
 }
 $("orderSearchBtn").onclick=()=>searchOrders("orderSearch","ordersBody");
 
