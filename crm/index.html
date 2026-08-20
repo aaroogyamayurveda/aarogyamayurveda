@@ -346,7 +346,20 @@ function crmBindUserManagement(){
        ev.preventDefault();
        const password=$("crmNewPassword").value;
        if(password.length<8){$("crmPassMsg").textContent="Password must be at least 8 characters.";return;}
-       $("crmPassMsg").textContent="Password backend update endpoint is required.";
+       $("crmPassMsg").textContent="Updating password...";
+       try{
+         const {data:pwData,error:pwError}=await sb.functions.invoke("quick-service",{
+           body:{action:"update_user_password",user_id:id,password:password}
+         });
+         if(pwError) throw pwError;
+         if(pwData && pwData.error) throw new Error(pwData.error);
+         $("crmPassMsg").textContent="Password changed successfully.";
+         toast("Password changed successfully");
+         setTimeout(()=>{$("modal").style.display="none";},700);
+       }catch(err){
+         console.error("Password update failed:",err);
+         $("crmPassMsg").textContent="Password update failed: "+(err.message||"Unknown error");
+       }
      });
    }
  });
