@@ -594,7 +594,7 @@ function updateAssignmentSelectedCount(){
 function renderOrderAssignments(){
   const body=$("assignmentBody"); if(!body)return;
   const pinFilter=($("assignmentPinFilter")?.value||"").trim().toLowerCase();
-  const orders=assignmentOrdersCache.filter(o=>!pinFilter || String(o.customers?.pin_code||"").toLowerCase().includes(pinFilter));
+  const orders=assignmentOrdersCache.filter(o=>!pinFilter || String(o.customers?.pincode||"").toLowerCase().includes(pinFilter));
 
   body.innerHTML=orders.map(o=>{
     const current=o.dealer_id
@@ -608,7 +608,7 @@ function renderOrderAssignments(){
       <td>#${esc(o.order_no)}</td>
       <td>${esc(o.customers?.customer_name||"-")}</td>
       <td>${esc(o.customers?.mobile||"-")}</td>
-      <td>${esc(o.customers?.pin_code||"-")}</td>
+      <td>${esc(o.customers?.pincode||"-")}</td>
       <td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td>
       <td><span class="pill">${esc(o.order_status||"-")}</span></td>
       <td>${current}</td>
@@ -650,7 +650,7 @@ async function loadOrderAssignments(){
 
   const [{data:orders,error},{data:dealerRows,error:dealerErr},{data:couriers,error:courierErr}]=await Promise.all([
     sb.from("orders")
-      .select("id,order_no,order_status,total_amount,dealer_id,courier_manager_id,customers(customer_name,mobile,pin_code),dealers(dealer_name)")
+      .select("id,order_no,order_status,total_amount,dealer_id,courier_manager_id,customers(customer_name,mobile,pincode),dealers(dealer_name)")
       .order("order_date",{ascending:false}).limit(500),
     sb.from("dealers").select("id,dealer_name,user_id").order("dealer_name"),
     sb.from("profiles").select("id,full_name,employee_code,role,is_active").eq("role","courier_manager").eq("is_active",true).order("full_name")
