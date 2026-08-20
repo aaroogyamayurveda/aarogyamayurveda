@@ -61,7 +61,7 @@
 <button class="btn alt" id="dashFilterToday">Today</button>
 </div></div>
 <div class="cards"><div class="stat"><span id="sOrdersLabel">आज के Orders</span><b id="sOrders">0</b></div><div class="stat"><span>Pending</span><b id="sPending">0</b></div><div class="stat"><span>In Transit</span><b id="sTransit">0</b></div><div class="stat"><span>Delivered</span><b id="sDelivered">0</b></div><div class="stat"><span>Cancelled</span><b id="sCancelled">0</b></div></div>
-<div class="panel"><h3>Orders</h3><div class="tablewrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Mobile</th><th>Product / Qty</th><th>Agent</th><th>Dealer</th><th>Status</th><th>Amount</th></tr></thead><tbody id="dashboardOrdersBody"></tbody></table></div></div>
+<div class="panel"><h3>Your Orders</h3><div class="tablewrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Mobile</th><th>Product / Qty</th><th>Agent</th><th>Dealer</th><th>Status</th><th>Amount</th></tr></thead><tbody id="dashboardOrdersBody"></tbody></table></div></div>
 </section>
 
 
@@ -295,10 +295,20 @@ function renderOrderRows(rows){
 }
 async function loadDashboardOrders(){
  let q=sb.from("orders").select("id,order_no,order_status,total_amount,order_date,customer_id,agent_id,dealer_id,customers(customer_name,mobile),profiles!orders_agent_id_fkey(full_name),dealers(dealer_name),order_items(quantity,unit_price,products(*))").order("order_date",{ascending:false}).limit(100);
+
+ // Dashboard visibility is role-specific. Agent must see only orders created by the
+ // currently logged-in agent. Global Order Search and Create Order customer lookup
+ // are intentionally not changed.
+ if(profile.role==="agent"){
+   q=q.eq("agent_id",me.id);
+ }
+
+ // Keep existing dealer dashboard behavior unchanged.
  if(profile.role==="dealer"){
    const d=await sb.from("dealers").select("id").eq("user_id",me.id).maybeSingle();
    q=d.data?q.eq("dealer_id",d.data.id):q.eq("dealer_id","00000000-0000-0000-0000-000000000000");
  }
+
  q=applyDateRange(q,"dash");
  const {data,error}=await q;
  const body=$("dashboardOrdersBody"); if(!body)return;
@@ -486,7 +496,7 @@ if(savedPost){
 }
 notice.textContent=post.value
   ?"Existing customer मिला — customer details और पूरा saved location auto-fill हो गया है."
-  :"Existing customer मिला — customer details और State/City/PIN auto-fill हो गए हैं. कृपया Pincode par Enter press kar Area / Post select करें.";
+  :"Existing customer मिला — customer details और State/City/PIN auto-fill हो गए हैं. कृपया Area / Post select करें.";
 liveValidateCreateOrder();
 });
 
