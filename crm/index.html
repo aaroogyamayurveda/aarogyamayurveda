@@ -165,7 +165,11 @@ async function boot(user){
 }
 function buildNav(){
   const n=$("nav");n.innerHTML="";
- const items=[["dashboard","🏠 Dashboard"],["createOrderPage","➕ Create Order"],["orders","📦 Orders"],["dealers","🚚 Dealer Orders"],["reports","📊 Reports"]];
+ const items=[["dashboard","🏠 Dashboard"],["createOrderPage","➕ Create Order"],["orders","📦 Orders"]];
+ // Dealer Orders page is visible only to dealer, management and super admin.
+ // Agents must not see this page in navigation.
+ if(["dealer","management","super_admin"].includes(profile.role))items.push(["dealers","🚚 Dealer Orders"]);
+ items.push(["reports","📊 Reports"]);
  if(["super_admin","management"].includes(profile.role))items.splice(1,0,["users","👥 User Management"]);
  items.forEach(([id,t])=>{const b=document.createElement("button");b.textContent=t;b.onclick=()=>showPage(id);n.appendChild(b)});
 }
