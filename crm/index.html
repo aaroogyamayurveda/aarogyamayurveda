@@ -412,16 +412,71 @@ $("pageProduct")?.addEventListener("change",pageOrderRecalc);$("pageQty")?.addEv
 $("backToOrders")?.addEventListener("click",()=>showPage("orders"));
 $("pageOrderReset")?.addEventListener("click",()=>{const f=$("createOrderPageForm");f.reset();f.elements.state.value="Madhya Pradesh";$("pageExistingCustomer").textContent="";$("pageOrderMsg").textContent="";$("pageAmount").value=""});
 $("pageMobile")?.addEventListener("input",async e=>{
- const el=e.target;el.value=el.value.replace(/\D/g,"").slice(0,10);
- if(!/^[6-9][0-9]{9}$/.test(el.value)){ $("pageExistingCustomer").textContent="";return}
- $("pageExistingCustomer").textContent="Customer details खोजी जा रही हैं...";
+ const el=e.target;
+ el.value=el.value.replace(/\D/g,"").slice(0,10);
+ const notice=$("pageExistingCustomer");
+ if(!/^[6-9][0-9]{9}$/.test(el.value)){notice.textContent="";return}
+ notice.textContent="Customer details खोजी जा रही हैं...";
  const {data,error}=await sb.from("customers")
-   .select("customer_name,alternate_mobile,age,gender,pincode,city,state,address")
+   .select("customer_name,alternate_mobile,age,gender,pincode,city,state,address,post,area")
    .eq("mobile",el.value).limit(1).maybeSingle();
- if(error){$("pageExistingCustomer").textContent="Customer details fetch नहीं हो सकीं: "+error.message;return}
- if(!data){$("pageExistingCustomer").textContent="New customer — details भरें.";return}
- $("pageExistingCustomer").textContent="Existing customer मिला — details auto-fill की गई हैं.";
- const f=$("createOrderPageForm");["customer_name","alternate_mobile","age","gender","pincode","city","state","address"].forEach(k=>{if(data[k]!=null&&f.elements[k])f.elements[k].value=data[k]});
+ if(error){notice.textContent="Customer details fetch नहीं हो सकीं: "+error.message;return}
+ if(!data){notice.textContent="New customer — details भरें.";return}
+
+ const f=$("createOrderPageForm");
+ ["customer_name","alternate_mobile","age","gender","address"].forEach(k=>{
+   if(data[k]!=null&&f.elements[k])f.elements[k].value=data[k];
+ });
+
+ const st=$("orderState"), city=$("orderCity"), post=$("orderPost"), pin=$("orderPincode");
+ // Reset dependent location fields first so stale values can never be submitted.
+ city.value=""; city.disabled=true;
+ post.innerHTML='<option value="">Select Area / Post</option>'; post.value=""; post.disabled=true;
+
+ const savedState=String(data.state||"").trim();
+ const savedCity=String(data.city||"").trim();
+ const savedPin=String(data.pincode||"").replace(/\D/g,"").slice(0,6);
+ if(savedPin)pin.value=savedPin;
+
+ // Prefer saved State/City. If names exist, trigger the existing cascade to populate city.
+ const stateOpt=[...st.options].find(o=>
+   o.value===savedState ||
+   o.text.trim().toLowerCase()===savedState.toLowerCase()
+ );
+ if(stateOpt){
+   st.value=stateOpt.value;
+   await st.onchange();
+   const cityOpt=[...city.options].find(o=>
+     o.value===savedCity ||
+     o.text.trim().toLowerCase()===savedCity.toLowerCase()
+   );
+   if(cityOpt){
+     city.value=cityOpt.value;
+     // Load all Area/Post options for this selected State + City.
+     await city.onchange();
+   }
+ }
+
+ // If saved State/City were unavailable, use the existing PIN lookup to populate State, City and areas.
+ if((!st.value || !city.value) && /^[0-9]{6}$/.test(pin.value)){
+   pin.dispatchEvent(new Event("blur"));
+   await new Promise(resolve=>setTimeout(resolve,350));
+ }
+
+ // If the existing customer already has Area/Post saved, select it automatically
+ // after the State -> City cascade has loaded its valid Area/Post options.
+ const savedPost=String(data.post||data.area||"").trim();
+ if(savedPost){
+   const postOpt=[...post.options].find(o=>
+     o.value===savedPost ||
+     o.text.trim().toLowerCase()===savedPost.toLowerCase()
+   );
+   if(postOpt) post.value=postOpt.value;
+ }
+ notice.textContent=post.value
+   ?"Existing customer मिला — customer details और saved location auto-fill हो गई हैं."
+   :"Existing customer मिला — बाकी details auto-fill हो गई हैं. कृपया Area / Post select करें.";
+ liveValidateCreateOrder();
 });
 
 function liveValidateCreateOrder(){
@@ -480,7 +535,12 @@ function attachCreateOrderLiveValidation(){
   liveValidateCreateOrder();
 }
 attachCreateOrderLiveValidation();
-document.addEventListener("submit",async e=>{if(e.target?.id!=="createOrderPageForm")return;e.preventDefault();const f=e.target,btn=f.querySelector('button[type="submit"]');f.querySelectorAll(".field-error").forEach(x=>x.textContent="");f.querySelectorAll(".invalid").forEach(x=>x.classList.remove("invalid"));const b=Object.fromEntries(new FormData(f).entries()),bad=(n,id,t)=>{f.elements[n]?.classList.add("invalid");$(id).textContent=t};let ok=true;if(!/^[\p{L} .'-]+$/u.test((b.customer_name||"").trim())){bad("customer_name","err_name","Name में numbers नहीं डालें।");ok=false}if(!/^[6-9][0-9]{9}$/.test(b.mobile||"")){bad("mobile","err_mobile","Mobile exactly 10 digits होना चाहिए।");ok=false}if(b.alternate_mobile&&!/^[6-9][0-9]{9}$/.test(b.alternate_mobile)){bad("alternate_mobile","err_alt","Alternate mobile exactly 10 digits होना चाहिए।");ok=false}if(b.age&&(!/^[0-9]+$/.test(b.age)||+b.age>120||+b.age<1)){bad("age","err_age","Age 1 से 120 के बीच होना चाहिए।");ok=false}if(!/^[0-9]{6}$/.test(b.pincode||"")){bad("pincode","err_pin","Pincode exactly 6 digits होना चाहिए।");ok=false}if(!/^[0-9]+$/.test(b.quantity||"")||+b.quantity<1||+b.quantity>99){bad("quantity","err_qty","Quantity 1–99 whole number होनी चाहिए।");ok=false}if(!ok)return;const enquiry=e.submitter?.id==="createEnquiry";$("confirmTitle").textContent=enquiry?"Create Enquiry":"Create Order";$("confirmText").textContent=enquiry?"क्या आप enquiry create करना चाहते हैं?":"क्या आप order create करना चाहते हैं?";$("confirmOverlay").classList.remove("hidden");$("confirmNo").onclick=()=>$("confirmOverlay").classList.add("hidden");$("confirmYes").onclick=async()=>{$("confirmOverlay").classList.add("hidden");await createOrderOrEnquiry(f,btn,enquiry)}});
+document.addEventListener("submit",async e=>{if(e.target?.id!=="createOrderPageForm")return;e.preventDefault();const f=e.target,btn=f.querySelector('button[type="submit"]');f.querySelectorAll(".field-error").forEach(x=>x.textContent="");f.querySelectorAll(".invalid").forEach(x=>x.classList.remove("invalid"));const b=Object.fromEntries(new FormData(f).entries()),bad=(n,id,t)=>{f.elements[n]?.classList.add("invalid");$(id).textContent=t};let ok=true;if(!/^[\p{L} .'-]+$/u.test((b.customer_name||"").trim())){bad("customer_name","err_name","Name में numbers नहीं डालें।");ok=false}if(!/^[6-9][0-9]{9}$/.test(b.mobile||"")){bad("mobile","err_mobile","Mobile exactly 10 digits होना चाहिए।");ok=false}if(b.alternate_mobile&&!/^[6-9][0-9]{9}$/.test(b.alternate_mobile)){bad("alternate_mobile","err_alt","Alternate mobile exactly 10 digits होना चाहिए।");ok=false}if(b.age&&(!/^[0-9]+$/.test(b.age)||+b.age>120||+b.age<1)){bad("age","err_age","Age 1 से 120 के बीच होना चाहिए।");ok=false}if(!/^[0-9]{6}$/.test(b.pincode||"")){bad("pincode","err_pin","Pincode exactly 6 digits होना चाहिए।");ok=false}
+if(!String(b.state||"").trim()){alert("State select करना जरूरी है।");ok=false}
+if(!String(b.city||"").trim()){alert("City select करना जरूरी है।");ok=false}
+if(!String(b.post||"").trim()){alert("Area / Post select करना जरूरी है।");ok=false}
+if(!/^[0-9]+$/.test(b.quantity||"")||+b.quantity<1||+b.quantity>99){bad("quantity","err_qty","Quantity 1–99 whole number होनी चाहिए।");ok=false}
+if(!ok)return;const enquiry=e.submitter?.id==="createEnquiry";$("confirmTitle").textContent=enquiry?"Create Enquiry":"Create Order";$("confirmText").textContent=enquiry?"क्या आप enquiry create करना चाहते हैं?":"क्या आप order create करना चाहते हैं?";$("confirmOverlay").classList.remove("hidden");$("confirmNo").onclick=()=>$("confirmOverlay").classList.add("hidden");$("confirmYes").onclick=async()=>{$("confirmOverlay").classList.add("hidden");await createOrderOrEnquiry(f,btn,enquiry)}});
 async function createOrderOrEnquiry(f,btn,enquiry){
  const msg=$("pageOrderMsg");
  btn.disabled=true;
