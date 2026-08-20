@@ -32,6 +32,12 @@
 @media(max-width:520px){
   .order-location-grid{grid-template-columns:1fr}
 }
+</style><style>
+.date-filter-panel{margin-bottom:14px}
+.dateFilters{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.dateFilters label{display:flex;align-items:center;gap:7px;font-size:14px}
+.dateFilters select,.dateFilters input{height:38px;box-sizing:border-box}
+@media(max-width:560px){.dateFilters{align-items:stretch}.dateFilters label{flex:1}.dateFilters input{flex:1;min-width:150px}}
 </style></head>
 <body>
 <div id="loginPage" class="wrap"><section class="login">
@@ -49,7 +55,12 @@
 <main class="main">
 <section id="dashboard" class="page active">
 <div class="title"><div><h2 id="dashTitle">Dashboard</h2><div class="sub" id="dashSub"></div></div></div>
-<div class="cards"><div class="stat"><span>आज के Orders</span><b id="sOrders">0</b></div><div class="stat"><span>Pending</span><b id="sPending">0</b></div><div class="stat"><span>In Transit</span><b id="sTransit">0</b></div><div class="stat"><span>Delivered</span><b id="sDelivered">0</b></div></div>
+<div class="panel date-filter-panel"><div class="dateFilters">
+<label>View <select id="dashFilterType"><option value="day">Date Wise</option><option value="month">Month Wise</option><option value="year">Year Wise</option></select></label>
+<input id="dashFilterValue" type="date">
+<button class="btn alt" id="dashFilterToday">Today</button>
+</div></div>
+<div class="cards"><div class="stat"><span id="sOrdersLabel">आज के Orders</span><b id="sOrders">0</b></div><div class="stat"><span>Pending</span><b id="sPending">0</b></div><div class="stat"><span>In Transit</span><b id="sTransit">0</b></div><div class="stat"><span>Delivered</span><b id="sDelivered">0</b></div><div class="stat"><span>Cancelled</span><b id="sCancelled">0</b></div></div>
 <div class="panel"><h3>Quick Search</h3><div class="search"><input id="globalSearch" placeholder="Order ID / Mobile Number"><button class="btn" id="searchBtn">Search</button></div><div id="searchResult" class="tablewrap" style="margin-top:14px"></div></div>
 </section>
 
@@ -93,6 +104,11 @@
 
 <section id="orders" class="page">
 <div class="title"><div><h2>Orders</h2><div class="sub">Order search, status और dealer assignment</div></div></div>
+<div class="panel date-filter-panel"><div class="dateFilters">
+<label>View <select id="ordersFilterType"><option value="day">Date Wise</option><option value="month">Month Wise</option><option value="year">Year Wise</option></select></label>
+<input id="ordersFilterValue" type="date">
+<button class="btn alt" id="ordersFilterToday">Today</button>
+</div></div>
 <div class="panel"><div class="search"><input id="orderSearch" placeholder="Order ID / Mobile"><button class="btn" id="orderSearchBtn">Search</button></div></div>
 <div class="panel"><div class="tablewrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Mobile</th><th>Product/Qty</th><th>Agent</th><th>Dealer</th><th>Status</th><th>Amount</th></tr></thead><tbody id="ordersBody"></tbody></table></div></div>
 </section>
@@ -104,6 +120,11 @@
 
 <section id="reports" class="page">
 <div class="title"><div><h2>Reports</h2><div class="sub">Current order performance</div></div></div>
+<div class="panel date-filter-panel"><div class="dateFilters">
+<label>View <select id="reportsFilterType"><option value="day">Date Wise</option><option value="month">Month Wise</option><option value="year">Year Wise</option></select></label>
+<input id="reportsFilterValue" type="date">
+<button class="btn alt" id="reportsFilterToday">Today</button>
+</div></div>
 <div class="panel"><h3>Status Summary</h3><div id="reportBody" class="grid3"></div></div>
 </section>
 </main></div></div>
@@ -151,28 +172,88 @@ function buildNav(){
 function showPage(id){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll(".side button").forEach(x=>x.classList.remove("active"));[...document.querySelectorAll(".side button")].find(x=>x.textContent.toLowerCase().includes(id==="customers"?"customers":id))?.classList.add("active");if(id==="createOrderPage")resetCreateOrderForm();refreshAll()}
 async function refreshAll(){await loadStats();if(["super_admin","management"].includes(profile.role))await loadUsers();await loadOrders();await loadDealerOrders();await loadReports()}
 
+
+function localISO(d=new Date()){
+ const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);
+ return x.toISOString().slice(0,10);
+}
+function setFilterInput(section){
+ const type=$(section+"FilterType"), input=$(section+"FilterValue");
+ if(!type||!input)return;
+ const today=localISO();
+ if(type.value==="day"){
+   input.type="date"; input.value=input.value&&/^\d{4}-\d{2}-\d{2}$/.test(input.value)?input.value:today;
+ }else if(type.value==="month"){
+   input.type="month"; input.value=today.slice(0,7);
+ }else{
+   input.type="number"; input.min="2000"; input.max="2100"; input.step="1"; input.value=today.slice(0,4);
+ }
+}
+function getFilterRange(section){
+ const type=$(section+"FilterType")?.value||"day";
+ const value=$(section+"FilterValue")?.value||localISO();
+ if(type==="month"){
+   const [y,m]=value.split("-").map(Number);
+   if(!y||!m)return null;
+   const from=`${String(y).padStart(4,"0")}-${String(m).padStart(2,"0")}-01`;
+   const next=new Date(y,m,1);
+   return {from,to:localISO(next),label:value};
+ }
+ if(type==="year"){
+   const y=Number(value);
+   if(!y)return null;
+   return {from:`${y}-01-01`,to:`${y+1}-01-01`,label:String(y)};
+ }
+ const from=/^\d{4}-\d{2}-\d{2}$/.test(value)?value:localISO();
+ const next=new Date(from+"T00:00:00"); next.setDate(next.getDate()+1);
+ return {from,to:localISO(next),label:from};
+}
+function applyDateRange(q,section){
+ const r=getFilterRange(section);
+ return r?q.gte("order_date",r.from).lt("order_date",r.to):q;
+}
+function bindDateFilter(section,loader){
+ const type=$(section+"FilterType"), value=$(section+"FilterValue"), todayBtn=$(section+"FilterToday");
+ if(!type||!value)return;
+ setFilterInput(section);
+ type.addEventListener("change",()=>{setFilterInput(section);loader()});
+ value.addEventListener("change",loader);
+ todayBtn?.addEventListener("click",()=>{
+   type.value="day"; value.type="date"; value.value=localISO(); loader();
+ });
+}
+
 async function loadStats(){
  let q=sb.from("orders").select("id,order_status,order_date",{count:"exact",head:false});
  if(profile.role==="agent")q=q.eq("agent_id",me.id);
+ if(profile.role==="dealer"){
+   const d=await sb.from("dealers").select("id").eq("user_id",me.id).maybeSingle();
+   q=d.data?q.eq("dealer_id",d.data.id):q.eq("dealer_id","00000000-0000-0000-0000-000000000000");
+ }
+ q=applyDateRange(q,"dash");
  const {data}=await q;
- const rows=data||[];$("sOrders").textContent=rows.length;
+ const rows=data||[];
+ $("sOrders").textContent=rows.length;
  $("sPending").textContent=rows.filter(x=>["new","pending","confirmed","dealer_pending","assigned","hold"].includes(x.order_status)).length;
  $("sTransit").textContent=rows.filter(x=>x.order_status==="in_transit").length;
  $("sDelivered").textContent=rows.filter(x=>x.order_status==="delivered").length;
+ $("sCancelled").textContent=rows.filter(x=>x.order_status==="cancelled").length;
+ const r=getFilterRange("dash");
+ $("sOrdersLabel").textContent=r?.label===localISO()?"आज के Orders":`Orders (${r?.label||""})`;
 }
-async function loadUsers(){
- const {data,error}=await sb.from("profiles").select("full_name,employee_code,email,mobile,role,is_active").order("created_at");
- if(error){$("usersMsg").textContent=error.message;return}
- $("usersMsg").textContent=`Total users: ${data?.length||0}`;
- $("usersBody").innerHTML=(data||[]).map(u=>`<tr><td>${esc(u.full_name)}</td><td>${esc(u.employee_code||"-")}</td><td>${esc(u.email)}</td><td>${esc(u.mobile||"-")}</td><td><span class="pill">${esc(roleName(u.role))}</span></td><td>${u.is_active?"Active":"Inactive"}</td></tr>`).join("")||'<tr><td colspan="6" class="empty">No users</td></tr>';
-}
+
 async function loadOrders(){
  let q=sb.from("orders").select("id,order_no,order_status,total_amount,order_date,customer_id,agent_id,dealer_id,customers(customer_name,mobile),profiles!orders_agent_id_fkey(full_name),dealers(dealer_name)").order("order_date",{ascending:false}).limit(100);
  if(profile.role==="agent")q=q.eq("agent_id",me.id);
- if(profile.role==="dealer"){const d=await sb.from("dealers").select("id").eq("user_id",me.id).maybeSingle();if(d.data)q=q.eq("dealer_id",d.data.id);else q=q.eq("dealer_id","00000000-0000-0000-0000-000000000000")}
+ if(profile.role==="dealer"){
+   const d=await sb.from("dealers").select("id").eq("user_id",me.id).maybeSingle();
+   q=d.data?q.eq("dealer_id",d.data.id):q.eq("dealer_id","00000000-0000-0000-0000-000000000000");
+ }
+ q=applyDateRange(q,"orders");
  const {data,error}=await q;
  $("ordersBody").innerHTML=error?`<tr><td colspan="8" class="danger">${esc(error.message)}</td></tr>`:(data||[]).map(o=>`<tr><td>#${esc(o.order_no)}</td><td>${esc(o.customers?.customer_name)}</td><td>${esc(o.customers?.mobile)}</td><td>-</td><td>${esc(o.profiles?.full_name||"-")}</td><td>${esc(o.dealers?.dealer_name||"-")}</td><td><span class="pill">${esc(o.order_status)}</span></td><td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td></tr>`).join("")||'<tr><td colspan="8" class="empty">No orders</td></tr>';
 }
+
 async function loadDealerOrders(){
  if(profile.role!=="dealer"){$("dealerBody").innerHTML='<tr><td colspan="6" class="empty">Dealer login पर assigned orders यहाँ दिखाई देंगे।</td></tr>';return}
  const d=await sb.from("dealers").select("id").eq("user_id",me.id).maybeSingle();
@@ -181,11 +262,24 @@ async function loadDealerOrders(){
  $("dealerBody").innerHTML=(data||[]).map(o=>`<tr><td>#${esc(o.order_no)}</td><td>${esc(o.customers?.customer_name)}</td><td>${esc(o.customers?.mobile)}</td><td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td><td><span class="pill">${esc(o.order_status)}</span></td><td><select data-order="${o.id}" class="statusSel"><option>new</option><option>packed</option><option>dispatched</option><option>in_transit</option><option>delivered</option><option>hold</option><option>cancelled</option><option>rto</option></select></td></tr>`).join("")||'<tr><td colspan="6" class="empty">No assigned orders</td></tr>';
  document.querySelectorAll(".statusSel").forEach(s=>s.onchange=async e=>{const id=e.target.dataset.order,newStatus=e.target.value;const {error}=await sb.from("orders").update({order_status:newStatus}).eq("id",id);if(error)toast(error.message);else{await sb.from("order_status_history").insert({order_id:id,new_status:newStatus,changed_by:me.id});toast("Status updated");await refreshAll()}});
 }
+
 async function loadReports(){
- const {data}=await sb.from("orders").select("order_status");
+ let q=sb.from("orders").select("order_status,order_date");
+ if(profile.role==="agent")q=q.eq("agent_id",me.id);
+ if(profile.role==="dealer"){
+   const d=await sb.from("dealers").select("id").eq("user_id",me.id).maybeSingle();
+   q=d.data?q.eq("dealer_id",d.data.id):q.eq("dealer_id","00000000-0000-0000-0000-000000000000");
+ }
+ q=applyDateRange(q,"reports");
+ const {data,error}=await q;
+ if(error){$("reportBody").innerHTML=`<div class="danger">${esc(error.message)}</div>`;return}
  const counts={};(data||[]).forEach(o=>counts[o.order_status]=(counts[o.order_status]||0)+1);
- $("reportBody").innerHTML=Object.entries(counts).map(([k,v])=>`<div class="stat"><span>${esc(k)}</span><b>${v}</b></div>`).join("")||'<div class="empty">No orders yet</div>';
+ $("reportBody").innerHTML=Object.entries(counts).map(([k,v])=>`<div class="stat"><span>${esc(k)}</span><b>${v}</b></div>`).join("")||'<div class="empty">No orders for selected period</div>';
 }
+
+bindDateFilter("dash",loadStats);
+bindDateFilter("orders",loadOrders);
+bindDateFilter("reports",loadReports);
 
 $("newUser").onclick=()=>{
  modal("नया CRM User",`
