@@ -1397,6 +1397,80 @@ tbody tr:hover{background:#f4faf6!important}
 })();
 </script>
 
+
+<script id="crmLiveCountReportRefreshV2">
+(function(){
+  const candidates = [
+    'loadDashboard','refreshDashboard','renderDashboard','updateDashboard',
+    'loadTodayOrders','loadDashboardOrders','loadYourOrders',
+    'loadReports','loadReport','refreshReports','refreshReport',
+    'renderReport','renderReports','fetchReports','fetchReport',
+    'loadStats','refreshStats','updateStats'
+  ];
+
+  function callExistingLoaders(){
+    const called=new Set();
+    candidates.forEach(name=>{
+      const fn=window[name];
+      if(typeof fn==='function' && !called.has(fn)){
+        called.add(fn);
+        try{ fn(); }catch(e){ console.warn('[CRM refresh]',name,e); }
+      }
+    });
+  }
+
+  function refreshVisibleCountsAndReports(){
+    callExistingLoaders();
+    // Re-click current page navigation only when an explicit matching control exists.
+    const active=document.querySelector('.nav-item.active,.menu-item.active,.tab.active,[data-page].active');
+    if(active && /dashboard|report/i.test((active.dataset?.page||'')+' '+active.id+' '+active.textContent)){
+      setTimeout(callExistingLoaders,250);
+    }
+  }
+
+  // Listen for explicit app-level event.
+  document.addEventListener('crm:order-created',()=>{
+    setTimeout(refreshVisibleCountsAndReports,50);
+    setTimeout(refreshVisibleCountsAndReports,500);
+  });
+
+  // Detect the actual success UI text used by this CRM and refresh only after success appears.
+  let lastHit=0;
+  const observer=new MutationObserver(mutations=>{
+    const now=Date.now();
+    if(now-lastHit<400) return;
+    for(const m of mutations){
+      for(const node of m.addedNodes){
+        if(!(node instanceof HTMLElement)) continue;
+        const text=(node.innerText||node.textContent||'').trim();
+        if(/(order|enquiry).{0,40}(success|placed|created)|success.{0,40}(order|enquiry)/i.test(text)){
+          lastHit=now;
+          setTimeout(refreshVisibleCountsAndReports,100);
+          setTimeout(refreshVisibleCountsAndReports,700);
+          return;
+        }
+      }
+    }
+  });
+
+  function start(){
+    observer.observe(document.body,{childList:true,subtree:true});
+    // Capture clicks on create buttons and schedule a post-submit refresh;
+    // harmless if creation fails because loaders simply reload existing data.
+    document.addEventListener('click',e=>{
+      const el=e.target.closest('button,input[type="button"],input[type="submit"]');
+      if(!el) return;
+      const label=((el.value||'')+' '+(el.textContent||'')+' '+(el.id||'')+' '+(el.className||'')).toLowerCase();
+      if(label.includes('create order')||label.includes('create enquiry')){
+        setTimeout(refreshVisibleCountsAndReports,1800);
+      }
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start);
+  else start();
+})();
+</script>
+
 </body></html   const qty=Number(b.quantity);
    if(qty<1)throw new Error("Quantity सही डालें।");
    const productCheck=await sb.from("products").select("*").eq("id",b.product_id).single();
