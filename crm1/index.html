@@ -323,41 +323,99 @@ async function loadUsers(){
  if(msg)msg.textContent=`${(data||[]).length} user(s) found`;
 }
 
-async function crmSaveProfileRow(row){
- const id=row.dataset.userId;
- const values={};
- row.querySelectorAll(".user-edit").forEach(x=>{
-   values[x.name]=x.name==="is_active"?x.value==="true":x.value.trim();
- });
- if(!values.full_name){toast("Name required");return;}
+async function crmSaveProfileRow(userId) {
+  try {
+    const row = document.querySelector(
+      `[data-user-id="${userId}"]`
+    )
 
- const emailInput=row.querySelector('input[name="email"]');
- const originalEmail=(emailInput?.defaultValue||"").trim().toLowerCase();
- const newEmail=(values.email||"").trim().toLowerCase();
+    if (!row) {
+      throw new Error("User row not found")
+    }
 
- try{
-   if(newEmail && newEmail!==originalEmail){
-     const {data:emailData,error:emailError}=await sb.functions.invoke("quick-service",{
-       body:{action:"update_user_email",user_id:id,email:newEmail}
-     });
-     if(emailError) throw emailError;
-     if(emailData && emailData.error) throw new Error(emailData.error);
-   }
+    const full_name =
+      row.querySelector('[data-field="full_name"]')?.value?.trim()
 
-   const profileValues={...values};
-   if(newEmail && newEmail!==originalEmail) delete profileValues.email;
+    const email =
+      row.querySelector('[data-field="email"]')?.value?.trim().toLowerCase()
 
-   const {error}=await sb.from("profiles").update(profileValues).eq("id",id);
-   if(error) throw error;
+    const mobile =
+      row.querySelector('[data-field="mobile"]')?.value?.trim()
 
-   toast(newEmail!==originalEmail
-     ? "User and login email updated successfully"
-     : "User updated successfully");
-   await loadUsers();
- }catch(err){
-   console.error("User update failed:",err);
-   toast("Update failed: "+(err?.message||"Unknown error"));
- }
+    const employee_code =
+      row.querySelector('[data-field="employee_code"]')?.value?.trim()
+
+    const role =
+      row.querySelector('[data-field="role"]')?.value
+
+    if (!full_name || !email || !employee_code || !role) {
+      alert("Name, Email, User ID and Role are required")
+      return
+    }
+
+    const { data, error } = await supabase.functions.invoke(
+      "quick-service",
+      {
+        body: {
+          action: "update_user",
+          user_id: userId,
+          full_name,
+          email,
+          mobile,
+          employee_code,
+          role,
+        },
+      }
+    )
+
+    if (error) {
+      console.error("User update failed:", error)
+
+      let errorMessage = error.message || "User update failed"
+
+      try {
+        const response = error.context
+
+        if (response) {
+          const errorBody = await response.json()
+
+          console.error(
+            "Quick-service actual error:",
+            errorBody
+          )
+
+          errorMessage =
+            errorBody?.error ||
+            errorBody?.details ||
+            errorMessage
+        }
+      } catch (parseError) {
+        console.error(
+          "Could not parse Edge Function error:",
+          parseError
+        )
+      }
+
+      alert(errorMessage)
+      return
+    }
+
+    console.log("User updated successfully:", data)
+
+    alert(data?.message || "User updated successfully")
+
+    if (typeof loadUsers === "function") {
+      await loadUsers()
+    }
+
+  } catch (err) {
+    console.error("User update failed:", err)
+
+    alert(
+      err?.message ||
+      "Unable to update user"
+    )
+  }
 }
 
 function crmBindUserManagement(){
