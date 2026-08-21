@@ -2093,4 +2093,119 @@ document.addEventListener("crm:order-created",async()=>{
 
 
 
+
+<!-- CRM1 V5: actual layout + duplicate sidebar correction -->
+<style id="crm1-v5-real-layout-fix">
+/*
+  ROOT CAUSE FIX:
+  .main previously had margin:auto inside a CSS grid row.
+  For short pages, auto vertical margins centered the entire main block,
+  creating the large blank area above the page.
+*/
+.layout > .main{
+  margin:0 auto !important;
+  align-self:start !important;
+  justify-self:stretch !important;
+  box-sizing:border-box !important;
+  min-height:calc(100vh - 68px) !important;
+}
+.layout > .main > .page,
+.layout > .main > section.page,
+.page.crm1-page{
+  margin:0 !important;
+  padding-top:0 !important;
+  position:static !important;
+  transform:none !important;
+}
+.layout > .main > .page.active{
+  display:block !important;
+}
+</style>
+
+<script id="crm1-v5-nav-dedupe">
+(function(){
+  const professionalLabels = [
+    "🧲 Lead / Enquiry Manager",
+    "📞 Follow-ups",
+    "✅ Verification Queue",
+    "🕘 Order Timeline",
+    "🏆 Agent Performance",
+    "🤝 Delivery Partners",
+    "📍 PIN Auto Assignment",
+    "📦 Inventory",
+    "💰 Settlements",
+    "🎧 QA & Dispositions",
+    "🔔 Notifications",
+    "🛡 Audit Log",
+    "📈 Advanced Reports"
+  ];
+
+  const clean = x => String(x || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^[^\p{L}\p{N}]+/u, "")
+    .trim()
+    .toLowerCase();
+
+  const profSet = new Set(professionalLabels.map(clean));
+
+  function dedupeSidebar(){
+    const nav = document.getElementById("nav");
+    if(!nav) return;
+
+    const seen = new Set();
+    [...nav.querySelectorAll("button")].forEach(btn => {
+      const key = clean(btn.textContent);
+      if(!profSet.has(key)) return;
+      if(seen.has(key)){
+        btn.remove();
+      }else{
+        seen.add(key);
+      }
+    });
+  }
+
+  // Run after all existing CRM scripts have finished building/rebuilding nav.
+  function run(){
+    dedupeSidebar();
+    requestAnimationFrame(dedupeSidebar);
+    setTimeout(dedupeSidebar, 200);
+    setTimeout(dedupeSidebar, 1000);
+  }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", run, {once:true});
+  } else {
+    run();
+  }
+
+  // If buildNav/enhanceNav rebuilds the sidebar later, clean only duplicates.
+  const observer = new MutationObserver(() => {
+    clearTimeout(window.__crm1V5DedupeTimer);
+    window.__crm1V5DedupeTimer = setTimeout(dedupeSidebar, 80);
+  });
+  const startObserver = () => {
+    const nav = document.getElementById("nav");
+    if(nav) observer.observe(nav, {childList:true, subtree:true});
+  };
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", startObserver, {once:true});
+  }else{
+    startObserver();
+  }
+
+  // Ensure every page change returns the content area to its true top.
+  document.addEventListener("click", function(e){
+    const btn = e.target.closest("#nav button");
+    if(!btn) return;
+    setTimeout(() => {
+      const main = document.querySelector(".layout > .main");
+      if(main) main.scrollTop = 0;
+      window.scrollTo(0,0);
+      dedupeSidebar();
+    }, 0);
+  }, true);
+})();
+</script>
+
 </body></html>
