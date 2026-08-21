@@ -1951,17 +1951,17 @@ document.addEventListener("crm:order-created",async()=>{
   async function scheduleFollowup(orderId){
     const when=prompt("Follow-up date & time (YYYY-MM-DDTHH:MM)",new Date(Date.now()+86400000).toISOString().slice(0,16));if(!when)return;
     const note=prompt("Follow-up note","Call customer again")||"";
-    const {error}=await sb.from("crm_followups").insert({order_id:orderId,assigned_to:state.me.id,followup_at:new Date(when).toISOString(),note,status:"pending"});
+    const {error}=await sb.from("followups").insert({order_id:orderId,assigned_to:state.me.id,followup_at:new Date(when).toISOString(),note,status:"pending"});
     if(error)return toast1(error.message);
     await sb.from("orders").update({next_followup_at:new Date(when).toISOString(),lead_status:"callback"}).eq("id",orderId);
     await audit("followup_created","order",orderId,null,{followup_at:when,note});toast1("Follow-up scheduled");
   }
 
   async function renderFollowups(){
-    const c=byId("followupsContent");const {data,error}=await sb.from("crm_followups").select("*,orders(order_no,customers(customer_name,mobile))").order("followup_at",{ascending:true}).limit(500);if(error)throw error;
+    const c=byId("followupsContent");const {data,error}=await sb.from("followups").select("*,orders(order_no,customers(customer_name,mobile))").order("followup_at",{ascending:true}).limit(500);if(error)throw error;
     const now=Date.now(),todayEnd=new Date();todayEnd.setHours(23,59,59,999);
     c.innerHTML=`<div class="cards"><div class="stat crm1-kpi"><small>Overdue</small><b>${(data||[]).filter(x=>x.status==="pending"&&new Date(x.followup_at)<new Date()).length}</b></div><div class="stat crm1-kpi"><small>Today</small><b>${(data||[]).filter(x=>new Date(x.followup_at)<=todayEnd&&new Date(x.followup_at)>=new Date(new Date().setHours(0,0,0,0))).length}</b></div><div class="stat crm1-kpi"><small>Upcoming</small><b>${(data||[]).filter(x=>new Date(x.followup_at)>todayEnd).length}</b></div></div><div class="tablewrap"><table><thead><tr><th>Order</th><th>Customer</th><th>When</th><th>Note</th><th>Status</th><th>Action</th></tr></thead><tbody>${(data||[]).map(f=>`<tr><td>#${esc1(f.orders?.order_no||"-")}</td><td>${esc1(f.orders?.customers?.customer_name||"-")}<div class="crm1-muted">${esc1(f.orders?.customers?.mobile||"")}</div></td><td>${fmt1(f.followup_at)}</td><td>${esc1(f.note||"")}</td><td>${esc1(f.status)}</td><td><button class="crm1-mini c1FollowDone" data-id="${f.id}">Done</button></td></tr>`).join("")||'<tr><td colspan="6" class="empty">No follow-ups</td></tr>'}</tbody></table></div>`;
-    document.querySelectorAll(".c1FollowDone").forEach(b=>b.onclick=async()=>{await sb.from("crm_followups").update({status:"completed",completed_at:new Date().toISOString()}).eq("id",b.dataset.id);loadC1("followups")});
+    document.querySelectorAll(".c1FollowDone").forEach(b=>b.onclick=async()=>{await sb.from("followups").update({status:"completed",completed_at:new Date().toISOString()}).eq("id",b.dataset.id);loadC1("followups")});
   }
 
   async function renderVerification(){
@@ -1982,8 +1982,11 @@ document.addEventListener("crm:order-created",async()=>{
   }
 
   async function renderPartnerPerformance(){
-    await refreshOrders();const c=byId("partnerPerformanceContent");const {data:ps}=await sb.from("profiles").select("id,full_name,role,is_active").in("role",["dealer","courier_manager"]);const rows=(ps||[]).map(p=>{const os=state.orders.filter(o=>o.dealer_id===p.id||o.courier_manager_id===p.id);const del=os.filter(o=>String(o.order_status).toLowerCase()==="delivered").length;const rto=os.filter(o=>String(o.order_status).toLowerCase()==="rto").length;return {...p,assigned:os.length,delivered:del,rto,rate:os.length?(del/os.length*100):0}}).sort((a,b)=>b.rate-a.rate);
-    c.innerHTML=`<div class="tablewrap"><table><thead><tr><th>Delivery Partner</th><th>Type</th><th>Assigned</th><th>Delivered</th><th>RTO</th><th>Delivery %</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc1(x.full_name)}</td><td>${x.role==="dealer"?"Dealer":"Courier"}</td><td>${x.assigned}</td><td>${x.delivered}</td><td>${x.rto}</td><td>${x.rate.toFixed(1)}%</td></tr>`).join("")||'<tr><td colspan="6" class="empty">No partners</td></tr>'}</tbody></table></div>`;
+    const c=byId("partnerPerformanceContent");
+    const {data,error}=await sb.from("v_partner_performance").select("*").order("delivered_orders",{ascending:false});
+    if(error){ c.innerHTML=`<div class="empty">${esc1(error.message)}</div>`; return; }
+    const rows=data||[];
+    c.innerHTML=`<div class="cards"><div class="stat crm1-kpi"><small>Partners</small><b>${rows.length}</b></div><div class="stat crm1-kpi"><small>Assigned</small><b>${rows.reduce((a,x)=>a+Number(x.total_orders||0),0)}</b></div><div class="stat crm1-kpi"><small>Delivered</small><b>${rows.reduce((a,x)=>a+Number(x.delivered_orders||0),0)}</b></div></div><div class="tablewrap"><table><thead><tr><th>Delivery Partner</th><th>Type</th><th>Assigned</th><th>Delivered</th><th>RTO</th><th>Delivery %</th><th>Delivered Value</th></tr></thead><tbody>${rows.map(x=>{const total=Number(x.total_orders||0),del=Number(x.delivered_orders||0);return `<tr><td>${esc1(x.partner_name||"-")}</td><td>${esc1(x.partner_type||"-")}</td><td>${total}</td><td>${del}</td><td>${Number(x.rto_orders||0)}</td><td>${total?(del/total*100).toFixed(1):0}%</td><td>${money(x.delivered_value||0)}</td></tr>`}).join("")||'<tr><td colspan="7" class="empty">No partners</td></tr>'}</tbody></table></div>`;
   }
 
   async function renderPinRules(){
@@ -2002,11 +2005,16 @@ document.addEventListener("crm:order-created",async()=>{
 
   async function renderSettlements(){
     const c=byId("settlementsContent");const {data,error}=await sb.from("partner_settlements").select("*,profiles:partner_id(full_name,role)").order("period_to",{ascending:false});if(error)throw error;
-    c.innerHTML=`<div class="crm1-toolbar"><input id="c1SetFrom" type="date"><input id="c1SetTo" type="date"><select id="c1SetPartner"><option value="">Partner ID (or use auto report)</option></select><button class="btn" id="c1SetRefresh">Refresh</button></div><div class="crm1-muted">Settlements can be created automatically from Delivered orders via the SQL function <b>generate_partner_settlement</b>.</div><div class="tablewrap"><table><thead><tr><th>Partner</th><th>Period</th><th>Delivered</th><th>COD</th><th>Commission</th><th>Net Payable</th><th>Status</th></tr></thead><tbody>${(data||[]).map(x=>`<tr><td>${esc1(x.profiles?.full_name||"-")}</td><td>${x.period_from} to ${x.period_to}</td><td>${x.delivered_orders}</td><td>${money(x.cod_amount)}</td><td>${money(x.commission_amount)}</td><td>${money(x.net_payable)}</td><td>${esc1(x.status)}</td></tr>`).join("")||'<tr><td colspan="7" class="empty">No settlements yet</td></tr>'}</tbody></table></div>`;
+    const {data:partnerProfiles}=await sb.from("profiles").select("id,full_name,role").in("role",["courier_manager"]);
+    const {data:dealerRows}=await sb.from("dealers").select("id,dealer_name").eq("is_active",true);
+    const partnerOptions=[...(dealerRows||[]).map(x=>`<option value="${x.id}">${esc1(x.dealer_name)} (Dealer)</option>`),...(partnerProfiles||[]).map(x=>`<option value="${x.id}">${esc1(x.full_name)} (Courier)</option>`)].join("");
+    c.innerHTML=`<div class="crm1-toolbar"><input id="c1SetFrom" type="date"><input id="c1SetTo" type="date"><select id="c1SetPartner"><option value="">Select Partner</option>${partnerOptions}</select><input id="c1SetCommission" type="number" min="0" step="0.01" placeholder="Commission"><button class="btn" id="c1SetGenerate">Generate</button><button class="btn" id="c1SetRefresh">Refresh</button></div><div class="crm1-muted">Settlements can be created automatically from Delivered orders via the SQL function <b>generate_partner_settlement</b>.</div><div class="tablewrap"><table><thead><tr><th>Partner</th><th>Period</th><th>Delivered</th><th>COD</th><th>Commission</th><th>Net Payable</th><th>Status</th></tr></thead><tbody>${(data||[]).map(x=>`<tr><td>${esc1(x.profiles?.full_name||"-")}</td><td>${x.period_from} to ${x.period_to}</td><td>${x.delivered_orders}</td><td>${money(x.cod_amount)}</td><td>${money(x.commission_amount)}</td><td>${money(x.net_payable)}</td><td>${esc1(x.status)}</td></tr>`).join("")||'<tr><td colspan="7" class="empty">No settlements yet</td></tr>'}</tbody></table></div>`;
+    byId("c1SetRefresh")?.addEventListener("click",()=>loadC1("settlements"));
+    byId("c1SetGenerate")?.addEventListener("click",async()=>{const partner=byId("c1SetPartner").value,from=byId("c1SetFrom").value,to=byId("c1SetTo").value,commission=Number(byId("c1SetCommission").value||0);if(!partner||!from||!to)return toast1("Partner, From date and To date required");const {error:e}=await sb.rpc("generate_partner_settlement",{p_partner:partner,p_from:from,p_to:to,p_commission:commission});if(e)return toast1(e.message);toast1("Settlement generated successfully");loadC1("settlements")});
   }
 
   async function renderQA(){
-    const c=byId("qaContent");const {data}=await sb.from("call_qa_reviews").select("*,profiles:agent_id(full_name),orders(order_no)").order("reviewed_at",{ascending:false}).limit(200);
+    const c=byId("qaContent");const {data}=await sb.from("qa_reviews").select("*,profiles:agent_id(full_name),orders(order_no)").order("reviewed_at",{ascending:false}).limit(200);
     c.innerHTML=`<div class="crm1-muted">QA supports disposition, score and reviewer notes. Add reviews from a future call integration or directly through SQL/API.</div><div class="tablewrap"><table><thead><tr><th>Order</th><th>Agent</th><th>Disposition</th><th>Score</th><th>Reviewer Note</th><th>Reviewed</th></tr></thead><tbody>${(data||[]).map(x=>`<tr><td>#${esc1(x.orders?.order_no||"-")}</td><td>${esc1(x.profiles?.full_name||"-")}</td><td>${esc1(x.disposition||"-")}</td><td>${esc1(x.score||"-")}</td><td>${esc1(x.reviewer_note||"-")}</td><td>${fmt1(x.reviewed_at)}</td></tr>`).join("")||'<tr><td colspan="6" class="empty">No QA reviews</td></tr>'}</tbody></table></div>`;
   }
   async function renderNotifications(){
@@ -2042,6 +2050,19 @@ document.addEventListener("crm:order-created",async()=>{
 })();
 </script>
 
+
+<script id="crm1-schema-compat">
+/* Final CRM1 schema compatibility overrides */
+(function(){
+  const oldIsEnquiry=window.isEnquiry;
+  window.isEnquiry=function(o){
+    const t=String(o?.order_type||'').trim().toLowerCase();
+    if(t==='enquiry'||t==='inquiry'||t==='lead') return true;
+    if(t==='order') return false;
+    return typeof oldIsEnquiry==='function' ? oldIsEnquiry(o) : /^\s*\[?enquiry\]?/i.test(String(o?.remarks||''));
+  };
+})();
+</script>
 </body></html   const qty=Number(b.quantity);
    if(qty<1)throw new Error("Quantity सही डालें।");
    const productCheck=await sb.from("products").select("*").eq("id",b.product_id).single();
