@@ -243,6 +243,7 @@ function buildNav(){
   });
 }
 function showPage(id){
+  window.scrollTo({top:0,left:0,behavior:"instant"});
   const role=profile?.role||"";
   const allowed={
     super_admin:["dashboard","users","createOrderPage","orders","orderManager","reports"],
@@ -1895,6 +1896,7 @@ document.addEventListener("crm:order-created",async()=>{
     const b=document.createElement("button");b.textContent=label;b.onclick=()=>showC1Page(id);return b;
   }
   async function showC1Page(id){
+    window.scrollTo({top:0,left:0,behavior:"instant"});
     document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
     const p=byId(id);if(p)p.classList.add("active");
     document.querySelectorAll(".side button").forEach(x=>x.classList.remove("active"));
@@ -2041,6 +2043,11 @@ document.addEventListener("crm:order-created",async()=>{
     const nav=byId("nav"); if(!nav) return;
     const labels=[...nav.querySelectorAll("button")].map(b=>b.textContent||"");
     let p=window.profile?.role||window.state?.profile?.role||document.body?.dataset?.role||"";
+    p=String(p||"").trim().toLowerCase().replace(/\s+/g,"_").replace(/-/g,"_");
+    if(p==="superadmin"||p==="admin") p="super_admin";
+    if(p==="manager") p="management";
+    if(p==="ordermanager") p="order_manager";
+    if(p==="courier") p="courier_manager";
     if(!p){
       if(labels.some(x=>x.includes("User Management"))) p="super_admin";
       else if(labels.some(x=>x.includes("Order Assignment"))) p="order_manager";
@@ -2050,10 +2057,12 @@ document.addEventListener("crm:order-created",async()=>{
     }
     if(!p) return;
     document.body.dataset.role=p;
-    nav.querySelectorAll("[data-crm1-prof='1']").forEach(b=>b.remove());
+    nav.querySelectorAll("[data-crm1-prof='1'],[data-crm1-prof-final='1']").forEach(b=>b.remove());
     const frag=document.createDocumentFragment();
     (C1.rolePages[p]||[]).forEach(id=>{
-      const b=navButton(id,C1.pages[id][0]);
+      const label=C1.pages[id][0];
+      if([...nav.querySelectorAll("button")].some(b=>b.textContent.trim()===label.trim())) return;
+      const b=navButton(id,label);
       b.dataset.crm1Prof="1";
       frag.appendChild(b);
     });
@@ -2082,146 +2091,6 @@ document.addEventListener("crm:order-created",async()=>{
 })();
 </script>
 
-<!-- CRM1 Professional Modules: robust post-login navigation synchronizer -->
-<script id="crm1ProfessionalNavFinalFix">
-(function(){
-  const pages = [
-    ["leadManager","🧲 Lead / Enquiry Manager"],
-    ["followups","📞 Follow-ups"],
-    ["verification","✅ Verification Queue"],
-    ["timeline","🕘 Order Timeline"],
-    ["agentPerformance","🏆 Agent Performance"],
-    ["partnerPerformance","🤝 Delivery Partners"],
-    ["pinRules","📍 PIN Auto Assignment"],
-    ["inventory","📦 Inventory"],
-    ["settlements","💰 Settlements"],
-    ["qa","🎧 QA & Dispositions"],
-    ["notifications","🔔 Notifications"],
-    ["audit","🛡 Audit Log"],
-    ["advancedReports","📈 Advanced Reports"]
-  ];
 
-  const rolePages = {
-    super_admin: pages.map(x=>x[0]),
-    management: ["leadManager","followups","verification","timeline","agentPerformance","partnerPerformance","inventory","settlements","qa","notifications","audit","advancedReports"],
-    order_manager: ["leadManager","followups","verification","timeline","partnerPerformance","pinRules","notifications"],
-    agent: ["leadManager","followups","timeline","notifications"],
-    dealer: ["timeline","notifications","settlements"],
-    courier_manager: ["timeline","notifications","settlements"],
-    warehouse: ["inventory","notifications"]
-  };
 
-  function normalRole(v){
-    v = String(v || "").trim().toLowerCase().replace(/\s+/g,"_").replace(/-/g,"_");
-    if(v==="superadmin" || v==="admin" || v==="super_admin") return "super_admin";
-    if(v==="management" || v==="manager") return "management";
-    if(v==="ordermanager" || v==="order_manager") return "order_manager";
-    if(v==="courier" || v==="courier_manager") return "courier_manager";
-    return v;
-  }
-
-  async function resolveRole(){
-    const candidates = [
-      window.profile?.role,
-      window.state?.profile?.role,
-      document.body?.dataset?.role
-    ];
-    for(const x of candidates){
-      const r = normalRole(x);
-      if(r) return r;
-    }
-
-    // Reliable fallback after login: read current user's profile directly.
-    try{
-      if(window.sb?.auth?.getUser){
-        const {data:{user}} = await window.sb.auth.getUser();
-        if(user){
-          const {data} = await window.sb.from("profiles").select("role").eq("id", user.id).maybeSingle();
-          const r = normalRole(data?.role);
-          if(r) return r;
-        }
-      }
-    }catch(e){}
-    return "";
-  }
-
-  async function openProfessionalPage(id){
-    // First use the professional page loader if present.
-    if(typeof window.showC1Page === "function"){
-      return window.showC1Page(id);
-    }
-
-    // Safe fallback for base CRM.
-    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-    const page = document.getElementById(id);
-    if(page) page.classList.add("active");
-
-    if(typeof window.loadC1 === "function") await window.loadC1(id);
-  }
-
-  async function sync(){
-    const nav = document.getElementById("nav") || document.querySelector(".side");
-    if(!nav) return;
-
-    const role = await resolveRole();
-    if(!role || !rolePages[role]) return;
-
-    document.body.dataset.role = role;
-
-    // Remove only our previously added buttons.
-    nav.querySelectorAll('[data-crm1-prof-final="1"]').forEach(el=>el.remove());
-
-    const frag = document.createDocumentFragment();
-    rolePages[role].forEach(id=>{
-      const found = pages.find(x=>x[0]===id);
-      if(!found) return;
-      const b = document.createElement("button");
-      b.type = "button";
-      b.textContent = found[1];
-      b.dataset.crm1ProfFinal = "1";
-      b.onclick = () => openProfessionalPage(id);
-      frag.appendChild(b);
-    });
-
-    nav.appendChild(frag);
-  }
-
-  // The original failure happened because the old code only retried before
-  // the user had logged in. Watch the sidebar and keep syncing after login.
-  let queued = false;
-  function queue(){
-    if(queued) return;
-    queued = true;
-    setTimeout(async ()=>{
-      queued = false;
-      await sync();
-    }, 100);
-  }
-
-  function start(){
-    queue();
-
-    const observer = new MutationObserver(queue);
-    observer.observe(document.documentElement, {childList:true, subtree:true});
-
-    // Catch normal login, logout and page refresh flows.
-    document.addEventListener("click", ()=>setTimeout(queue, 50), true);
-
-    // A short safety interval handles asynchronous base buildNav()/refreshAll().
-    let ticks = 0;
-    const timer = setInterval(()=>{
-      queue();
-      ticks++;
-      if(ticks >= 120) clearInterval(timer); // 10 minutes
-    }, 5000);
-  }
-
-  if(document.readyState==="loading"){
-    document.addEventListener("DOMContentLoaded", start, {once:true});
-  }else{
-    start();
-  }
-})();
-</script>
-
-</body></html
+</body></html>
