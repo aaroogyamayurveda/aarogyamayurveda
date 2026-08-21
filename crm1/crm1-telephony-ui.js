@@ -4,8 +4,9 @@ const URL='https://ielebadardbzmoxantsc.supabase.co',KEY='sb_publishable_0pekrOT
 const $=id=>document.getElementById(id);let db=null,me=null,agent=null;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function toast(msg){const t=$('toast');if(t){t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',2600)}else console.log(msg)}
+async function waitForSupabase(){for(let i=0;i<20;i++){if(window.supabase?.createClient)return true;await new Promise(r=>setTimeout(r,250))}return false}
 async function init(){try{
-  if(!window.supabase?.createClient)return;
+  if(!(await waitForSupabase()))return;
   db=window.supabase.createClient(URL,KEY);
   const {data:{user}}=await db.auth.getUser();if(!user)return;me=user;inject();await loadAgent();
 }catch(e){console.warn('CRM1 telephony init:',e)}}
