@@ -1,1 +1,2053 @@
+<!doctype html>
+<html lang="hi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aaroogyam Ayurveda CRM</title>
+<style>
+:root{--g:#164b30;--g2:#246743;--bg:#f4f7f4;--card:#fff;--text:#18241d;--muted:#69756e;--border:#dfe7e1;--gold:#b8862b;--red:#b43b35;--blue:#245f86}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}button,input,select,textarea{font:inherit}button{cursor:pointer}
+.wrap{min-height:100vh;display:grid;place-items:center;padding:24px}.login{width:min(430px,100%);background:#fff;border:1px solid var(--border);border-radius:26px;padding:34px;box-shadow:0 20px 55px #164b3014}.brand{text-align:center}.logo{width:78px;height:78px;object-fit:contain;margin:auto}.brand h1{font:700 29px Georgia,serif;color:var(--g);margin:8px 0 2px}.brand p{color:var(--muted);margin:4px 0 25px}.field{margin:12px 0}.field label{display:block;font-size:12px;font-weight:800;color:var(--g);margin-bottom:6px}.field input,.field select,.field textarea{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:11px;outline:none;background:#fff}.field textarea{min-height:80px;resize:vertical}.btn{border:0;border-radius:11px;padding:12px 15px;background:var(--g);color:#fff;font-weight:800}.btn.full{width:100%}.btn.alt{background:#fff;color:var(--g);border:1px solid var(--g)}.btn.red{background:var(--red)}.msg{min-height:20px;color:var(--red);font-size:13px;margin-top:10px;text-align:center}.app{display:none;min-height:100vh}.top{height:68px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 22px;position:sticky;top:0;z-index:20}.top strong{font:700 21px Georgia,serif;color:var(--g)}.user{font-size:12px;color:var(--muted)}.logout{margin-left:10px;border:1px solid var(--border);background:#fff;color:var(--g);border-radius:9px;padding:8px 12px;font-weight:800}.layout{display:grid;grid-template-columns:235px 1fr;min-height:calc(100vh - 68px)}.side{background:#123c27;padding:18px 12px;color:#fff}.side button{display:block;width:100%;text-align:left;background:transparent;color:#e9f3ec;border:0;border-radius:9px;padding:11px 12px;margin:4px 0;font-weight:700}.side button:hover,.side button.active{background:#ffffff18}.main{padding:25px;max-width:1250px;width:100%;margin:auto}.page{display:none}.page.active{display:block}.title{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:18px}.title h2{color:var(--g);margin:0}.sub{color:var(--muted);font-size:13px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}.stat{background:#fff;border:1px solid var(--border);border-radius:16px;padding:17px}.stat span{font-size:12px;color:var(--muted)}.stat b{display:block;font-size:27px;color:var(--g);margin-top:4px}.panel{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:18px}.panel h3{margin:0 0 14px;color:var(--g)}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:10px;border-bottom:1px solid #edf1ee;white-space:nowrap}th{color:var(--g);background:#f7faf7}.pill{display:inline-block;padding:5px 8px;border-radius:999px;background:#edf5ea;color:var(--g);font-weight:800;font-size:11px}.search{display:flex;gap:8px}.search input{flex:1;padding:11px;border:1px solid var(--border);border-radius:10px}.empty{padding:22px;text-align:center;color:var(--muted)}.hidden{display:none!important}.modal{position:fixed;inset:0;background:#0008;z-index:100;display:none;place-items:center;padding:20px}.modalbox{width:min(600px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:20px;padding:22px}.modalhead{display:flex;justify-content:space-between;align-items:center}.modalhead h3{color:var(--g);margin:0}.close{border:0;background:#eee;border-radius:8px;padding:7px 10px}.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:15px}.toast{position:fixed;right:20px;bottom:20px;background:#163d28;color:#fff;padding:12px 16px;border-radius:10px;display:none;z-index:200}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.side{display:flex;overflow:auto;gap:5px}.side button{white-space:nowrap}.cards{grid-template-columns:1fr 1fr}.grid2,.grid3{grid-template-columns:1fr}.top{padding:0 12px}.user{display:none}}
+@media(max-width:500px){.cards{grid-template-columns:1fr}.main{padding:16px}}
+.field-error{font-size:12px;color:var(--red);min-height:16px}.invalid{border-color:var(--red)!important}.confirmOverlay{position:fixed;inset:0;background:#0008;z-index:9999;display:grid;place-items:center}.confirmOverlay.hidden{display:none}.confirmBox{background:#fff;border-radius:16px;padding:24px;width:min(420px,92vw)}.confirmActions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+/* ===== Modern CRM table controls ===== */
+.crm-table-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0 18px;padding:10px;border:1px solid #e4e7ec;border-radius:10px;background:#fff}
+.crm-table-toolbar label{font-size:13px;color:#555}.crm-table-toolbar select,.crm-col-filter{border:1px solid #d8dee8;border-radius:7px;padding:6px 8px;background:#fff}
+.crm-table-summary{font-size:12px;color:#667085}.crm-clear-filters,.crm-pages button{border:1px solid #d8dee8;background:#fff;border-radius:7px;padding:6px 10px;cursor:pointer}
+.crm-pages{margin-left:auto;display:flex;gap:4px;flex-wrap:wrap}.crm-pages button.active{font-weight:700;border-color:#667085}.crm-pages button:disabled{opacity:.45;cursor:default}
+.crm-col-filter{display:block;width:100%;min-width:60px;margin-top:6px;font-size:11px;box-sizing:border-box}
+@media(max-width:700px){.crm-pages{margin-left:0;width:100%}.crm-table-toolbar{align-items:flex-start}}
 
+</style>
+<style>
+.order-location-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  width:100%;
+  margin:0 0 14px;
+}
+.order-location-grid .field{min-width:0}
+.order-location-grid select{
+  width:100%;
+  height:42px;
+  min-height:42px;
+  box-sizing:border-box;
+}
+@media(max-width:900px){
+  .order-location-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:520px){
+  .order-location-grid{grid-template-columns:1fr}
+}
+</style><style>
+.date-filter-panel{margin-bottom:14px}
+.dateFilters{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.dateFilters label{display:flex;align-items:center;gap:7px;font-size:14px}
+.dateFilters select,.dateFilters input{height:38px;box-sizing:border-box}.dateTo{font-size:13px;opacity:.75}
+@media(max-width:560px){.dateFilters{align-items:stretch}.dateFilters label{flex:1}.dateFilters input{flex:1;min-width:150px}}
+</style>
+<style id="crmUserEditStyle">
+#usersTable .crm-user-edit-btn,#usersTable .crm-user-save-btn,#usersTable .crm-user-cancel-btn,#usersTable .crm-pass-btn{padding:6px 9px;border-radius:7px;border:1px solid #d7e0da;background:#fff;cursor:pointer;margin:2px}
+#usersTable .crm-user-save-btn{background:#166534;color:#fff;border-color:#166534}
+#usersTable .user-edit{width:100%;min-width:90px;box-sizing:border-box;padding:6px}
+#usersTable .password-mask{letter-spacing:2px;color:#667085}
+</style>
+
+</head>
+<body>
+<div id="loginPage" class="wrap"><section class="login">
+<div class="brand"><img class="logo" src="https://aaroogyamayurveda.in/aaroogyam-ayurveda-logo-circle.png" alt="Aaroogyam Ayurveda"><h1>Aaroogyam Ayurveda</h1><p>Secure CRM Login</p></div>
+<form id="loginForm">
+<div class="field"><label>Email</label><input id="email" type="email" autocomplete="username" required></div>
+<div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" required></div>
+<button class="btn full" type="submit">LOGIN</button><div id="loginMsg" class="msg"></div>
+</form></section></div>
+
+<div id="app" class="app">
+<header class="top"><strong>Aaroogyam CRM 1</strong><div><span id="userInfo" class="user"></span><button id="logout" class="logout">Logout</button></div></header>
+<div class="layout">
+<aside class="side" id="nav"></aside>
+<main class="main">
+<section id="dashboard" class="page active">
+<div class="title"><div><h2 id="dashTitle">Dashboard</h2><div class="sub" id="dashSub"></div></div></div>
+<div class="panel date-filter-panel"><div class="dateFilters">
+<label>View <select id="dashFilterType"><option value="day">Date Wise</option><option value="month">Month Wise</option><option value="year">Year Wise</option></select></label>
+<input id="dashFilterFrom" type="date"><span class="dateTo">to</span><input id="dashFilterTo" type="date">
+<button class="btn alt" id="dashFilterToday">Today</button>
+</div></div>
+<div class="cards"><div class="stat"><span id="sOrdersLabel">आज के Orders</span><b id="sOrders">0</b></div><div class="stat"><span>Pending</span><b id="sPending">0</b></div><div class="stat"><span>In Transit</span><b id="sTransit">0</b></div><div class="stat"><span>Delivered</span><b id="sDelivered">0</b></div><div class="stat"><span>Cancelled</span><b id="sCancelled">0</b></div></div>
+<div class="panel"><h3>Your Orders</h3><div class="tablewrap"><table id="dashboardOrdersTable"><thead><tr><th>Order</th><th>Customer</th><th>Mobile</th><th>Product / Qty</th><th>Agent</th><th>Delivery Partner</th><th>Status</th><th>Amount</th></tr></thead><tbody id="dashboardOrdersBody"></tbody></table></div></div>
+</section>
+
+
+<section id="createOrderPage" class="page">
+<div class="title"><div><h2>+ Create Order</h2><div class="sub">Customer और Order की पूरी details एक ही page पर भरें</div></div><button class="btn alt" id="backToOrders">← Orders</button></div>
+<div class="panel"><form id="createOrderPageForm">
+<h3>Customer Details</h3>
+<div class="grid2">
+<div class="field"><label>Customer Name *</label><input name="customer_name" maxlength="80" required pattern="[A-Za-zÀ-ÖØ-öø-ÿ .'-]+" title="Name में numbers नहीं डालें"><div id="err_name" class="field-error"></div></div>
+<div class="field"><label>Mobile Number *</label><input name="mobile" id="pageMobile" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" inputmode="numeric" maxlength="10" required pattern="[6-9][0-9]{9}" placeholder="10 digit mobile"><div id="err_mobile" class="field-error"></div></div>
+<div class="field"><label>Alternate Mobile</label><input name="alternate_mobile" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}"><div id="err_alt" class="field-error"></div></div>
+<div class="field"><label>Age</label><input name="age" type="text" inputmode="numeric" maxlength="3" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,3)"><div id="err_age" class="field-error"></div></div>
+<div class="field"><label>Gender</label><select name="gender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div>
+<div class="field"><label>Pincode *</label><input name="pincode" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" id="orderPincode" inputmode="numeric" maxlength="6" oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" required pattern="[0-9]{6}"><div id="err_pin" class="field-error"></div></div>
+</div>
+<div class="order-location-grid">
+<div class="field"><label>State *</label><select name="state" id="orderState" required><option value="">Select State</option></select></div>
+<div class="field"><label>City *</label><select name="city" id="orderCity" required disabled><option value="">Select City</option></select></div>
+<div class="field"><label>Area / Post *</label><select name="post" id="orderPost" required disabled><option value="">Select Area / Post</option></select></div>
+</div><div class="field"><label>Complete Delivery Address *</label><textarea name="address" maxlength="300" required></textarea></div>
+<div id="pageExistingCustomer" class="sub"></div>
+<h3 style="margin-top:22px">Order Details</h3>
+<div class="grid2">
+<div class="field"><label>Product *</label><select name="product_id" id="pageProduct" required><option value="">Loading…</option></select></div>
+<div class="field"><label>Quantity *</label><input name="quantity" id="pageQty" oninput="this.value=this.value.replace(/\D/g,'').slice(0,2)" type="text" inputmode="numeric" maxlength="2" value="1" required><div id="err_qty" class="field-error"></div></div>
+<div class="field"><label>Total Amount (₹) *</label><input name="total_amount" id="pageAmount" type="number" min="0" readonly></div>
+<div class="field"><label>Payment Mode *</label><select name="payment_mode" required><option value="cod">COD</option><option value="prepaid">Prepaid</option><option value="other">Other</option></select></div>
+<div class="field"><label>Lead Source</label><select name="lead_source"><option value="phone">Phone Call</option><option value="whatsapp">WhatsApp</option><option value="facebook">Facebook</option><option value="instagram">Instagram</option><option value="website">Website</option><option value="other">Other</option></select></div>
+</div>
+<div class="field"><label>Order Remarks</label><textarea name="remarks" maxlength="500"></textarea></div>
+<div class="actions"><button type="button" class="btn alt" id="pageOrderReset">Reset</button><button type="submit" class="btn" id="createOrder">Create Order</button><button type="submit" class="btn alt" id="createEnquiry">Create Enquiry</button></div>
+<div id="pageOrderMsg" class="msg"></div>
+</form></div>
+</section>
+
+<section id="users" class="page">
+<div class="title"><div><h2>User Management</h2><div class="sub">Agents, Managers, Dealers और operational users</div></div><button class="btn" id="newUser">+ नया User</button></div>
+<div class="panel"><div id="usersMsg" class="sub"></div><div class="tablewrap"><table id="usersTable"><thead><tr><th>Name</th><th>User ID</th><th>Email</th><th>Mobile</th><th>Role</th><th>Status</th><th>Password</th><th>Action</th></tr></thead><tbody id="usersBody"></tbody></table></div></div>
+</section>
+
+<section id="orders" class="page">
+<div class="title"><div><h2>Order Search</h2><div class="sub">किसी भी user द्वारा बनाया गया order search करें</div></div></div>
+<div class="panel"><div class="search"><input id="orderSearch" placeholder="Order No / Mobile Number"><button class="btn" id="orderSearchBtn">Search</button></div></div>
+<div class="panel"><div class="tablewrap"><table id="ordersTable"><thead><tr><th>Order</th><th>Customer</th><th>Mobile</th><th>Product/Qty</th><th>Agent</th><th>Delivery Partner</th><th>Status</th><th>Amount</th></tr></thead><tbody id="ordersBody"></tbody></table></div></div>
+</section>
+
+<section id="orderManager" class="page">
+<div class="title"><div><h2>Order Assignment</h2><div class="sub">Filter by PIN Code, select single or multiple orders, then assign Dealer or Courier Manager</div></div></div>
+<div class="panel">
+  <div class="search">
+    <input id="assignmentPinFilter" placeholder="Filter by PIN Code">
+    <button class="btn alt" id="assignmentPinClear" type="button">Clear</button>
+    <span id="assignmentSelectedCount" class="sub">0 selected</span>
+  </div>
+</div>
+<div class="panel">
+  <div class="tablewrap"><table id="assignmentTable"><thead><tr>
+    <th><input type="checkbox" id="assignmentSelectAll" title="Select all visible orders"></th>
+    <th>Order</th><th>Customer</th><th>Mobile</th><th>PIN Code</th><th>Amount</th><th>Status</th><th>Current Assignment</th><th>Assign To</th><th>Action</th>
+  </tr></thead><tbody id="assignmentBody"></tbody></table></div>
+</div>
+<div class="panel">
+  <div class="search">
+    <select id="bulkAssignSel"><option value="">Select Dealer / Courier for selected orders</option></select>
+    <button class="btn" id="bulkAssignBtn" type="button">Assign Selected</button>
+  </div>
+</div>
+</section>
+
+<section id="courierOrders" class="page">
+<div class="title"><div><h2>Courier Orders</h2><div class="sub">Orders assigned to this Courier Manager</div></div></div>
+<div class="panel"><div class="tablewrap"><table id="courierOrdersTable"><thead><tr><th>Order</th><th>Customer</th><th>Mobile</th><th>Amount</th><th>Status</th><th>Update</th></tr></thead><tbody id="courierBody"></tbody></table></div></div>
+</section>
+
+<section id="dealers" class="page">
+<div class="title"><div><h2>Dealer Orders</h2><div class="sub">Assigned orders और delivery status</div></div></div>
+<div class="panel"><div class="tablewrap"><table id="dealerOrdersTable"><thead><tr><th>Order</th><th>Customer</th><th>Mobile</th><th>Amount</th><th>Status</th><th>Update</th></tr></thead><tbody id="dealerBody"></tbody></table></div></div>
+</section>
+
+<section id="reports" class="page">
+<div class="title"><div><h2>Reports</h2><div class="sub">Current order performance</div></div></div>
+<div class="panel date-filter-panel"><div class="dateFilters">
+<label>View <select id="reportsFilterType"><option value="day">Date Wise</option><option value="month">Month Wise</option><option value="year">Year Wise</option></select></label>
+<input id="reportsFilterFrom" type="date"><span class="dateTo">to</span><input id="reportsFilterTo" type="date">
+<button class="btn alt" id="reportsFilterToday">Today</button>
+</div></div>
+<div class="panel"><h3>Status Summary</h3><div id="reportBody" class="grid3"></div></div>
+</section>
+</main></div></div>
+
+<div id="modal" class="modal"><div class="modalbox"><div class="modalhead"><h3 id="modalTitle"></h3><button class="close" id="closeModal">✕</button></div><div id="modalContent"></div></div></div>
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import {createClient} from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+const SUPABASE_URL="https://ielebadardbzmoxantsc.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_0pekrOT6vhYZYQ48wHr7Ag_NPcpobGj";
+const sb=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+let me=null,profile=null;
+
+const $=id=>document.getElementById(id);
+const roleName=r=>({super_admin:"Super Admin",management:"Management",order_manager:"Order Manager",agent:"Agent",dealer:"Dealer",warehouse:"Warehouse",courier_manager:"Courier Manager"}[r]||r);
+const esc=x=>String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+function toast(t){$("toast").textContent=t;$("toast").style.display="block";setTimeout(()=>$("toast").style.display="none",2600)}
+function modal(title,html){$("modalTitle").textContent=title;$("modalContent").innerHTML=html;$("modal").style.display="grid"}
+$("closeModal").onclick=()=>{$("modal").style.display="none"};
+
+$("loginForm").onsubmit=async e=>{
+ e.preventDefault();$("loginMsg").textContent="Login हो रहा है…";
+ const {data,error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});
+ if(error){$("loginMsg").textContent="Login failed: "+error.message;return}
+ window.location.replace(window.location.pathname);
+};
+
+async function boot(user){
+ me=user;
+ const r=await sb.from("profiles").select("*").eq("id",user.id).single();
+ if(r.error||!r.data){await sb.auth.signOut();$("loginMsg").textContent="CRM profile नहीं मिला।";return}
+ profile=r.data;
+ if(!profile.is_active){await sb.auth.signOut();$("loginMsg").textContent="Account inactive है।";return}
+ $("loginPage").classList.add("hidden");$("app").style.display="block";
+ $("userInfo").textContent=`${profile.full_name} • ${roleName(profile.role)}`;
+ buildNav(); await loadCreateOrderProducts(); await refreshAll();
+}
+function buildNav(){
+  const n=$("nav"); n.innerHTML="";
+  const role=profile?.role||"";
+  const rolePages={
+    super_admin:[
+      ["dashboard","🏠 Dashboard"],["users","👥 User Management"],
+      ["createOrderPage","➕ Create Order"],["orders","📦 Order Search"],
+      ["orderManager","📋 Order Assignment"],["reports","📊 Reports"]
+    ],
+    management:[
+      ["dashboard","🏠 Dashboard"],["users","👥 User Management"],
+      ["orders","📦 Order Search"],["orderManager","📋 Order Assignment"],
+      ["reports","📊 Reports"]
+    ],
+    order_manager:[
+      ["dashboard","🏠 Dashboard"],["orders","📦 Order Search"],
+      ["orderManager","📋 Order Assignment"],["reports","📊 Reports"]
+    ],
+    agent:[
+      ["dashboard","🏠 Dashboard"],["createOrderPage","➕ Create Order"],
+      ["orders","📦 Order Search"],["reports","📊 Reports"]
+    ],
+    dealer:[
+      ["dashboard","🏠 Dashboard"],["dealers","🚚 Dealer Orders"]
+    ],
+    courier_manager:[
+      ["dashboard","🏠 Dashboard"],["courierOrders","🚛 Courier Orders"]
+    ],
+    warehouse:[
+      ["dashboard","🏠 Dashboard"]
+    ]
+  };
+  const items=rolePages[role]||[["dashboard","🏠 Dashboard"]];
+  items.forEach(([id,label])=>{
+    const b=document.createElement("button");
+    b.textContent=label;
+    b.onclick=()=>showPage(id);
+    n.appendChild(b);
+  });
+}
+function showPage(id){
+  const role=profile?.role||"";
+  const allowed={
+    super_admin:["dashboard","users","createOrderPage","orders","orderManager","reports"],
+    management:["dashboard","users","orders","orderManager","reports"],
+    order_manager:["dashboard","orders","orderManager","reports"],
+    agent:["dashboard","createOrderPage","orders","reports"],
+    dealer:["dashboard","dealers"],
+    courier_manager:["dashboard","courierOrders"],
+    warehouse:["dashboard"]
+  }[role]||["dashboard"];
+
+  if(!allowed.includes(id)) id="dashboard";
+
+  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+  const page=$(id);
+  if(page) page.classList.add("active");
+
+  // Refresh live data whenever these pages are opened, so a newly created order
+  // appears immediately without a browser refresh.
+  if(id==="dashboard" && typeof loadDashboardOrders==="function"){
+    loadDashboardOrders();
+  }
+  if(id==="orderManager" && typeof loadOrderAssignments==="function"){
+    loadOrderAssignments();
+  }
+
+  document.querySelectorAll(".side button").forEach(x=>x.classList.remove("active"));
+  const activeBtn=[...document.querySelectorAll(".side button")]
+    .find(x=>x.onclick && x.textContent && (
+      (id==="dashboard" && x.textContent.includes("Dashboard")) ||
+      (id==="users" && x.textContent.includes("User Management")) ||
+      (id==="createOrderPage" && x.textContent.includes("Create Order")) ||
+      (id==="orders" && x.textContent.includes("Order Search")) ||
+      (id==="orderManager" && x.textContent.includes("Order Assignment")) ||
+      (id==="reports" && x.textContent.includes("Reports")) ||
+      (id==="dealers" && x.textContent.includes("Dealer Orders")) ||
+      (id==="courierOrders" && x.textContent.includes("Courier Orders"))
+    ));
+  activeBtn?.classList.add("active");
+}
+async function refreshAll(){
+ await loadStats();await loadDashboardOrders();
+ if(["super_admin","management"].includes(profile.role))await loadUsers();
+ if(["order_manager","management","super_admin"].includes(profile.role))await loadOrderAssignments();
+ if(profile.role==="dealer")await loadDealerOrders();
+ if(profile.role==="courier_manager")await loadCourierOrders();
+ await loadOrders();await loadReports();
+}
+
+
+async function loadUsers(){
+ const body=$("usersBody"), msg=$("usersMsg");
+ if(!body)return;
+ body.innerHTML='<tr><td colspan="8" class="sub">Loading users...</td></tr>';
+ if(msg)msg.textContent="";
+ const {data,error}=await sb.from("profiles")
+   .select("id,full_name,employee_code,email,mobile,role,is_active,created_at")
+   .order("created_at",{ascending:false});
+ if(error){
+   body.innerHTML=`<tr><td colspan="8" class="danger">${esc(error.message)}</td></tr>`;
+   return;
+ }
+ const roles=["agent","order_manager","management","dealer","warehouse","courier_manager","super_admin"];
+ body.innerHTML=(data||[]).map(u=>{
+   const safeId=esc(u.id);
+   const roleOptions=roles.map(r=>`<option value="${esc(r)}" ${u.role===r?"selected":""}>${esc(roleName(r))}</option>`).join("");
+   return `<tr data-user-id="${safeId}">
+   <td><span class="user-view">${esc(u.full_name||"-")}</span><input class="user-edit" name="full_name" value="${esc(u.full_name||"")}" style="display:none"></td>
+   <td><span class="user-view">${esc(u.employee_code||"-")}</span><input class="user-edit" name="employee_code" value="${esc(u.employee_code||"")}" style="display:none"></td>
+   <td><span class="user-view">${esc(u.email||"-")}</span><input class="user-edit" name="email" type="email" value="${esc(u.email||"")}" style="display:none"></td>
+   <td><span class="user-view">${esc(u.mobile||"-")}</span><input class="user-edit" name="mobile" value="${esc(u.mobile||"")}" style="display:none"></td>
+   <td><span class="user-view">${esc(roleName(u.role))}</span><select class="user-edit" name="role" style="display:none">${roleOptions}</select></td>
+   <td><span class="user-view">${u.is_active===false?'<span class="danger">Inactive</span>':'<span class="ok">Active</span>'}</span><select class="user-edit" name="is_active" style="display:none"><option value="true" ${u.is_active!==false?"selected":""}>Active</option><option value="false" ${u.is_active===false?"selected":""}>Inactive</option></select></td>
+   <td><span class="password-mask">••••••••</span><button type="button" class="crm-pass-btn" title="Password cannot be displayed; click to set a new password">🔑 Change</button></td>
+   <td><button type="button" class="crm-user-edit-btn" title="Edit user">✏️ Edit</button><button type="button" class="crm-user-save-btn" style="display:none">Save</button><button type="button" class="crm-user-cancel-btn" style="display:none">Cancel</button></td>
+ </tr>`;
+ }).join("")||'<tr><td colspan="8" class="empty">No users found</td></tr>';
+ if(msg)msg.textContent=`${(data||[]).length} user(s) found`;
+}
+
+async function crmSaveProfileRow(row){
+ const id=row.dataset.userId;
+ const values={};
+ row.querySelectorAll(".user-edit").forEach(x=>{
+   values[x.name]=x.name==="is_active"?x.value==="true":x.value.trim();
+ });
+ if(!values.full_name){toast("Name required");return;}
+
+ const emailInput=row.querySelector('input[name="email"]');
+ const originalEmail=(emailInput?.defaultValue||"").trim().toLowerCase();
+ const newEmail=(values.email||"").trim().toLowerCase();
+
+ try{
+   if(newEmail && newEmail!==originalEmail){
+     const {data:emailData,error:emailError}=await sb.functions.invoke("quick-service",{
+       body:{action:"update_user_email",user_id:id,email:newEmail}
+     });
+     if(emailError) throw emailError;
+     if(emailData && emailData.error) throw new Error(emailData.error);
+   }
+
+   const profileValues={...values};
+   if(newEmail && newEmail!==originalEmail) delete profileValues.email;
+
+   const {error}=await sb.from("profiles").update(profileValues).eq("id",id);
+   if(error) throw error;
+
+   toast(newEmail!==originalEmail
+     ? "User and login email updated successfully"
+     : "User updated successfully");
+   await loadUsers();
+ }catch(err){
+   console.error("User update failed:",err);
+   toast("Update failed: "+(err?.message||"Unknown error"));
+ }
+}
+
+function crmBindUserManagement(){
+ const body=$("usersBody"); if(!body||body.dataset.crmUserBound)return;
+ body.dataset.crmUserBound="1";
+ body.addEventListener("click",async e=>{
+   const row=e.target.closest("tr[data-user-id]"); if(!row)return;
+   if(e.target.closest(".crm-user-edit-btn")){
+     row.querySelectorAll(".user-view").forEach(x=>x.style.display="none");
+     row.querySelectorAll(".user-edit").forEach(x=>x.style.display="");
+     row.querySelector(".crm-user-edit-btn").style.display="none";
+     row.querySelector(".crm-user-save-btn").style.display="";
+     row.querySelector(".crm-user-cancel-btn").style.display="";
+   }else if(e.target.closest(".crm-user-cancel-btn")){
+     await loadUsers();
+   }else if(e.target.closest(".crm-user-save-btn")){
+     await crmSaveProfileRow(row);
+   }else if(e.target.closest(".crm-pass-btn")){
+     const id=row.dataset.userId;
+     modal("Change Password",`<form id="crmChangePasswordForm" onsubmit="return false;">
+       <div class="field"><label>New Password</label><div style="display:flex;gap:8px"><input id="crmNewPassword" type="password" minlength="8" required style="flex:1"><button type="button" id="crmTogglePassword">👁</button></div><small class="sub">Minimum 8 characters. Existing password cannot be viewed.</small></div>
+       <div class="actions"><button type="button" class="btn alt" id="crmPassCancel">Cancel</button><button type="submit" class="btn">Change Password</button></div><div id="crmPassMsg" class="msg"></div></form>`);
+     const form=$("crmChangePasswordForm");
+     $("crmTogglePassword").onclick=()=>{const x=$("crmNewPassword");x.type=x.type==="password"?"text":"password";};
+     $("crmPassCancel").onclick=()=>{$("modal").style.display="none";};
+     form.addEventListener("submit",async ev=>{
+       ev.preventDefault();
+       const password=$("crmNewPassword").value;
+       if(password.length<8){$("crmPassMsg").textContent="Password must be at least 8 characters.";return;}
+       $("crmPassMsg").textContent="Updating password...";
+       try{
+         const {data:pwData,error:pwError}=await sb.functions.invoke("quick-service",{
+           body:{action:"update_user_password",user_id:id,password:password}
+         });
+         if(pwError) throw pwError;
+         if(pwData && pwData.error) throw new Error(pwData.error);
+         $("crmPassMsg").textContent="Password changed successfully.";
+         toast("Password changed successfully");
+         setTimeout(()=>{$("modal").style.display="none";},700);
+       }catch(err){
+         console.error("Password update failed:",err);
+         $("crmPassMsg").textContent="Password update failed: "+(err.message||"Unknown error");
+       }
+     });
+   }
+ });
+}
+
+document.addEventListener("DOMContentLoaded",()=>setTimeout(crmBindUserManagement,0));function localISO(d=new Date()){
+ const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);
+ return x.toISOString().slice(0,10);
+}
+function setFilterInput(section){
+ const type=$(section+"FilterType"), from=$(section+"FilterFrom"), to=$(section+"FilterTo");
+ if(!type||!from||!to)return;
+ const today=localISO();
+ if(type.value==="day"){
+   from.type="date";to.type="date";
+   if(!/^\d{4}-\d{2}-\d{2}$/.test(from.value))from.value=today;
+   if(!/^\d{4}-\d{2}-\d{2}$/.test(to.value))to.value=from.value||today;
+   from.style.display="";to.style.display="";document.querySelector(`#${section} .dateTo`)?.style.setProperty("display","");
+ }else if(type.value==="month"){
+   from.type="month";to.type="month";from.value=today.slice(0,7);to.value=from.value;
+   from.style.display="";to.style.display="";document.querySelector(`#${section} .dateTo`)?.style.setProperty("display","");
+ }else{
+   from.type="number";to.type="number";from.min=to.min="2000";from.max=to.max="2100";from.step=to.step="1";
+   from.value=today.slice(0,4);to.value=from.value;
+   from.style.display="";to.style.display="";document.querySelector(`#${section} .dateTo`)?.style.setProperty("display","");
+ }
+}
+function nextDayISO(v){const d=new Date(v+"T00:00:00");d.setDate(d.getDate()+1);return localISO(d)}
+function monthStart(v){return v+"-01"}
+function nextMonthISO(v){const [y,m]=v.split("-").map(Number);return localISO(new Date(y,m,1))}
+function getFilterRange(section){
+ const type=$(section+"FilterType")?.value||"day";
+ let from=$(section+"FilterFrom")?.value||"", to=$(section+"FilterTo")?.value||"";
+ if(type==="month"){
+   if(!/^\d{4}-\d{2}$/.test(from))from=localISO().slice(0,7);
+   if(!/^\d{4}-\d{2}$/.test(to))to=from;
+   if(to<from)[from,to]=[to,from];
+   return {from:monthStart(from),to:nextMonthISO(to),label:from===to?from:`${from} to ${to}`};
+ }
+ if(type==="year"){
+   let fy=Number(from),ty=Number(to);
+   if(!fy)fy=Number(localISO().slice(0,4));if(!ty)ty=fy;
+   if(ty<fy)[fy,ty]=[ty,fy];
+   return {from:`${fy}-01-01`,to:`${ty+1}-01-01`,label:fy===ty?String(fy):`${fy} to ${ty}`};
+ }
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(from))from=localISO();
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(to))to=from;
+ if(to<from)[from,to]=[to,from];
+ return {from,to:nextDayISO(to),label:from===to?from:`${from} to ${to}`};
+}
+function applyDateRange(q,section){
+ const r=getFilterRange(section);
+ return r?q.gte("order_date",r.from).lt("order_date",r.to):q;
+}
+function bindDateFilter(section,loader){
+ const type=$(section+"FilterType"), from=$(section+"FilterFrom"), to=$(section+"FilterTo"), todayBtn=$(section+"FilterToday");
+ if(!type||!from||!to)return;
+ setFilterInput(section);
+ type.addEventListener("change",()=>{setFilterInput(section);loader()});
+ from.addEventListener("change",loader);to.addEventListener("change",loader);
+ todayBtn?.addEventListener("click",()=>{
+   type.value="day";from.type="date";to.type="date";from.value=localISO();to.value=localISO();loader();
+ });
+}
+async function loadStats(){
+ let q=onlyRealOrders(sb.from("orders").select("id,order_status,order_date",{count:"exact",head:false}));
+ if(profile.role==="agent")q=q.eq("agent_id",me.id);
+ if(profile.role==="dealer"){
+   const d=await sb.from("dealers").select("id").eq("user_id",me.id).maybeSingle();
+   q=d.data?q.eq("dealer_id",d.data.id):q.eq("dealer_id","00000000-0000-0000-0000-000000000000");
+ }
+ // Courier Manager dashboard must show only orders assigned to this logged-in courier.
+ if(profile.role==="courier_manager"){
+   q=q.eq("courier_manager_id",me.id);
+ }
+ q=applyDateRange(q,"dash");
+ const {data}=await q;
+ const rows=data||[];
+ $("sOrders").textContent=rows.length;
+ $("sPending").textContent=rows.filter(x=>["new","pending","confirmed","dealer_pending","assigned","hold"].includes(x.order_status)).length;
+ $("sTransit").textContent=rows.filter(x=>x.order_status==="in_transit").length;
+ $("sDelivered").textContent=rows.filter(x=>x.order_status==="delivered").length;
+ $("sCancelled").textContent=rows.filter(x=>x.order_status==="cancelled").length;
+ const r=getFilterRange("dash");
+ $("sOrdersLabel").textContent=r?.label===localISO()?"आज के Orders":`Orders (${r?.label||""})`;
+}
+
+// An enquiry is currently stored in orders with the marker [ENQUIRY] in remarks.
+// Keep enquiries in the database, but exclude them everywhere the CRM is counting,
+// assigning, reporting or displaying real orders.
+function onlyRealOrders(query){
+  return query.or("remarks.is.null,remarks.not.ilike.%[ENQUIRY]%");
+}
+
+function productNameFromItem(item){
+ const p=item?.products||{};
+ return p.product_name ?? p.name ?? p.title ?? p.product_name_hi ?? "Product";
+}
+function productSummary(items){
+ if(!Array.isArray(items)||!items.length)return "-";
+ return items.map(i=>`${esc(productNameFromItem(i))} × ${Number(i.quantity||0)} (₹${Number(i.unit_price||0).toLocaleString("en-IN")})`).join("<br>");
+}
+function renderOrderRows(rows){
+ return (rows||[]).map(o=>`<tr>
+   <td>#${esc(o.order_no)}</td>
+   <td>${esc(o.customers?.customer_name||"-")}</td>
+   <td>${esc(o.customers?.mobile||"-")}</td>
+   <td>${productSummary(o.order_items)}</td>
+   <td>${esc(o.profiles?.full_name||"-")}</td>
+   <td>${esc(getDeliveryPartnerName(o,partnerMap))}</td>
+   <td><span class="pill">${esc(o.order_status||"-")}</span></td>
+   <td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td>
+ </tr>`).join("");
+}
+let partnerMap={dealers:new Map(),couriers:new Map()};
+
+async function loadDeliveryPartnerMap(){
+ const [{data:dealers},{data:couriers}]=await Promise.all([
+  sb.from("dealers").select("id,dealer_name"),
+  sb.from("profiles").select("id,full_name").eq("role","courier_manager")
+ ]);
+ partnerMap={
+  dealers:new Map((dealers||[]).map(x=>[x.id,x.dealer_name])),
+  couriers:new Map((couriers||[]).map(x=>[x.id,x.full_name]))
+ };
+ return partnerMap;
+}
+function getDeliveryPartnerName(o,m=partnerMap){
+ if(o?.dealer_id)return m.dealers.get(o.dealer_id)||o.dealers?.dealer_name||"-";
+ if(o?.courier_manager_id)return m.couriers.get(o.courier_manager_id)||"-";
+ return "-";
+}
+
+async function loadDashboardOrders(){
+ let q=onlyRealOrders(sb.from("orders").select("id,order_no,order_status,total_amount,order_date,customer_id,agent_id,dealer_id,courier_manager_id,customers(customer_name,mobile),profiles!orders_agent_id_fkey(full_name),courier_manager:profiles!orders_courier_manager_id_fkey(full_name),dealers(dealer_name),order_items(quantity,unit_price,products(*))")).order("order_date",{ascending:false}).limit(100);
+
+ // Dashboard visibility is role-specific. Agent must see only orders created by the
+ // currently logged-in agent. Global Order Search and Create Order customer lookup
+ // are intentionally not changed.
+ if(profile.role==="agent"){
+   q=q.eq("agent_id",me.id);
+ }
+
+ // Keep existing dealer dashboard behavior unchanged.
+ if(profile.role==="dealer"){
+   const d=await sb.from("dealers").select("id").eq("user_id",me.id).maybeSingle();
+   q=d.data?q.eq("dealer_id",d.data.id):q.eq("dealer_id","00000000-0000-0000-0000-000000000000");
+ }
+
+ // Courier Manager must see only orders assigned to the currently logged-in courier.
+ // courier_manager_id stores the assigned user's profile/auth id.
+ if(profile.role==="courier_manager"){
+   q=q.eq("courier_manager_id",me.id);
+ }
+
+ q=applyDateRange(q,"dash");
+ const {data,error}=await q;
+ await loadDeliveryPartnerMap();
+ const body=$("dashboardOrdersBody"); if(!body)return;
+ body.innerHTML=error?`<tr><td colspan="8" class="danger">${esc(error.message)}</td></tr>`:
+   (data||[]).length?renderOrderRows(data):'<tr><td colspan="8" class="empty">No orders</td></tr>';
+}
+async function loadOrders(){
+ // Order Search is search-only: no date/month/year filter and no user/agent restriction.
+ const body=$("ordersBody"); if(!body)return;
+ body.innerHTML='<tr><td colspan="8" class="empty">Order No या 10 digit Mobile Number डालकर Search करें।</td></tr>';
+}
+
+async function crmConfirm(message,title="Confirm Action"){
+  return new Promise(resolve=>{
+    modal(title,`
+      <div style="padding:6px 0 12px">${esc(message)}</div>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn alt" id="crmConfirmNo" type="button">No</button>
+        <button class="btn" id="crmConfirmYes" type="button">Yes</button>
+      </div>
+    `);
+
+    const yes=document.getElementById("crmConfirmYes");
+    const no=document.getElementById("crmConfirmNo");
+    let done=false;
+
+    const finish=(value)=>{
+      if(done)return;
+      done=true;
+      if(yes)yes.removeEventListener("click",onYes);
+      if(no)no.removeEventListener("click",onNo);
+      const m=document.getElementById("modal");
+      if(m)m.style.display="none";
+      resolve(value);
+    };
+    const onYes=(e)=>{e.preventDefault();e.stopPropagation();finish(true)};
+    const onNo=(e)=>{e.preventDefault();e.stopPropagation();finish(false)};
+
+    if(yes)yes.addEventListener("click",onYes);
+    if(no)no.addEventListener("click",onNo);
+  });
+}
+
+let assignmentOrdersCache=[];
+let assignmentPartnerOptions="";
+
+function updateAssignmentSelectedCount(){
+  const selected=document.querySelectorAll("#assignmentBody .assignmentCheck:checked").length;
+  const label=$("assignmentSelectedCount");
+  if(label) label.textContent=`${selected} selected`;
+  const all=$("assignmentSelectAll");
+  const checks=[...document.querySelectorAll("#assignmentBody .assignmentCheck")];
+  if(all){
+    all.checked=checks.length>0 && checks.every(x=>x.checked);
+    all.indeterminate=checks.some(x=>x.checked) && !all.checked;
+  }
+}
+
+function renderOrderAssignments(){
+  const body=$("assignmentBody"); if(!body)return;
+  const pinFilter=($("assignmentPinFilter")?.value||"").trim().toLowerCase();
+  const orders=assignmentOrdersCache.filter(o=>!pinFilter || String(o.customers?.pincode||"").toLowerCase().includes(pinFilter));
+
+  body.innerHTML=orders.map(o=>{
+    const current=o.dealer_id
+      ? `Dealer: ${esc(o.dealer_name||"Assigned")}`
+      : o.courier_manager_id
+        ? `Courier: ${esc(o.courier_name||"Assigned")}`
+        : '<span class="sub">Unassigned</span>';
+
+    return `<tr>
+      <td><input type="checkbox" class="assignmentCheck" data-order="${esc(o.id)}"></td>
+      <td>#${esc(o.order_no)}</td>
+      <td>${esc(o.customers?.customer_name||"-")}</td>
+      <td>${esc(o.customers?.mobile||"-")}</td>
+      <td>${esc(o.customers?.pincode||"-")}</td>
+      <td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td>
+      <td><span class="pill">${esc(o.order_status||"-")}</span></td>
+      <td>${current}</td>
+      <td><select class="assignSel" data-order="${esc(o.id)}">${assignmentPartnerOptions}</select></td>
+      <td><button class="btn assignBtn" data-order="${esc(o.id)}">Assign</button></td>
+    </tr>`;
+  }).join("")||'<tr><td colspan="10" class="empty">No orders found for this PIN Code</td></tr>';
+
+  document.querySelectorAll(".assignmentCheck").forEach(x=>x.onchange=updateAssignmentSelectedCount);
+
+  document.querySelectorAll(".assignBtn").forEach(btn=>btn.onclick=async()=>{
+    const orderId=btn.dataset.order;
+    const sel=body.querySelector(`.assignSel[data-order="${CSS.escape(orderId)}"]`);
+    const value=sel?.value||"";
+    if(!value){toast("पहले Dealer या Courier Manager select करें");return}
+    const [type,id]=value.split(":");
+    const partnerText=sel.options[sel.selectedIndex]?.text||"selected partner";
+    const ok=await crmConfirm(`Assign this order to ${partnerText}?`,"Confirm Assignment");
+    if(!ok) return;
+
+    btn.disabled=true;
+    const payload=type==="dealer"
+      ? {dealer_id:id,courier_manager_id:null,order_status:"assigned"}
+      : {dealer_id:null,courier_manager_id:id,order_status:"assigned"};
+
+    const {error:updateError}=await sb.from("orders").update(payload).eq("id",orderId);
+    if(updateError){toast(updateError.message);btn.disabled=false;return}
+    await sb.from("order_status_history").insert({order_id:orderId,new_status:"assigned",changed_by:me.id});
+    toast(type==="dealer"?"Order assigned to Dealer":"Order assigned to Courier Manager");
+    await loadOrderAssignments();
+  });
+
+  updateAssignmentSelectedCount();
+}
+
+async function loadOrderAssignments(){
+  const body=$("assignmentBody"); if(!body)return;
+  body.innerHTML='<tr><td colspan="10" class="sub">Loading orders and assignment users...</td></tr>';
+
+  const [{data:orders,error},{data:dealerRows,error:dealerErr},{data:couriers,error:courierErr}]=await Promise.all([
+    onlyRealOrders(sb.from("orders")
+      .select("id,order_no,order_status,total_amount,dealer_id,courier_manager_id,customers(customer_name,mobile,pincode),dealers(dealer_name)"))
+      .order("order_date",{ascending:false}).limit(500),
+    sb.from("dealers").select("id,dealer_name,user_id").order("dealer_name"),
+    sb.from("profiles").select("id,full_name,employee_code,role,is_active").eq("role","courier_manager").eq("is_active",true).order("full_name")
+  ]);
+
+  if(error){body.innerHTML=`<tr><td colspan="10" class="danger">${esc(error.message)}</td></tr>`;return}
+  if(dealerErr||courierErr){body.innerHTML=`<tr><td colspan="10" class="danger">${esc((dealerErr||courierErr).message)}</td></tr>`;return}
+
+  const dealerMap=new Map((dealerRows||[]).map(x=>[x.id,x]));
+  const courierMap=new Map((couriers||[]).map(x=>[x.id,x]));
+
+  assignmentOrdersCache=(orders||[]).map(o=>({
+    ...o,
+    dealer_name:dealerMap.get(o.dealer_id)?.dealer_name||o.dealers?.dealer_name||"",
+    courier_name:courierMap.get(o.courier_manager_id)?.full_name||""
+  }));
+
+  const dealerOptions=(dealerRows||[]).map(d=>`<option value="dealer:${esc(d.id)}">Dealer — ${esc(d.dealer_name||d.id)}</option>`).join("");
+  const courierOptions=(couriers||[]).map(c=>`<option value="courier:${esc(c.id)}">Courier — ${esc(c.full_name)}${c.employee_code?` (${esc(c.employee_code)})`:""}</option>`).join("");
+  assignmentPartnerOptions=`<option value="">Select Dealer / Courier</option>${dealerOptions}${courierOptions}`;
+
+  const bulk=$("bulkAssignSel");
+  if(bulk) bulk.innerHTML=assignmentPartnerOptions.replace('<option value="">Select Dealer / Courier</option>','<option value="">Select Dealer / Courier for selected orders</option>');
+
+  renderOrderAssignments();
+
+  const pin=$("assignmentPinFilter");
+  if(pin && !pin.dataset.bound){
+    pin.dataset.bound="1";
+    pin.addEventListener("input",renderOrderAssignments);
+    pin.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();renderOrderAssignments()}});
+  }
+
+  const clear=$("assignmentPinClear");
+  if(clear && !clear.dataset.bound){
+    clear.dataset.bound="1";
+    clear.onclick=()=>{if(pin)pin.value="";renderOrderAssignments()};
+  }
+
+  const selectAll=$("assignmentSelectAll");
+  if(selectAll && !selectAll.dataset.bound){
+    selectAll.dataset.bound="1";
+    selectAll.onchange=e=>{
+      document.querySelectorAll("#assignmentBody .assignmentCheck").forEach(x=>x.checked=e.target.checked);
+      updateAssignmentSelectedCount();
+    };
+  }
+
+  const bulkBtn=$("bulkAssignBtn");
+  if(bulkBtn && !bulkBtn.dataset.bound){
+    bulkBtn.dataset.bound="1";
+    bulkBtn.onclick=async()=>{
+      const selected=[...document.querySelectorAll("#assignmentBody .assignmentCheck:checked")].map(x=>x.dataset.order);
+      const value=bulk?.value||"";
+      if(!selected.length){toast("कम से कम एक order select करें");return}
+      if(!value){toast("Dealer या Courier Manager select करें");return}
+
+      const [type,id]=value.split(":");
+      const partnerText=bulk.options[bulk.selectedIndex]?.text||"selected partner";
+      const ok=await crmConfirm(`${selected.length} selected order(s) को ${partnerText} को assign करना है?`,"Confirm Bulk Assignment");
+      if(!ok) return;
+
+      bulkBtn.disabled=true;
+      const payload=type==="dealer"
+        ? {dealer_id:id,courier_manager_id:null,order_status:"assigned"}
+        : {dealer_id:null,courier_manager_id:id,order_status:"assigned"};
+
+      const {error:updateError}=await sb.from("orders").update(payload).in("id",selected);
+      if(updateError){toast(updateError.message);bulkBtn.disabled=false;return}
+
+      const historyRows=selected.map(order_id=>({order_id,new_status:"assigned",changed_by:me.id}));
+      const {error:historyError}=await sb.from("order_status_history").insert(historyRows);
+      if(historyError) console.error("Assignment history error:",historyError);
+
+      toast(`${selected.length} order(s) assigned successfully`);
+      bulkBtn.disabled=false;
+      await loadOrderAssignments();
+    };
+  }
+}
+
+async function loadCourierOrders(){
+  const body=$("courierBody"); if(!body)return;
+  const {data,error}=await onlyRealOrders(sb.from("orders")
+    .select("id,order_no,order_status,total_amount,customers(customer_name,mobile)"))
+    .eq("courier_manager_id",me.id).order("order_date",{ascending:false});
+  if(error){body.innerHTML=`<tr><td colspan="6" class="danger">${esc(error.message)}</td></tr>`;return}
+
+  body.innerHTML=(data||[]).map(o=>`<tr>
+    <td>#${esc(o.order_no)}</td><td>${esc(o.customers?.customer_name||"-")}</td><td>${esc(o.customers?.mobile||"-")}</td>
+    <td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td><td><span class="pill">${esc(o.order_status||"-")}</span></td>
+    <td><select data-order="${esc(o.id)}" data-old="${esc(o.order_status||"")}" class="courierStatusSel">
+      ${["assigned","packed","dispatched","in_transit","delivered","hold","cancelled","rto"].map(x=>`<option value="${x}" ${o.order_status===x?"selected":""}>${x}</option>`).join("")}
+    </select></td></tr>`).join("")||'<tr><td colspan="6" class="empty">No assigned courier orders</td></tr>';
+
+  document.querySelectorAll(".courierStatusSel").forEach(sel=>sel.onchange=async e=>{
+    const target=e.target,id=target.dataset.order,newStatus=target.value,oldStatus=target.dataset.old||"";
+    if(newStatus===oldStatus)return;
+    const ok=await crmConfirm(`Change order status from "${oldStatus}" to "${newStatus}"?`,"Confirm Status Update");
+    if(!ok){target.value=oldStatus;return}
+
+    const {error:updateError}=await sb.from("orders").update({order_status:newStatus}).eq("id",id);
+    if(updateError){toast(updateError.message);target.value=oldStatus;return}
+    await sb.from("order_status_history").insert({order_id:id,new_status:newStatus,changed_by:me.id});
+    toast("Status updated");await refreshAll();
+  });
+}
+
+async function loadDealerOrders(){
+  if(profile.role!=="dealer"){$("dealerBody").innerHTML='<tr><td colspan="6" class="empty">Dealer login पर assigned orders यहाँ दिखाई देंगे।</td></tr>';return}
+  const d=await sb.from("dealers").select("id").eq("user_id",me.id).maybeSingle();
+  if(!d.data){$("dealerBody").innerHTML='<tr><td colspan="6" class="empty">Dealer profile linked नहीं है।</td></tr>';return}
+  const {data}=await onlyRealOrders(sb.from("orders").select("id,order_no,order_status,total_amount,customers(customer_name,mobile)")).eq("dealer_id",d.data.id).order("order_date",{ascending:false});
+
+  $("dealerBody").innerHTML=(data||[]).map(o=>`<tr>
+    <td>#${esc(o.order_no)}</td><td>${esc(o.customers?.customer_name)}</td><td>${esc(o.customers?.mobile)}</td>
+    <td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td><td><span class="pill">${esc(o.order_status)}</span></td>
+    <td><select data-order="${esc(o.id)}" data-old="${esc(o.order_status||"")}" class="statusSel">
+      ${["new","packed","dispatched","in_transit","delivered","hold","cancelled","rto"].map(x=>`<option value="${x}" ${o.order_status===x?"selected":""}>${x}</option>`).join("")}
+    </select></td></tr>`).join("")||'<tr><td colspan="6" class="empty">No assigned orders</td></tr>';
+
+  document.querySelectorAll(".statusSel").forEach(sel=>sel.onchange=async e=>{
+    const target=e.target,id=target.dataset.order,newStatus=target.value,oldStatus=target.dataset.old||"";
+    if(newStatus===oldStatus)return;
+    const ok=await crmConfirm(`Change order status from "${oldStatus}" to "${newStatus}"?`,"Confirm Status Update");
+    if(!ok){target.value=oldStatus;return}
+
+    const {error}=await sb.from("orders").update({order_status:newStatus}).eq("id",id);
+    if(error){toast(error.message);target.value=oldStatus;return}
+    await sb.from("order_status_history").insert({order_id:id,new_status:newStatus,changed_by:me.id});
+    toast("Status updated");await refreshAll();
+  });
+}
+
+async function loadReports(){
+ let q=onlyRealOrders(sb.from("orders").select("order_status,order_date"));
+ if(profile.role==="agent")q=q.eq("agent_id",me.id);
+ if(profile.role==="dealer"){
+   const d=await sb.from("dealers").select("id").eq("user_id",me.id).maybeSingle();
+   q=d.data?q.eq("dealer_id",d.data.id):q.eq("dealer_id","00000000-0000-0000-0000-000000000000");
+ }
+ q=applyDateRange(q,"reports");
+ const {data,error}=await q;
+ if(error){$("reportBody").innerHTML=`<div class="danger">${esc(error.message)}</div>`;return}
+ const counts={};(data||[]).forEach(o=>counts[o.order_status]=(counts[o.order_status]||0)+1);
+ $("reportBody").innerHTML=Object.entries(counts).map(([k,v])=>`<div class="stat"><span>${esc(k)}</span><b>${v}</b></div>`).join("")||'<div class="empty">No orders for selected period</div>';
+}
+
+bindDateFilter("dash",async()=>{await loadStats();await loadDashboardOrders();});
+bindDateFilter("reports",loadReports);
+
+$("newUser").onclick=()=>{
+ modal("नया CRM User",`
+<form id="createUserForm" onsubmit="return false;">
+<div class="grid2">
+<div class="field"><label>पूरा नाम</label><input name="full_name" required></div>
+<div class="field"><label>Email</label><input name="email" type="email" required></div>
+<div class="field"><label>Mobile</label><input name="mobile"></div>
+<div class="field"><label>Employee/User ID</label><input name="employee_code" placeholder="AG001" required></div>
+<div class="field"><label>Role</label><select name="role"><option value="agent">Agent</option><option value="order_manager">Order Manager</option><option value="management">Management</option><option value="dealer">Dealer</option><option value="warehouse">Warehouse</option><option value="courier_manager">Courier Manager</option><option value="super_admin">Super Admin</option></select></div>
+<div class="field"><label>Password</label><input name="password" type="password" minlength="8" required></div>
+</div><div class="actions"><button type="submit" class="btn">Create User</button></div><div id="createMsg" class="msg"></div></form>`);
+
+ const form=document.getElementById("createUserForm");
+ form.addEventListener("submit",async e=>{
+   e.preventDefault();
+   e.stopPropagation();
+   const submit=form.querySelector('button[type="submit"]');
+   submit.disabled=true;
+   $("createMsg").textContent="Creating user…";
+   const f=new FormData(form),body=Object.fromEntries(f.entries());
+
+   try{
+     const {data:sessionData}=await sb.auth.getSession();
+const accessToken=sessionData?.session?.access_token;
+if(!accessToken) throw new Error("Super Admin session expired. Please login again.");
+const {data,error}=await sb.functions.invoke("quick-service",{
+  body,
+  headers:{Authorization:`Bearer ${accessToken}`}
+});
+     if(error){
+       let detail=error.message||"Edge Function call failed";
+       try{
+         const raw=await error.context?.text?.();
+         if(raw) detail+=" — "+raw;
+       }catch(_){}
+       $("createMsg").textContent=detail;
+       submit.disabled=false;
+       return;
+     }
+     if(data?.error){
+       $("createMsg").textContent=data.details?data.error+" — "+data.details:data.error;
+       submit.disabled=false;
+       return;
+     }
+     $("modal").style.display="none";
+     toast("User successfully created");
+     await loadUsers();
+   }catch(err){
+     $("createMsg").textContent="Error: "+(err?.message||String(err));
+     submit.disabled=false;
+   }
+ });
+};
+
+async function loadCreateOrderProducts(){
+ const sel=$("pageProduct");if(!sel)return;
+ const {data,error}=await sb.from("products").select("*");
+ if(error){sel.innerHTML='<option value="">Products load नहीं हुए</option>';return}
+ sel.innerHTML='<option value="">Select Product</option>';
+ (data||[]).filter(p=>p.active===undefined || p.active===true).forEach(p=>{
+   const name=p.product_name ?? p.name ?? p.title ?? p.product_name_hi ?? "";
+   const price=Number(p.price ?? p.sale_price ?? p.selling_price ?? p.amount ?? 0);
+   const o=document.createElement("option");
+   o.value=p.id;
+   o.textContent=name ? `${name} — ₹${price.toLocaleString("en-IN")}` : `Product #${p.id} — ₹${price.toLocaleString("en-IN")}`;
+   o.dataset.price=price;
+   sel.appendChild(o);
+ });
+}
+function pageOrderRecalc(){const p=Number($("pageProduct")?.selectedOptions[0]?.dataset.price||0),q=Number($("pageQty")?.value||1);if($("pageAmount"))$("pageAmount").value=p>0?p*q:""}
+function resetCreateOrderForm(){const f=$("createOrderPageForm");if(!f)return;f.reset();$("pageExistingCustomer").textContent="";$("pageAmount").value="";$("pageProduct").selectedIndex=0;$("pageQty").value="1";document.querySelectorAll(".field-error").forEach(x=>x.textContent="");document.querySelectorAll(".invalid").forEach(x=>x.classList.remove("invalid"));if($("orderState"))$("orderState").value="";if($("orderCity")){ $("orderCity").innerHTML='<option value="">Select City</option>';$("orderCity").disabled=true}if($("orderPost")){ $("orderPost").innerHTML='<option value="">Select Area / Post</option>';$("orderPost").disabled=true}}
+
+$("pageProduct")?.addEventListener("change",pageOrderRecalc);$("pageQty")?.addEventListener("input",pageOrderRecalc);
+$("backToOrders")?.addEventListener("click",()=>showPage("orders"));
+$("pageOrderReset")?.addEventListener("click",()=>{const f=$("createOrderPageForm");f.reset();f.elements.state.value="Madhya Pradesh";$("pageExistingCustomer").textContent="";$("pageOrderMsg").textContent="";$("pageAmount").value=""});
+$("pageMobile")?.addEventListener("input",async e=>{
+ const el=e.target;
+ el.value=el.value.replace(/\D/g,"").slice(0,10);
+ const notice=$("pageExistingCustomer");
+ if(!/^[6-9][0-9]{9}$/.test(el.value)){notice.textContent="";return}
+ notice.textContent="Customer details खोजी जा रही हैं...";
+ const {data,error}=await sb.from("customers")
+   .select("customer_name,alternate_mobile,age,gender,pincode,city,state,address,area_post")
+   .eq("mobile",el.value).limit(1).maybeSingle();
+ if(error){notice.textContent="Customer details fetch नहीं हो सकीं: "+error.message;return}
+ if(!data){notice.textContent="New customer — details भरें.";return}
+
+ const f=$("createOrderPageForm");
+ ["customer_name","alternate_mobile","age","gender","address"].forEach(k=>{
+   if(data[k]!=null&&f.elements[k])f.elements[k].value=data[k];
+ });
+
+ const st=$("orderState"), city=$("orderCity"), post=$("orderPost"), pin=$("orderPincode");
+ // Reset dependent location fields first so stale values can never be submitted.
+ city.value=""; city.disabled=true;
+ post.innerHTML='<option value="">Select Area / Post</option>'; post.value=""; post.disabled=true;
+
+ const savedState=String(data.state||"").trim();
+ const savedCity=String(data.city||"").trim();
+ const savedPin=String(data.pincode||"").replace(/\D/g,"").slice(0,6);
+ if(savedPin)pin.value=savedPin;
+
+ // Prefer saved State/City. If names exist, trigger the existing cascade to populate city.
+ const stateOpt=[...st.options].find(o=>
+   o.value===savedState ||
+   o.text.trim().toLowerCase()===savedState.toLowerCase()
+ );
+ if(stateOpt){
+   st.value=stateOpt.value;
+   await st.onchange();
+   const cityOpt=[...city.options].find(o=>
+     o.value===savedCity ||
+     o.text.trim().toLowerCase()===savedCity.toLowerCase()
+   );
+   if(cityOpt){
+     city.value=cityOpt.value;
+     // Load all Area/Post options for this selected State + City.
+     await city.onchange();
+   }
+ }
+
+ // If saved State/City were unavailable, use the existing PIN lookup to populate State, City and areas.
+ if((!st.value || !city.value) && /^[0-9]{6}$/.test(pin.value)){
+   pin.dispatchEvent(new Event("blur"));
+   await new Promise(resolve=>setTimeout(resolve,350));
+ }
+
+ // If the existing customer already has Area/Post saved, select it automatically
+ // after the State -> City cascade has loaded its valid Area/Post options.
+ // Restore the Area/Post saved with this customer after State -> City has loaded its options.
+ const savedPost=String(data.area_post||"").trim();
+// Wait for the State -> City cascade to finish populating Area/Post options,
+// then select the customer's saved Area/Post automatically.
+if(savedPost){
+  let postOpt=null;
+  for(let i=0;i<20;i++){
+    postOpt=[...post.options].find(o=>
+      String(o.value).trim().toLowerCase()===savedPost.toLowerCase() ||
+      o.text.trim().toLowerCase()===savedPost.toLowerCase()
+    );
+    if(postOpt)break;
+    await new Promise(resolve=>setTimeout(resolve,100));
+  }
+  if(postOpt){
+    post.value=postOpt.value;
+    post.dispatchEvent(new Event("change"));
+  }
+}
+notice.textContent=post.value
+  ?"Existing customer मिला — customer details और पूरा saved location auto-fill हो गया है."
+  :"Existing customer मिला — customer details और State/City/PIN auto-fill हो गए हैं. कृपया Area / Post select करें.";
+liveValidateCreateOrder();
+});
+
+function liveValidateCreateOrder(){
+  const f=document.getElementById("createOrderPageForm");
+  if(!f)return;
+
+  const set=(name,id,text,valid)=>{
+    const el=f.elements[name], box=document.getElementById(id);
+    if(!el||!box)return;
+    el.classList.toggle("invalid",!valid);
+    box.textContent=valid?"":text;
+  };
+
+  const name=(f.elements.customer_name?.value||"").trim();
+  const mob=f.elements.mobile?.value||"";
+  const alt=f.elements.alternate_mobile?.value||"";
+  const age=f.elements.age?.value||"";
+  const pin=f.elements.pincode?.value||"";
+  const qty=f.elements.quantity?.value||"";
+
+  set("customer_name","err_name",
+      "Name में numbers नहीं डालें.",
+      name==="" || /^[\p{L} .'-]+$/u.test(name));
+
+  set("mobile","err_mobile",
+      mob.length<10 ? "Mobile number में 10 digits होने चाहिए." : "Valid 10 digit mobile number डालें.",
+      /^[6-9][0-9]{9}$/.test(mob));
+
+  set("alternate_mobile","err_alt",
+      "Alternate mobile exactly 10 digits होना चाहिए.",
+      !alt || /^[6-9][0-9]{9}$/.test(alt));
+
+  set("age","err_age",
+      "Age 1 से 120 के बीच होना चाहिए.",
+      !age || (/^[0-9]+$/.test(age) && +age>=1 && +age<=120));
+
+  set("pincode","err_pin",
+      pin.length<6 ? "Pincode में 6 digits होने चाहिए." : "Pincode exactly 6 digits होना चाहिए.",
+      /^[0-9]{6}$/.test(pin));
+
+  set("quantity","err_qty",
+      "Quantity 1–99 whole number होनी चाहिए.",
+      /^[0-9]+$/.test(qty) && +qty>=1 && +qty<=99);
+}
+
+function attachCreateOrderLiveValidation(){
+  const f=document.getElementById("createOrderPageForm");
+  if(!f)return;
+  ["customer_name","mobile","alternate_mobile","age","pincode","quantity"].forEach(name=>{
+    const el=f.elements[name];
+    if(el){
+      el.addEventListener("input",liveValidateCreateOrder);
+      el.addEventListener("blur",liveValidateCreateOrder);
+    }
+  });
+  liveValidateCreateOrder();
+}
+attachCreateOrderLiveValidation();
+document.addEventListener("submit",async e=>{if(e.target?.id!=="createOrderPageForm")return;e.preventDefault();const f=e.target,btn=f.querySelector('button[type="submit"]');f.querySelectorAll(".field-error").forEach(x=>x.textContent="");f.querySelectorAll(".invalid").forEach(x=>x.classList.remove("invalid"));const b=Object.fromEntries(new FormData(f).entries()),bad=(n,id,t)=>{f.elements[n]?.classList.add("invalid");$(id).textContent=t};let ok=true;if(!/^[\p{L} .'-]+$/u.test((b.customer_name||"").trim())){bad("customer_name","err_name","Name में numbers नहीं डालें।");ok=false}if(!/^[6-9][0-9]{9}$/.test(b.mobile||"")){bad("mobile","err_mobile","Mobile exactly 10 digits होना चाहिए।");ok=false}if(b.alternate_mobile&&!/^[6-9][0-9]{9}$/.test(b.alternate_mobile)){bad("alternate_mobile","err_alt","Alternate mobile exactly 10 digits होना चाहिए।");ok=false}if(b.age&&(!/^[0-9]+$/.test(b.age)||+b.age>120||+b.age<1)){bad("age","err_age","Age 1 से 120 के बीच होना चाहिए।");ok=false}if(!/^[0-9]{6}$/.test(b.pincode||"")){bad("pincode","err_pin","Pincode exactly 6 digits होना चाहिए।");ok=false}
+if(!String(b.state||"").trim()){alert("State select करना जरूरी है।");ok=false}
+if(!String(b.city||"").trim()){alert("City select करना जरूरी है।");ok=false}
+if(!String(b.post||"").trim()){alert("Area / Post select करना जरूरी है।");ok=false}
+if(!/^[0-9]+$/.test(b.quantity||"")||+b.quantity<1||+b.quantity>99){bad("quantity","err_qty","Quantity 1–99 whole number होनी चाहिए।");ok=false}
+if(!ok)return;const enquiry=e.submitter?.id==="createEnquiry";$("confirmTitle").textContent=enquiry?"Create Enquiry":"Create Order";$("confirmText").textContent=enquiry?"क्या आप enquiry create करना चाहते हैं?":"क्या आप order create करना चाहते हैं?";$("confirmOverlay").classList.remove("hidden");$("confirmNo").onclick=()=>$("confirmOverlay").classList.add("hidden");$("confirmYes").onclick=async()=>{$("confirmOverlay").classList.add("hidden");await createOrderOrEnquiry(f,btn,enquiry)}});
+async function createOrderOrEnquiry(f,btn,enquiry){
+ const msg=$("pageOrderMsg");
+ btn.disabled=true;
+ try{
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session)throw Error("Session expired. Please login again.");
+
+  const b=Object.fromEntries(new FormData(f).entries());
+
+  // Find/update the customer first.
+  const found=await sb.from("customers").select("id").eq("mobile",b.mobile).maybeSingle();
+  if(found.error)throw found.error;
+
+  const cp={
+   customer_name:b.customer_name.trim(),
+   mobile:b.mobile,
+   alternate_mobile:b.alternate_mobile||null,
+   age:b.age?+b.age:null,
+   gender:b.gender||null,
+   pincode:b.pincode,
+   city:b.city,
+   state:b.state,
+   area_post:b.post||null,
+   address:b.address
+  };
+
+  let cid;
+  if(found.data){
+   cid=found.data.id;
+   const r=await sb.from("customers").update(cp).eq("id",cid);
+   if(r.error)throw r.error;
+  }else{
+   const r=await sb.from("customers")
+     .insert({...cp,created_by:session.user.id})
+     .select("id").single();
+   if(r.error)throw r.error;
+   cid=r.data.id;
+  }
+
+  if(enquiry){
+   // The database enum does NOT contain "enquiry".
+   // Keep the valid "new" status and mark the record as an enquiry in remarks.
+   const q=await sb.from("orders").insert({
+     customer_id:cid,
+     total_amount:0,
+     payment_mode:b.payment_mode||"cod",
+     remarks:(b.remarks||"")+" [ENQUIRY]",
+     agent_id:session.user.id,
+     order_status:"new"
+   }).select("id,order_no").single();
+
+   if(q.error)throw q.error;
+
+   $("successText").textContent=
+     `Enquiry save हो गई है। यह Order count, Dashboard, Reports या Assignment में शामिल नहीं होगी। Enquiry No: #${q.data.order_no||q.data.id}`;
+  }else{
+   // IMPORTANT: do NOT name columns that may not exist.
+   // Fetch the complete product row, then read whichever price field
+   // is actually present in the existing products table.
+   const pr=await sb.from("products").select("*").eq("id",b.product_id).single();
+   if(pr.error)throw pr.error;
+
+   const product=pr.data||{};
+   const unitPrice=Number(
+     product.price ??
+     product.sale_price ??
+     product.selling_price ??
+     product.amount ??
+     product.mrp ??
+     0
+   );
+
+   if(!Number.isFinite(unitPrice)||unitPrice<=0){
+     throw Error("Selected product का price database में नहीं मिला।");
+   }
+
+   const qty=Number(b.quantity);
+   if(!Number.isInteger(qty)||qty<1||qty>99){
+     throw Error("Quantity 1–99 whole number होनी चाहिए।");
+   }
+
+   const total=unitPrice*qty;
+
+   const o=await sb.from("orders").insert({
+     customer_id:cid,
+     total_amount:total,
+     payment_mode:b.payment_mode,
+     remarks:b.remarks||null,
+     agent_id:session.user.id,
+     order_status:"new"
+   }).select("id,order_no").single();
+
+   if(o.error)throw o.error;
+
+   const i=await sb.from("order_items").insert({
+     order_id:o.data.id,
+     product_id:b.product_id,
+     quantity:qty,
+     unit_price:unitPrice
+   });
+
+   if(i.error)throw i.error;
+
+   $("successText").textContent=
+     `Order place हो गया है। Order No: #${o.data.order_no||o.data.id}`;
+  }
+
+  // Refresh the same data loaders used by the Dashboard/Report "Today" actions.
+  // This updates counts immediately without changing the selected date filters.
+  try{
+    await Promise.all([
+      typeof loadStats==="function" ? loadStats() : Promise.resolve(),
+      typeof loadDashboardOrders==="function" ? loadDashboardOrders() : Promise.resolve(),
+      typeof loadReports==="function" ? loadReports() : Promise.resolve()
+    ]);
+  }catch(refreshErr){
+    console.warn("Post-create dashboard/report refresh failed:",refreshErr);
+  }
+
+  $("successOverlay").classList.remove("hidden");
+  $("successOk").onclick=()=>{
+   $("successOverlay").classList.add("hidden");
+   resetCreateOrderForm();
+  };
+ }catch(err){
+  msg.textContent=err?.message||String(err);
+ }finally{
+  btn.disabled=false;
+ }
+}
+
+function formatCrmDateTime(value){
+  if(!value)return "-";
+  const d=new Date(value);
+  if(Number.isNaN(d.getTime()))return String(value);
+  return new Intl.DateTimeFormat("en-IN",{
+    timeZone:"Asia/Kolkata",
+    day:"2-digit",month:"short",year:"numeric",
+    hour:"2-digit",minute:"2-digit",second:"2-digit",
+    hour12:true
+  }).format(d);
+}
+
+async function searchOrders(inputId,resultId){
+ const term=$(inputId).value.trim();
+ const target=$(resultId);
+ if(!term){target.innerHTML='<tr><td colspan="8" class="empty">Order No या 10 digit Mobile Number डालें।</td></tr>';return}
+ try{
+  let orders=[];
+  const fullSelect="id,order_no,order_status,remarks,total_amount,order_date,customer_id,agent_id,dealer_id,courier_manager_id,customers(customer_name,mobile,alternate_mobile,address,state,city,pincode),profiles!orders_agent_id_fkey(full_name),dealers(dealer_name),order_items(quantity,unit_price,products(*))";
+  if(/^\d{10}$/.test(term)){
+   const {data:customers,error:ce}=await sb.from("customers").select("id").eq("mobile",term);
+   if(ce)throw ce;
+   const ids=(customers||[]).map(c=>c.id);
+   if(!ids.length){target.innerHTML='<tr><td colspan="8" class="empty">इस mobile number से कोई customer/order नहीं मिला।</td></tr>';return}
+   const {data,error}=await sb.from("orders").select(fullSelect).in("customer_id",ids).order("order_date",{ascending:false}).limit(100);
+   if(error)throw error;orders=data||[];
+  }else{
+   const orderNo=String(term).replace(/^#?/,"");
+   const {data,error}=await sb.from("orders").select(fullSelect).eq("order_no",orderNo).order("order_date",{ascending:false}).limit(100);
+   if(error)throw error;orders=data||[];
+  }
+  if(!orders.length){
+    target.innerHTML='<tr><td colspan="8" class="empty">Order नहीं मिला। अगर order दूसरे agent ने बनाया है और वह मौजूद होने के बावजूद नहीं दिख रहा, तो Supabase RLS SELECT policy cross-user access रोक रही है।</td></tr>';
+    return;
+  }
+  await loadDeliveryPartnerMap();
+   target.innerHTML=orders.map(o=>`<tr>
+    <td>#${esc(o.order_no)}</td>
+    <td>${esc(o.customers?.customer_name||"-")}</td>
+    <td>${esc(o.customers?.mobile||"-")}</td>
+    <td>${productSummary(o.order_items)}</td>
+    <td>${esc(o.profiles?.full_name||"-")}</td>
+    <td>${esc(getDeliveryPartnerName(o,partnerMap))}</td>
+    <td><span class="pill">${esc(o.order_status||"-")}</span>${String(o.remarks||"").includes("[ENQUIRY]")?'<div class="sub">Enquiry</div>':''}</td>
+    <td>₹${Number(o.total_amount||0).toLocaleString("en-IN")}</td>
+   </tr>
+   <tr><td colspan="8" class="sub">Created: ${esc(formatCrmDateTime(o.order_date))} | Address: ${esc([o.customers?.address,o.customers?.city,o.customers?.state,o.customers?.pincode].filter(Boolean).join(", ")||"-")}</td></tr>`).join("");
+ }catch(err){
+   target.innerHTML=`<tr><td colspan="8" class="danger">Search error: ${esc(err?.message||String(err))}</td></tr>`;
+ }
+}
+$("orderSearchBtn").onclick=()=>searchOrders("orderSearch","ordersBody");
+
+
+async function doLogout(){try{await sb.auth.signOut({scope:"local"})}catch(e){}try{Object.keys(localStorage).forEach(k=>{if(k.startsWith("sb-")||k.toLowerCase().includes("supabase"))localStorage.removeItem(k)});Object.keys(sessionStorage).forEach(k=>{if(k.startsWith("sb-")||k.toLowerCase().includes("supabase"))sessionStorage.removeItem(k)})}catch(e){}window.location.replace(window.location.pathname+"?loggedout=1")}
+$("logout").addEventListener("click",doLogout);
+
+sb.auth.onAuthStateChange((event, session)=>{
+  if(event==="SIGNED_OUT" && !session){
+    $("app").style.display="none";
+    $("loginPage").classList.remove("hidden");
+  }
+});
+
+// Restore an existing Supabase session. Explicit Logout clears it.
+const {data:{session:initialSession}}=await sb.auth.getSession();
+if(initialSession){
+  await boot(initialSession.user);
+}else{
+  $("app").style.display="none";
+  $("loginPage").classList.remove("hidden");
+}
+
+const PINAPI="https://aniket-thapa.github.io/india-pincode-api";
+const POSTAL_API="https://api.postalpincode.in/pincode/";
+
+async function initLocation(){
+  const st=document.getElementById("orderState");
+  const city=document.getElementById("orderCity");
+  const post=document.getElementById("orderPost");
+  const pin=document.getElementById("orderPincode");
+  if(!st||!city||!post||!pin)return;
+
+  try{
+    const states=await fetch(PINAPI+"/states.json").then(r=>r.json());
+    st.innerHTML='<option value="">Select State</option>'+
+      states.map(x=>`<option value="${x.slug}">${x.name}</option>`).join("");
+  }catch(e){
+    st.innerHTML='<option value="">State load failed</option>';
+  }
+
+  st.onchange=async()=>{
+    city.disabled=true;
+    post.disabled=true;
+    city.innerHTML='<option value="">Loading City…</option>';
+    post.innerHTML='<option value="">Select Area / Post</option>';
+    if(!st.value)return;
+
+    try{
+      const d=await fetch(PINAPI+"/states/"+st.value+".json").then(r=>r.json());
+      const districts=d.districts||[];
+      city.innerHTML='<option value="">Select City / District</option>'+
+        districts.map(x=>`<option value="${x.slug}">${x.name}</option>`).join("");
+      city.disabled=false;
+    }catch(e){
+      city.innerHTML='<option value="">City load failed</option>';
+    }
+  };
+
+  city.onchange=async()=>{
+    post.disabled=true;
+    post.innerHTML='<option value="">Loading Area / Post…</option>';
+    if(!st.value||!city.value)return;
+
+    // The state/district API does not expose all post offices.
+    // Use the pincode directory to load all Area/Post entries for the selected city.
+    try{
+      const d=await fetch(PINAPI+"/districts/"+st.value+"/"+city.value+".json").then(r=>r.json());
+      const offices=Array.isArray(d?.offices)?d.offices:[];
+      const unique=new Map();
+
+      offices.forEach(x=>{
+        const name=String(x.Name||x.name||x.officeName||"").trim();
+        const p=String(x.Pincode||x.pincode||"").trim();
+        if(name && p) unique.set(name+"|"+p,{name,p});
+      });
+
+      const rows=[...unique.values()].sort((a,b)=>a.name.localeCompare(b.name));
+      post.innerHTML='<option value="">Select Area / Post</option>'+
+        rows.map(x=>`<option data-pin="${x.p.replace(/"/g,"&quot;")}">${x.name}</option>`).join("");
+
+      post.disabled=rows.length===0;
+
+      if(!rows.length){
+        post.innerHTML='<option value="">Area / Post data not available</option>';
+      }
+    }catch(e){
+      post.innerHTML='<option value="">Area / Post load failed</option>';
+      post.disabled=true;
+    }
+  };
+
+  // Existing working PIN -> State -> City -> Area/Post flow remains unchanged.
+  async function lookupPincode(){
+    const p=pin.value.trim();
+    if(!/^[0-9]{6}$/.test(p))return;
+
+    try{
+      const response=await fetch(POSTAL_API+p);
+      if(!response.ok)throw new Error("Pincode lookup failed");
+      const data=await response.json();
+      const offices=Array.isArray(data?.[0]?.PostOffice)?data[0].PostOffice:[];
+
+      if(!offices.length){
+        post.innerHTML='<option value="">Invalid Pincode</option>';
+        post.disabled=true;
+        return;
+      }
+
+      const first=offices[0];
+      const stateName=String(first.State||"").trim();
+      const districtName=String(first.District||"").trim();
+
+      const stateOpt=[...st.options].find(o=>
+        o.text.trim().toLowerCase()===stateName.toLowerCase()
+      );
+
+      if(stateOpt){
+        st.value=stateOpt.value;
+        await st.onchange();
+
+        const cityOpt=[...city.options].find(o=>
+          o.text.trim().toLowerCase()===districtName.toLowerCase()
+        );
+        if(cityOpt)city.value=cityOpt.value;
+      }
+
+      post.innerHTML='<option value="">Select Area / Post</option>'+
+        offices.map(x=>{
+          const name=String(x.Name||"").trim();
+          const officePin=String(x.Pincode||p).trim();
+          return `<option data-pin="${officePin}">${name}</option>`;
+        }).join("");
+
+      post.disabled=false;
+    }catch(e){
+      post.innerHTML='<option value="">Area / Post lookup failed</option>';
+      post.disabled=true;
+    }
+  }
+
+  post.onchange=()=>{
+    const selected=post.selectedOptions[0];
+    if(selected?.dataset.pin){
+      pin.value=selected.dataset.pin;
+      liveValidateCreateOrder();
+    }
+  };
+
+  pin.addEventListener("input",()=>{
+    pin.value=pin.value.replace(/\D/g,"").slice(0,6);
+    liveValidateCreateOrder();
+    if(pin.value.length===6)lookupPincode();
+  });
+
+  pin.addEventListener("blur",lookupPincode);
+}
+
+initLocation();
+
+/* ===== Safe UI enhancement layer: no auth/database/role logic changed ===== */
+const crmPagerState=new Map();
+
+function crmAttachPager(tableId, enableFilters=false){
+ const table=document.getElementById(tableId);
+ if(!table || table.dataset.crmPager==="1") return;
+ table.dataset.crmPager="1";
+ const tbody=table.tBodies[0]; if(!tbody) return;
+ const state={page:1,size:10,filters:{},filtersEnabled:enableFilters};
+ crmPagerState.set(tableId,state);
+
+ const bar=document.createElement("div");
+ bar.className="crm-table-toolbar";bar.id=tableId+"Toolbar";
+ bar.innerHTML='<label>Show <select class="crm-size"><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option></select> per page</label><span class="crm-table-summary"></span>' +
+   (enableFilters?'<button type="button" class="crm-clear-filters">Clear Filters</button>':'') +
+   '<span class="crm-pages"></span>';
+ table.insertAdjacentElement("afterend",bar);
+ bar.querySelector(".crm-size").onchange=e=>{state.size=+e.target.value;state.page=1;crmRenderPager(tableId);};
+
+ if(enableFilters && table.tHead){
+   [...table.tHead.rows[0].cells].forEach((th,i)=>{
+     const f=document.createElement("input");f.type="search";f.className="crm-col-filter";f.placeholder="Filter";
+     f.addEventListener("input",()=>{state.filters[i]=f.value.toLowerCase().trim();state.page=1;crmRenderPager(tableId);});
+     f.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();crmRenderPager(tableId);}});
+     th.appendChild(f);
+   });
+   bar.querySelector(".crm-clear-filters").onclick=()=>{
+     state.filters={};table.querySelectorAll(".crm-col-filter").forEach(x=>x.value="");state.page=1;crmRenderPager(tableId);
+   };
+ }
+ crmRenderPager(tableId);
+}
+
+function crmRenderPager(tableId){
+ const table=document.getElementById(tableId),state=crmPagerState.get(tableId);
+ if(!table||!state||!table.tBodies[0])return;
+ const all=[...table.tBodies[0].rows].filter(r=>r.cells.length>1);
+ const groups=[];
+ for(let i=0;i<all.length;i++){
+   const main=all[i], group=[main];
+   const next=all[i+1];
+   // Order Search renders one full detail row (colspan) immediately after each order row.
+   if(next && next.cells.length===1 && next.cells[0].hasAttribute("colspan")){
+     group.push(next);i++;
+   }
+   groups.push(group);
+ }
+ const matched=groups.filter(g=>{
+   const r=g[0];
+   return Object.entries(state.filters).every(([i,v])=>!v||(r.cells[+i]?.innerText||"").toLowerCase().includes(v));
+ });
+ const pages=Math.max(1,Math.ceil(matched.length/state.size));state.page=Math.min(state.page,pages);
+ all.forEach(r=>r.style.display="none");
+ matched.slice((state.page-1)*state.size,state.page*state.size).forEach(g=>g.forEach(r=>r.style.display=""));
+ const bar=document.getElementById(tableId+"Toolbar");if(!bar)return;
+ bar.querySelector(".crm-table-summary").textContent=`${matched.length} record${matched.length===1?"":"s"}`;
+ const holder=bar.querySelector(".crm-pages");holder.innerHTML="";
+ const add=(txt,page,disabled,active)=>{const b=document.createElement("button");b.type="button";b.textContent=txt;b.disabled=!!disabled;b.className=active?"active":"";b.onclick=()=>{state.page=page;crmRenderPager(tableId)};holder.appendChild(b);};
+ add("‹",state.page-1,state.page===1,false);
+ let start=Math.max(1,state.page-2),end=Math.min(pages,start+4);start=Math.max(1,end-4);
+ for(let i=start;i<=end;i++)add(i,i,false,i===state.page);
+ add("›",state.page+1,state.page===pages,false);
+}
+
+function crmRefreshEnhancements(){
+ crmAttachPager("dashboardOrdersTable",true);
+ crmAttachPager("usersTable",true);
+ crmAttachPager("ordersTable",true);
+ crmAttachPager("assignmentTable",true);
+ crmAttachPager("courierOrdersTable",true);
+ crmAttachPager("dealerOrdersTable",true);
+ crmPagerState.forEach((_,id)=>crmRenderPager(id));
+}
+
+function crmBindEnterSearch(){
+ document.querySelectorAll("input[type=search],input[placeholder*='Search' i],input[placeholder*='Mobile' i],input[placeholder*='Order' i]").forEach(inp=>{
+   if(inp.dataset.crmEnterBound==="1")return;
+   inp.dataset.crmEnterBound="1";
+   inp.addEventListener("keydown",e=>{
+     if(e.key!=="Enter")return;
+     const container=inp.closest(".page,.card,.search,form")||document;
+     const btn=[...container.querySelectorAll("button")].find(b=>/search/i.test(b.textContent));
+     if(btn){e.preventDefault();btn.click();}
+   });
+ });
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+ crmRefreshEnhancements();crmBindEnterSearch();
+ const obs=new MutationObserver(()=>{crmRefreshEnhancements();crmBindEnterSearch();});
+ ["dashboardOrdersBody","usersBody","ordersBody","assignmentBody","courierBody","dealerBody"].forEach(id=>{
+   const el=document.getElementById(id);if(el)obs.observe(el,{childList:true});
+ });
+});
+</script>
+</div></div><div id="confirmOverlay" class="confirmOverlay hidden"><div class="confirmBox"><h3 id="confirmTitle">Confirmation</h3><p id="confirmText"></p><div class="confirmActions"><button type="button" class="btn alt" id="confirmNo">No</button><button type="button" class="btn" id="confirmYes">Yes</button></div></div></div><div id="successOverlay" class="confirmOverlay hidden"><div class="confirmBox"><h3>Success</h3><p id="successText"></p><div class="confirmActions"><button type="button" class="btn" id="successOk">OK</button></div></div>
+<style id="crmModernV2Style">
+.crm-v2-toolbar{display:flex!important;align-items:center!important;gap:10px!important;flex-wrap:wrap!important;margin:12px 0 18px!important;padding:10px 12px!important;background:#fff!important;border:1px solid #dfe7e1!important;border-radius:12px!important}
+.crm-v2-toolbar select,.crm-v2-filter{padding:7px 9px!important;border:1px solid #cfd8d2!important;border-radius:8px!important;background:#fff!important;color:#18241d!important}
+.crm-v2-filter{display:block!important;width:100%!important;min-width:70px!important;margin-top:6px!important;font-size:11px!important;box-sizing:border-box!important}
+.crm-v2-summary{font-size:12px!important;color:#69756e!important}
+.crm-v2-pages{margin-left:auto!important;display:flex!important;gap:5px!important;align-items:center!important;flex-wrap:wrap!important}
+.crm-v2-pages button,.crm-v2-clear{border:1px solid #cfd8d2!important;background:#fff!important;border-radius:8px!important;padding:7px 11px!important;color:#164b30!important;font-weight:700!important;cursor:pointer!important}
+.crm-v2-pages button.crm-v2-active{background:#164b30!important;color:#fff!important;border-color:#164b30!important}
+.crm-v2-pages button:disabled{opacity:.45!important;cursor:not-allowed!important}
+@media(max-width:700px){.crm-v2-pages{margin-left:0!important;width:100%!important}}
+</style>
+
+<script id="crmModernV2">
+(function(){
+  const configs = [
+    ['dashboardOrdersTable', true],
+    ['usersTable', true],
+    ['ordersTable', true],
+    ['assignmentTable', true],
+    ['courierOrdersTable', true],
+    ['dealerOrdersTable', true]
+  ];
+  const states = new Map();
+
+  function setup(tableId, filters){
+    const table=document.getElementById(tableId);
+    if(!table || !table.tBodies || !table.tBodies[0]) return false;
+    const tbody=table.tBodies[0];
+    let state=states.get(tableId);
+    if(!state){
+      state={page:1,size:10,filters:{}};
+      states.set(tableId,state);
+    }
+    let bar=document.getElementById('crmV2_'+tableId);
+    if(!bar){
+      bar=document.createElement('div');
+      bar.id='crmV2_'+tableId;
+      bar.className='crm-v2-toolbar';
+      bar.innerHTML='<span>Show <select class="crm-v2-size"><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option></select> per page</span><span class="crm-v2-summary"></span><button type="button" class="crm-v2-clear">Clear Filters</button><span class="crm-v2-pages"></span>';
+      table.parentNode.insertBefore(bar, table.nextSibling);
+      bar.querySelector('.crm-v2-size').addEventListener('change',function(){state.size=Number(this.value);state.page=1;render(tableId);});
+      bar.querySelector('.crm-v2-clear').addEventListener('click',function(){
+        state.filters={};
+        table.querySelectorAll('.crm-v2-filter').forEach(x=>x.value='');
+        state.page=1; render(tableId);
+      });
+      if(filters && table.tHead && table.tHead.rows.length){
+        Array.from(table.tHead.rows[0].cells).forEach(function(th,i){
+          if(th.querySelector('.crm-v2-filter')) return;
+          const input=document.createElement('input');
+          input.type='search'; input.className='crm-v2-filter'; input.placeholder='Filter';
+          input.addEventListener('input',function(){state.filters[i]=input.value.trim().toLowerCase();state.page=1;render(tableId);});
+          input.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();render(tableId);}});
+          th.appendChild(input);
+        });
+      }
+      const oldObserver=states.get(tableId).observer;
+      if(!oldObserver && window.MutationObserver){
+        const observer=new MutationObserver(function(){render(tableId);});
+        observer.observe(tbody,{childList:true});
+        state.observer=observer;
+      }
+    }
+    render(tableId);
+    return true;
+  }
+
+  function render(tableId){
+    const table=document.getElementById(tableId), state=states.get(tableId);
+    if(!table || !state || !table.tBodies[0]) return;
+    const all=Array.from(table.tBodies[0].rows).filter(r=>r.cells && r.cells.length>0);
+    const groups=[];
+    for(let i=0;i<all.length;i++){
+      const main=all[i];
+      if(main.cells.length===1 && main.cells[0].hasAttribute("colspan")) continue;
+      const group=[main], next=all[i+1];
+      if(next && next.cells.length===1 && next.cells[0].hasAttribute("colspan")){group.push(next);i++;}
+      groups.push(group);
+    }
+    const matched=groups.filter(function(g){
+      const r=g[0];
+      return Object.keys(state.filters).every(function(k){
+        const q=state.filters[k]; if(!q) return true;
+        return String((r.cells[Number(k)]||{}).innerText||'').toLowerCase().includes(q);
+      });
+    });
+    const pages=Math.max(1,Math.ceil(matched.length/state.size));
+    state.page=Math.min(Math.max(1,state.page),pages);
+    all.forEach(r=>r.style.display='none');
+    matched.slice((state.page-1)*state.size,state.page*state.size).forEach(g=>g.forEach(r=>r.style.display=''));
+    const bar=document.getElementById('crmV2_'+tableId); if(!bar) return;
+    bar.querySelector('.crm-v2-summary').textContent=matched.length+' record'+(matched.length===1?'':'s');
+    const holder=bar.querySelector('.crm-v2-pages'); holder.innerHTML='';
+    function add(label,page,disabled,active){
+      const b=document.createElement('button'); b.type='button'; b.textContent=label; b.disabled=!!disabled;
+      if(active)b.className='crm-v2-active';
+      b.onclick=function(){state.page=page;render(tableId);}; holder.appendChild(b);
+    }
+    add('‹',state.page-1,state.page<=1,false);
+    let start=Math.max(1,state.page-2),end=Math.min(pages,start+4); start=Math.max(1,end-4);
+    for(let p=start;p<=end;p++) add(String(p),p,false,p===state.page);
+    add('›',state.page+1,state.page>=pages,false);
+  }
+
+  function enhance(){
+    configs.forEach(x=>setup(x[0],x[1]));
+    document.querySelectorAll('.search input, input[placeholder*="Search" i]').forEach(function(inp){
+      if(inp.dataset.crmV2Enter) return;
+      inp.dataset.crmV2Enter='1';
+      inp.addEventListener('keydown',function(e){
+        if(e.key!=='Enter') return;
+        const box=inp.closest('.search') || inp.parentElement;
+        const btn=box && Array.from(box.querySelectorAll('button')).find(b=>/search/i.test(b.textContent));
+        if(btn){e.preventDefault();btn.click();}
+      });
+    });
+  }
+
+  function start(){
+    enhance();
+    setTimeout(enhance,500);
+    setTimeout(enhance,1500);
+    setTimeout(enhance,3000);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start);
+  else start();
+})();
+</script>
+
+
+<style id="crmModernV3Style">
+/* ===== Modern CRM visual refresh ===== */
+:root{--crm-primary:#166534;--crm-primary2:#0f5132;--crm-bg:#f4f7f5;--crm-card:#fff;--crm-border:#e2e8e3;--crm-text:#1f2937;--crm-muted:#6b7280}
+body{background:var(--crm-bg)!important;color:var(--crm-text)!important}
+.sidebar{box-shadow:0 8px 28px rgba(20,40,28,.10)!important}
+.card,.panel,.section-card{border:1px solid var(--crm-border)!important;border-radius:16px!important;box-shadow:0 3px 14px rgba(16,24,20,.05)!important}
+button{transition:transform .15s ease,box-shadow .15s ease,filter .15s ease!important}
+button:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.10)!important}
+input,select,textarea{border-radius:9px!important;border-color:#d9e1db!important;transition:border-color .15s ease,box-shadow .15s ease!important}
+input:focus,select:focus,textarea:focus{outline:none!important;border-color:var(--crm-primary)!important;box-shadow:0 0 0 3px rgba(22,101,52,.10)!important}
+table{background:#fff!important;border-radius:12px!important;overflow:hidden!important}
+th{position:sticky;top:0;z-index:2;background:#f0f5f1!important;color:#34423a!important}
+tbody tr{transition:background .12s ease!important}
+tbody tr:hover{background:#f4faf6!important}
+.crm-v2-toolbar{position:sticky;top:0;z-index:3;box-shadow:0 3px 12px rgba(15,30,20,.04)!important}
+.crm-sort{margin-left:4px;border:0!important;background:transparent!important;padding:1px 4px!important;box-shadow:none!important;color:#64748b!important;font-size:12px!important;cursor:pointer!important;transform:none!important}
+.crm-sort:hover{color:var(--crm-primary)!important;box-shadow:none!important;transform:none!important}
+.crm-sort.crm-sort-active{color:var(--crm-primary)!important}
+.crm-v2-summary{padding:6px 10px!important;background:#f2f7f3!important;border-radius:999px!important}
+@media(max-width:700px){.card,.panel,.section-card{border-radius:12px!important}}
+</style>
+
+<script id="crmModernV3">
+(function(){
+  const tableIds=['dashboardOrdersTable','usersTable','ordersTable','assignmentTable','courierOrdersTable','dealerOrdersTable'];
+  function addSort(tableId){
+    const table=document.getElementById(tableId); if(!table||!table.tHead||!table.tHead.rows.length)return;
+    const state=window.__crmSortState||(window.__crmSortState={});
+    if(!state[tableId])state[tableId]={col:null,dir:1};
+    Array.from(table.tHead.rows[0].cells).forEach((th,i)=>{
+      if(th.querySelector('.crm-sort'))return;
+      const b=document.createElement('button');b.type='button';b.className='crm-sort';b.title='Sort';b.textContent='↕';
+      b.addEventListener('click',function(e){
+        e.preventDefault();e.stopPropagation();
+        const st=state[tableId]; st.dir=(st.col===i)?-st.dir:1; st.col=i;
+        const rows=Array.from(table.tBodies[0].rows);
+        const groups=[];
+        for(let j=0;j<rows.length;j++){
+          const main=rows[j];
+          if(main.cells.length===1 && main.cells[0].hasAttribute("colspan")) continue;
+          const group=[main], next=rows[j+1];
+          if(next && next.cells.length===1 && next.cells[0].hasAttribute("colspan")){group.push(next);j++;}
+          groups.push(group);
+        }
+        groups.sort((ga,gb)=>{
+          const a=ga[0],brow=gb[0];
+          let x=(a.cells[i]?.innerText||'').trim(),y=(brow.cells[i]?.innerText||'').trim();
+          const nx=parseFloat(x.replace(/[^\d.-]/g,'')),ny=parseFloat(y.replace(/[^\d.-]/g,''));
+          if(x!==''&&y!==''&&!Number.isNaN(nx)&&!Number.isNaN(ny)){x=nx;y=ny;}
+          else{x=x.toLowerCase();y=y.toLowerCase();}
+          if(x<y)return -st.dir;if(x>y)return st.dir;return 0;
+        });
+        groups.forEach(g=>g.forEach(r=>table.tBodies[0].appendChild(r)));
+        table.querySelectorAll('.crm-sort').forEach(x=>{x.classList.remove('crm-sort-active');x.textContent='↕';});
+        b.classList.add('crm-sort-active');b.textContent=st.dir===1?'↑':'↓';
+        // Trigger existing pagination refresh by dispatching a filter input event if available.
+        const f=table.querySelector('.crm-v2-filter'); if(f)f.dispatchEvent(new Event('input',{bubbles:true}));
+      });
+      th.appendChild(b);
+    });
+  }
+  function run(){tableIds.forEach(addSort);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+  setTimeout(run,700);setTimeout(run,1800);
+})();
+</script>
+
+
+<script id="crmReportAutoRefreshAfterCreate">
+(function(){
+  let pendingReportRefresh=false;
+
+  function isReportVisible(){
+    const candidates=['reportPage','reportsPage','pageReports','reports'];
+    for(const id of candidates){
+      const el=document.getElementById(id);
+      if(el && el.offsetParent!==null) return true;
+    }
+    const active=document.querySelector('.page.active,[data-page].active,.nav-item.active,.tab.active');
+    return !!(active && /report/i.test((active.id||'')+' '+(active.dataset?.page||'')+' '+active.textContent));
+  }
+
+  function refreshReportSafely(){
+    if(!pendingReportRefresh) return;
+    pendingReportRefresh=false;
+    const names=['loadReports','loadReport','renderReport','refreshReports','fetchReports'];
+    for(const n of names){
+      if(typeof window[n]==='function'){
+        try{ window[n](); return; }catch(e){ console.warn('Report refresh skipped:',e); }
+      }
+    }
+    // If no globally exposed loader exists, re-trigger the existing Reports navigation click.
+    const btn=[...document.querySelectorAll('button,a,.nav-item,.menu-item')]
+      .find(el=>/^\s*reports?\s*$/i.test(el.textContent||''));
+    if(btn) btn.click();
+  }
+
+  // Watch successful create-order/enquiry success messages/modals, without touching create logic.
+  const observer=new MutationObserver(function(mutations){
+    for(const m of mutations){
+      for(const node of m.addedNodes){
+        if(!(node instanceof HTMLElement)) continue;
+        const text=(node.innerText||node.textContent||'').toLowerCase();
+        if(/order\s*(placed|created|success)|enquiry\s*(placed|created|success)/i.test(text)){
+          pendingReportRefresh=true;
+          setTimeout(refreshReportSafely,250);
+        }
+      }
+    }
+  });
+
+  function start(){
+    observer.observe(document.body,{childList:true,subtree:true});
+    // Also refresh whenever the user opens the report page after a newly created order.
+    document.addEventListener('click',function(e){
+      const el=e.target.closest('button,a,.nav-item,.menu-item,[data-page]');
+      if(!el) return;
+      const label=((el.dataset?.page||'')+' '+(el.textContent||'')+' '+(el.id||'')).toLowerCase();
+      if(label.includes('report')){
+        pendingReportRefresh=true;
+        setTimeout(refreshReportSafely,100);
+      }
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();
+</script>
+
+
+<script id="crmLiveCountReportRefreshV2">
+(function(){
+  const candidates = [
+    'loadDashboard','refreshDashboard','renderDashboard','updateDashboard',
+    'loadTodayOrders','loadDashboardOrders','loadYourOrders',
+    'loadReports','loadReport','refreshReports','refreshReport',
+    'renderReport','renderReports','fetchReports','fetchReport',
+    'loadStats','refreshStats','updateStats'
+  ];
+
+  function callExistingLoaders(){
+    const called=new Set();
+    candidates.forEach(name=>{
+      const fn=window[name];
+      if(typeof fn==='function' && !called.has(fn)){
+        called.add(fn);
+        try{ fn(); }catch(e){ console.warn('[CRM refresh]',name,e); }
+      }
+    });
+  }
+
+  function refreshVisibleCountsAndReports(){
+    callExistingLoaders();
+    // Re-click current page navigation only when an explicit matching control exists.
+    const active=document.querySelector('.nav-item.active,.menu-item.active,.tab.active,[data-page].active');
+    if(active && /dashboard|report/i.test((active.dataset?.page||'')+' '+active.id+' '+active.textContent)){
+      setTimeout(callExistingLoaders,250);
+    }
+  }
+
+  // Listen for explicit app-level event.
+  document.addEventListener('crm:order-created',()=>{
+    setTimeout(refreshVisibleCountsAndReports,50);
+    setTimeout(refreshVisibleCountsAndReports,500);
+  });
+
+  // Detect the actual success UI text used by this CRM and refresh only after success appears.
+  let lastHit=0;
+  const observer=new MutationObserver(mutations=>{
+    const now=Date.now();
+    if(now-lastHit<400) return;
+    for(const m of mutations){
+      for(const node of m.addedNodes){
+        if(!(node instanceof HTMLElement)) continue;
+        const text=(node.innerText||node.textContent||'').trim();
+        if(/(order|enquiry).{0,40}(success|placed|created)|success.{0,40}(order|enquiry)/i.test(text)){
+          lastHit=now;
+          setTimeout(refreshVisibleCountsAndReports,100);
+          setTimeout(refreshVisibleCountsAndReports,700);
+          return;
+        }
+      }
+    }
+  });
+
+  function start(){
+    observer.observe(document.body,{childList:true,subtree:true});
+    // Capture clicks on create buttons and schedule a post-submit refresh;
+    // harmless if creation fails because loaders simply reload existing data.
+    document.addEventListener('click',e=>{
+      const el=e.target.closest('button,input[type="button"],input[type="submit"]');
+      if(!el) return;
+      const label=((el.value||'')+' '+(el.textContent||'')+' '+(el.id||'')+' '+(el.className||'')).toLowerCase();
+      if(label.includes('create order')||label.includes('create enquiry')){
+        setTimeout(refreshVisibleCountsAndReports,1800);
+      }
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start);
+  else start();
+})();
+</script>
+
+
+<script id="crmExactTodayRefresh">
+document.addEventListener("crm:order-created",async()=>{
+  try{
+    if(typeof loadStats==="function") await loadStats();
+    if(typeof loadDashboardOrders==="function") await loadDashboardOrders();
+    if(typeof loadReports==="function") await loadReports();
+  }catch(e){console.warn("CRM refresh event failed",e);}
+});
+</script>
+
+
+<style id="crm1ProfessionalStyle">
+:root{--c1:#14532d;--c1a:#16a34a;--c1b:#0f766e;--c1bg:#f6f8f7;--c1warn:#b45309;--c1danger:#b91c1c}
+.crm1-page .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.crm1-page .stat{background:#fff;border:1px solid #dfe8e1;border-radius:14px;padding:16px;box-shadow:0 4px 16px rgba(20,40,28,.05)}
+.crm1-page .stat b{display:block;font-size:24px;margin-top:6px}.crm1-page .stat small{color:#667085}
+.crm1-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.crm1-kpi{border-left:4px solid var(--c1a)}
+.crm1-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.crm1-toolbar input,.crm1-toolbar select{min-width:140px}
+.crm1-badge{display:inline-block;padding:4px 9px;border-radius:999px;background:#edf7ef;color:#166534;font-size:12px;font-weight:700}
+.crm1-badge.warn{background:#fff7ed;color:#9a3412}.crm1-badge.danger{background:#fef2f2;color:#b91c1c}.crm1-badge.info{background:#eff6ff;color:#1d4ed8}
+.crm1-timeline{border-left:2px solid #cfe0d3;margin:8px 0 8px 8px;padding-left:16px}
+.crm1-event{position:relative;padding:8px 0}.crm1-event:before{content:"";position:absolute;left:-22px;top:14px;width:10px;height:10px;border-radius:50%;background:#16a34a}
+.crm1-muted{color:#667085;font-size:13px}.crm1-actions{display:flex;gap:6px;flex-wrap:wrap}
+.crm1-mini{padding:5px 8px;border:1px solid #d7e0da;background:#fff;border-radius:7px;cursor:pointer}
+.crm1-section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+@media(max-width:700px){.crm1-toolbar>*{flex:1;min-width:130px!important}}
+</style>
+
+<script id="crm1ProfessionalModules">
+/*
+ Aaroogyam CRM1 Professional Modules
+ Base: aaroogyam-crm-order-search-filter-sort-date-fix
+ Configure a NEW Supabase project before deployment by replacing the existing
+ SUPABASE URL / ANON KEY in this file with the crm1 project's values.
+*/
+(function(){
+  const C1 = {
+    pages: {
+      leadManager:["🧲 Lead / Enquiry Manager","Manage enquiries, callbacks, dispositions and conversion"],
+      followups:["📞 Follow-ups","Today, overdue and upcoming customer callbacks"],
+      verification:["✅ Verification Queue","Confirm orders before dispatch/assignment"],
+      timeline:["🕘 Order Timeline","Complete order and assignment history"],
+      agentPerformance:["🏆 Agent Performance","Team and agent conversion performance"],
+      partnerPerformance:["🤝 Delivery Partners","Dealer and courier performance and SLA"],
+      pinRules:["📍 PIN Auto Assignment","PIN-wise dealer/courier routing rules"],
+      inventory:["📦 Inventory","Stock, movements and low-stock alerts"],
+      settlements:["💰 Settlements","COD, commission and partner settlement tracking"],
+      qa:["🎧 QA & Dispositions","Call dispositions and quality review"],
+      notifications:["🔔 Notifications","Operational alerts and reminders"],
+      audit:["🛡 Audit Log","Who changed what and when"],
+      advancedReports:["📈 Advanced Reports","Product, status and business reports"]
+    },
+    rolePages:{
+      super_admin:["leadManager","followups","verification","timeline","agentPerformance","partnerPerformance","pinRules","inventory","settlements","qa","notifications","audit","advancedReports"],
+      management:["leadManager","followups","verification","timeline","agentPerformance","partnerPerformance","inventory","settlements","qa","notifications","audit","advancedReports"],
+      order_manager:["leadManager","followups","verification","timeline","partnerPerformance","pinRules","notifications"],
+      agent:["leadManager","followups","timeline","notifications"],
+      dealer:["timeline","notifications","settlements"],
+      courier_manager:["timeline","notifications","settlements"],
+      warehouse:["inventory","notifications"]
+    }
+  };
+  const byId=id=>document.getElementById(id);
+  const esc1=x=>String(x??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+  const fmt1=v=>v?new Intl.DateTimeFormat("en-IN",{timeZone:"Asia/Kolkata",day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:true}).format(new Date(v)):"-";
+  const money=v=>"₹"+Number(v||0).toLocaleString("en-IN");
+  const toast1=t=>{if(typeof toast==="function")toast(t);else alert(t)};
+  const state={profile:null,me:null,orders:[],leads:[],partners:[]};
+
+  function pageHtml(id,title,sub){
+    return `<section id="${id}" class="page crm1-page"><div class="title"><div><h2>${title}</h2><div class="sub">${sub}</div></div></div><div class="panel" id="${id}Content"><div class="crm1-muted">Loading...</div></div></section>`;
+  }
+  function injectPages(){
+    const main=document.querySelector("main.main"); if(!main)return;
+    Object.entries(C1.pages).forEach(([id,[t,s]])=>{if(!byId(id))main.insertAdjacentHTML("beforeend",pageHtml(id,t,s))});
+  }
+  function navButton(id,label){
+    const b=document.createElement("button");b.textContent=label;b.onclick=()=>showC1Page(id);return b;
+  }
+  async function showC1Page(id){
+    document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+    const p=byId(id);if(p)p.classList.add("active");
+    document.querySelectorAll(".side button").forEach(x=>x.classList.remove("active"));
+    [...document.querySelectorAll(".side button")].find(x=>x.textContent.includes(C1.pages[id]?.[0].replace(/^[^ ]+ /,"")))?.classList.add("active");
+    await loadC1(id);
+  }
+  async function getProfile(){
+    if(window.profile){state.profile=window.profile;state.me=window.me;return window.profile}
+    const {data:{user}}=await sb.auth.getUser();state.me=user;
+    if(user){const {data}=await sb.from("profiles").select("*").eq("id",user.id).maybeSingle();state.profile=data}
+    return state.profile;
+  }
+  async function refreshOrders(){
+    const {data,error}=await sb.from("orders").select("*,customers(customer_name,mobile,address,city,state,pincode),profiles:agent_id(full_name),order_items(product_id,qty,products(product_name))").order("order_date",{ascending:false}).limit(500);
+    if(error)throw error; state.orders=data||[]; return state.orders;
+  }
+  function isEnquiry(o){return String(o.remarks||"").includes("[ENQUIRY]")}
+  function ageHours(o){return Math.max(0,(Date.now()-new Date(o.order_date||o.created_at).getTime())/36e5)}
+  async function audit(action,entityType,entityId,oldData,newData){
+    try{await sb.from("audit_logs").insert({user_id:state.me?.id,action,entity_type:entityType,entity_id:entityId||null,old_data:oldData||null,new_data:newData||null})}catch(e){}
+  }
+  async function notify(title,message,severity="info",userId=null,entityType=null,entityId=null){
+    try{await sb.from("crm_notifications").insert({user_id:userId,title,message,severity,entity_type:entityType,entity_id:entityId})}catch(e){}
+  }
+  async function loadC1(id){
+    try{
+      await getProfile();
+      if(id==="leadManager")return renderLeads();
+      if(id==="followups")return renderFollowups();
+      if(id==="verification")return renderVerification();
+      if(id==="timeline")return renderTimeline();
+      if(id==="agentPerformance")return renderAgentPerformance();
+      if(id==="partnerPerformance")return renderPartnerPerformance();
+      if(id==="pinRules")return renderPinRules();
+      if(id==="inventory")return renderInventory();
+      if(id==="settlements")return renderSettlements();
+      if(id==="qa")return renderQA();
+      if(id==="notifications")return renderNotifications();
+      if(id==="audit")return renderAudit();
+      if(id==="advancedReports")return renderAdvancedReports();
+    }catch(e){const c=byId(id+"Content");if(c)c.innerHTML=`<div class="msg">${esc1(e.message)}</div>`}
+  }
+
+  async function renderLeads(){
+    await refreshOrders(); const c=byId("leadManagerContent");
+    const leads=state.orders.filter(isEnquiry);
+    c.innerHTML=`<div class="crm1-toolbar"><select id="c1LeadStatus"><option value="">All Status</option><option>new</option><option>callback</option><option>interested</option><option>not_interested</option><option>no_response</option><option>converted</option><option>lost</option></select><input id="c1LeadSearch" placeholder="Name / Mobile"><button class="btn" id="c1LeadApply">Apply</button><span class="crm1-muted">${leads.length} enquiries</span></div><div class="tablewrap"><table><thead><tr><th>Lead</th><th>Customer</th><th>Mobile</th><th>Agent</th><th>Status</th><th>Follow-up</th><th>Action</th></tr></thead><tbody id="c1LeadBody"></tbody></table></div>`;
+    const draw=()=>{const st=byId("c1LeadStatus").value.toLowerCase(),q=byId("c1LeadSearch").value.toLowerCase();const rows=leads.filter(o=>(!st||String(o.lead_status||"new").toLowerCase()===st)&&(!q||`${o.customers?.customer_name} ${o.customers?.mobile}`.toLowerCase().includes(q)));byId("c1LeadBody").innerHTML=rows.map(o=>`<tr><td>#${esc1(o.order_no)}</td><td>${esc1(o.customers?.customer_name||"-")}</td><td>${esc1(o.customers?.mobile||"-")}</td><td>${esc1(o.profiles?.full_name||"-")}</td><td><select class="c1LeadState" data-id="${o.id}">${["new","callback","interested","not_interested","no_response","converted","lost"].map(x=>`<option ${String(o.lead_status||"new").toLowerCase()===x?"selected":""}>${x}</option>`).join("")}</select></td><td>${o.next_followup_at?fmt1(o.next_followup_at):"-"}</td><td><button class="crm1-mini c1LeadSave" data-id="${o.id}">Save</button><button class="crm1-mini c1Follow" data-id="${o.id}">Follow-up</button></td></tr>`).join("")||`<tr><td colspan="7" class="empty">No enquiries found</td></tr>`;bindLeadActions()};
+    byId("c1LeadApply").onclick=draw;draw();
+  }
+  function bindLeadActions(){
+    document.querySelectorAll(".c1LeadSave").forEach(b=>b.onclick=async()=>{const id=b.dataset.id,st=document.querySelector(`.c1LeadState[data-id="${id}"]`).value;const {error}=await sb.from("orders").update({lead_status:st}).eq("id",id);if(error)return toast1(error.message);await audit("lead_status_changed","order",id,null,{lead_status:st});toast1("Lead status updated")});
+    document.querySelectorAll(".c1Follow").forEach(b=>b.onclick=()=>scheduleFollowup(b.dataset.id));
+  }
+  async function scheduleFollowup(orderId){
+    const when=prompt("Follow-up date & time (YYYY-MM-DDTHH:MM)",new Date(Date.now()+86400000).toISOString().slice(0,16));if(!when)return;
+    const note=prompt("Follow-up note","Call customer again")||"";
+    const {error}=await sb.from("crm_followups").insert({order_id:orderId,assigned_to:state.me.id,followup_at:new Date(when).toISOString(),note,status:"pending"});
+    if(error)return toast1(error.message);
+    await sb.from("orders").update({next_followup_at:new Date(when).toISOString(),lead_status:"callback"}).eq("id",orderId);
+    await audit("followup_created","order",orderId,null,{followup_at:when,note});toast1("Follow-up scheduled");
+  }
+
+  async function renderFollowups(){
+    const c=byId("followupsContent");const {data,error}=await sb.from("crm_followups").select("*,orders(order_no,customers(customer_name,mobile))").order("followup_at",{ascending:true}).limit(500);if(error)throw error;
+    const now=Date.now(),todayEnd=new Date();todayEnd.setHours(23,59,59,999);
+    c.innerHTML=`<div class="cards"><div class="stat crm1-kpi"><small>Overdue</small><b>${(data||[]).filter(x=>x.status==="pending"&&new Date(x.followup_at)<new Date()).length}</b></div><div class="stat crm1-kpi"><small>Today</small><b>${(data||[]).filter(x=>new Date(x.followup_at)<=todayEnd&&new Date(x.followup_at)>=new Date(new Date().setHours(0,0,0,0))).length}</b></div><div class="stat crm1-kpi"><small>Upcoming</small><b>${(data||[]).filter(x=>new Date(x.followup_at)>todayEnd).length}</b></div></div><div class="tablewrap"><table><thead><tr><th>Order</th><th>Customer</th><th>When</th><th>Note</th><th>Status</th><th>Action</th></tr></thead><tbody>${(data||[]).map(f=>`<tr><td>#${esc1(f.orders?.order_no||"-")}</td><td>${esc1(f.orders?.customers?.customer_name||"-")}<div class="crm1-muted">${esc1(f.orders?.customers?.mobile||"")}</div></td><td>${fmt1(f.followup_at)}</td><td>${esc1(f.note||"")}</td><td>${esc1(f.status)}</td><td><button class="crm1-mini c1FollowDone" data-id="${f.id}">Done</button></td></tr>`).join("")||'<tr><td colspan="6" class="empty">No follow-ups</td></tr>'}</tbody></table></div>`;
+    document.querySelectorAll(".c1FollowDone").forEach(b=>b.onclick=async()=>{await sb.from("crm_followups").update({status:"completed",completed_at:new Date().toISOString()}).eq("id",b.dataset.id);loadC1("followups")});
+  }
+
+  async function renderVerification(){
+    await refreshOrders();const c=byId("verificationContent");const rows=state.orders.filter(o=>!isEnquiry(o)&&String(o.verification_status||"pending")==="pending");
+    c.innerHTML=`<div class="crm1-toolbar"><span class="crm1-badge warn">${rows.length} verification pending</span></div><div class="tablewrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Mobile</th><th>Amount</th><th>Created</th><th>Action</th></tr></thead><tbody>${rows.map(o=>`<tr><td>#${o.order_no}</td><td>${esc1(o.customers?.customer_name||"-")}</td><td>${esc1(o.customers?.mobile||"-")}</td><td>${money(o.total_amount)}</td><td>${fmt1(o.order_date)}</td><td><button class="crm1-mini c1Verify" data-id="${o.id}" data-v="verified">Verify</button><button class="crm1-mini c1Verify" data-id="${o.id}" data-v="rejected">Reject</button></td></tr>`).join("")||'<tr><td colspan="6" class="empty">No pending verification</td></tr>'}</tbody></table></div>`;
+    document.querySelectorAll(".c1Verify").forEach(b=>b.onclick=async()=>{const v=b.dataset.v;const {error}=await sb.from("orders").update({verification_status:v,verified_by:state.me.id,verified_at:new Date().toISOString(),order_status:v==="verified"?"new":"cancelled"}).eq("id",b.dataset.id);if(error)return toast1(error.message);await sb.from("order_status_history").insert({order_id:b.dataset.id,new_status:v,changed_by:state.me.id});await audit("verification_"+v,"order",b.dataset.id,null,{status:v});loadC1("verification")});
+  }
+
+  async function renderTimeline(){
+    await refreshOrders();const c=byId("timelineContent");
+    c.innerHTML=`<div class="crm1-toolbar"><input id="c1TimeSearch" placeholder="Order No / Mobile"><button class="btn" id="c1TimeBtn">Search</button></div><div id="c1TimelineResult" class="crm1-muted">Search an order to see complete history.</div>`;
+    byId("c1TimeBtn").onclick=async()=>{const q=byId("c1TimeSearch").value.trim().toLowerCase();const o=state.orders.find(x=>String(x.order_no).toLowerCase()===q||String(x.customers?.mobile||"").toLowerCase()===q);if(!o){byId("c1TimelineResult").innerHTML="No order found";return}const {data}=await sb.from("order_status_history").select("*,profiles:changed_by(full_name)").eq("order_id",o.id).order("created_at",{ascending:true});byId("c1TimelineResult").innerHTML=`<h3>#${esc1(o.order_no)} — ${esc1(o.customers?.customer_name||"-")}</h3><div class="crm1-muted">${esc1(o.customers?.address||"-")}</div><div class="crm1-timeline">${(data||[]).map(h=>`<div class="crm1-event"><b>${esc1(h.new_status||"Updated")}</b><div>${fmt1(h.created_at)} · ${esc1(h.profiles?.full_name||"System")}</div></div>`).join("")||'<div class="crm1-event">Order created · '+fmt1(o.order_date)+'</div>'}</div>`};
+  }
+
+  async function renderAgentPerformance(){
+    await refreshOrders();const c=byId("agentPerformanceContent");const map={};state.orders.forEach(o=>{const k=o.agent_id||"unassigned";const n=o.profiles?.full_name||"Unassigned";if(!map[k])map[k]={name:n,orders:0,enquiries:0,delivered:0};if(isEnquiry(o))map[k].enquiries++;else{map[k].orders++;if(String(o.order_status).toLowerCase()==="delivered")map[k].delivered++}});
+    const arr=Object.values(map).sort((a,b)=>b.orders-a.orders);c.innerHTML=`<div class="cards">${arr.slice(0,3).map((a,i)=>`<div class="stat crm1-kpi"><small>${["🥇","🥈","🥉"][i]} ${esc1(a.name)}</small><b>${a.orders}</b><small>Orders · ${a.delivered} Delivered</small></div>`).join("")}</div><div class="tablewrap"><table><thead><tr><th>Rank</th><th>Agent</th><th>Orders</th><th>Enquiries</th><th>Delivered</th><th>Delivery %</th></tr></thead><tbody>${arr.map((a,i)=>`<tr><td>${i+1}</td><td>${esc1(a.name)}</td><td>${a.orders}</td><td>${a.enquiries}</td><td>${a.delivered}</td><td>${a.orders?((a.delivered/a.orders)*100).toFixed(1):0}%</td></tr>`).join("")}</tbody></table></div>`;
+  }
+
+  async function renderPartnerPerformance(){
+    await refreshOrders();const c=byId("partnerPerformanceContent");const {data:ps}=await sb.from("profiles").select("id,full_name,role,is_active").in("role",["dealer","courier_manager"]);const rows=(ps||[]).map(p=>{const os=state.orders.filter(o=>o.dealer_id===p.id||o.courier_manager_id===p.id);const del=os.filter(o=>String(o.order_status).toLowerCase()==="delivered").length;const rto=os.filter(o=>String(o.order_status).toLowerCase()==="rto").length;return {...p,assigned:os.length,delivered:del,rto,rate:os.length?(del/os.length*100):0}}).sort((a,b)=>b.rate-a.rate);
+    c.innerHTML=`<div class="tablewrap"><table><thead><tr><th>Delivery Partner</th><th>Type</th><th>Assigned</th><th>Delivered</th><th>RTO</th><th>Delivery %</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc1(x.full_name)}</td><td>${x.role==="dealer"?"Dealer":"Courier"}</td><td>${x.assigned}</td><td>${x.delivered}</td><td>${x.rto}</td><td>${x.rate.toFixed(1)}%</td></tr>`).join("")||'<tr><td colspan="6" class="empty">No partners</td></tr>'}</tbody></table></div>`;
+  }
+
+  async function renderPinRules(){
+    const c=byId("pinRulesContent");const {data:rules,error}=await sb.from("pin_assignment_rules").select("*,profiles:partner_id(full_name,role)").order("pincode");if(error)throw error;const {data:ps}=await sb.from("profiles").select("id,full_name,role").in("role",["dealer","courier_manager"]).eq("is_active",true);
+    c.innerHTML=`<div class="crm1-toolbar"><input id="c1Pin" placeholder="PIN Code"><select id="c1Partner"><option value="">Select Partner</option>${(ps||[]).map(p=>`<option value="${p.id}">${esc1(p.full_name)} (${p.role})</option>`).join("")}</select><select id="c1Priority"><option value="1">Priority 1</option><option value="2">Priority 2</option><option value="3">Priority 3</option></select><button class="btn" id="c1PinAdd">Add Rule</button></div><div class="tablewrap"><table><thead><tr><th>PIN</th><th>Partner</th><th>Priority</th><th>Active</th><th>Action</th></tr></thead><tbody>${(rules||[]).map(r=>`<tr><td>${esc1(r.pincode)}</td><td>${esc1(r.profiles?.full_name||"-")} <span class="crm1-muted">${esc1(r.profiles?.role||"")}</span></td><td>${r.priority}</td><td>${r.is_active?"Yes":"No"}</td><td><button class="crm1-mini c1RuleDel" data-id="${r.id}">Delete</button></td></tr>`).join("")}</tbody></table></div>`;
+    byId("c1PinAdd").onclick=async()=>{const p=byId("c1Pin").value.trim(),partner=byId("c1Partner").value;if(!p||!partner)return toast1("PIN and partner required");const {error}=await sb.from("pin_assignment_rules").upsert({pincode:p,partner_id:partner,priority:+byId("c1Priority").value,is_active:true},{onConflict:"pincode,partner_id"});if(error)return toast1(error.message);audit("pin_rule_created","pin_rule",null,null,{pincode:p,partner});loadC1("pinRules")};
+    document.querySelectorAll(".c1RuleDel").forEach(b=>b.onclick=async()=>{if(!confirm("Delete this PIN rule?"))return;await sb.from("pin_assignment_rules").delete().eq("id",b.dataset.id);loadC1("pinRules")});
+  }
+
+  async function renderInventory(){
+    const c=byId("inventoryContent");const {data:products,error}=await sb.from("products").select("*").order("product_name");if(error)throw error;
+    const {data:mov}=await sb.from("inventory_movements").select("*");const stock={};(mov||[]).forEach(m=>stock[m.product_id]=(stock[m.product_id]||0)+(Number(m.qty_in)||0)-(Number(m.qty_out)||0));
+    c.innerHTML=`<div class="crm1-toolbar"><select id="c1StockProduct"><option value="">Product</option>${(products||[]).map(p=>`<option value="${p.id}">${esc1(p.product_name)}</option>`).join("")}</select><input id="c1StockQty" type="number" placeholder="Qty"><select id="c1StockType"><option value="in">Stock In</option><option value="out">Stock Out</option></select><input id="c1StockNote" placeholder="Reference / Note"><button class="btn" id="c1StockSave">Save Movement</button></div><div class="tablewrap"><table><thead><tr><th>Product</th><th>Current Stock</th><th>Low Stock Level</th><th>Alert</th></tr></thead><tbody>${(products||[]).map(p=>{const q=stock[p.id]||0,low=Number(p.low_stock_level||10);return `<tr><td>${esc1(p.product_name)}</td><td>${q}</td><td>${low}</td><td>${q<=low?'<span class="crm1-badge danger">Low Stock</span>':'<span class="crm1-badge">OK</span>'}</td></tr>`}).join("")}</tbody></table></div>`;
+    byId("c1StockSave").onclick=async()=>{const product_id=byId("c1StockProduct").value,qty=+byId("c1StockQty").value;if(!product_id||!qty)return toast1("Product and quantity required");const type=byId("c1StockType").value;const {error}=await sb.from("inventory_movements").insert({product_id,qty_in:type==="in"?qty:0,qty_out:type==="out"?qty:0,reference:byId("c1StockNote").value,created_by:state.me.id});if(error)return toast1(error.message);audit("inventory_"+type,"product",product_id,null,{qty});loadC1("inventory")};
+  }
+
+  async function renderSettlements(){
+    const c=byId("settlementsContent");const {data,error}=await sb.from("partner_settlements").select("*,profiles:partner_id(full_name,role)").order("period_to",{ascending:false});if(error)throw error;
+    c.innerHTML=`<div class="crm1-toolbar"><input id="c1SetFrom" type="date"><input id="c1SetTo" type="date"><select id="c1SetPartner"><option value="">Partner ID (or use auto report)</option></select><button class="btn" id="c1SetRefresh">Refresh</button></div><div class="crm1-muted">Settlements can be created automatically from Delivered orders via the SQL function <b>generate_partner_settlement</b>.</div><div class="tablewrap"><table><thead><tr><th>Partner</th><th>Period</th><th>Delivered</th><th>COD</th><th>Commission</th><th>Net Payable</th><th>Status</th></tr></thead><tbody>${(data||[]).map(x=>`<tr><td>${esc1(x.profiles?.full_name||"-")}</td><td>${x.period_from} to ${x.period_to}</td><td>${x.delivered_orders}</td><td>${money(x.cod_amount)}</td><td>${money(x.commission_amount)}</td><td>${money(x.net_payable)}</td><td>${esc1(x.status)}</td></tr>`).join("")||'<tr><td colspan="7" class="empty">No settlements yet</td></tr>'}</tbody></table></div>`;
+  }
+
+  async function renderQA(){
+    const c=byId("qaContent");const {data}=await sb.from("call_qa_reviews").select("*,profiles:agent_id(full_name),orders(order_no)").order("reviewed_at",{ascending:false}).limit(200);
+    c.innerHTML=`<div class="crm1-muted">QA supports disposition, score and reviewer notes. Add reviews from a future call integration or directly through SQL/API.</div><div class="tablewrap"><table><thead><tr><th>Order</th><th>Agent</th><th>Disposition</th><th>Score</th><th>Reviewer Note</th><th>Reviewed</th></tr></thead><tbody>${(data||[]).map(x=>`<tr><td>#${esc1(x.orders?.order_no||"-")}</td><td>${esc1(x.profiles?.full_name||"-")}</td><td>${esc1(x.disposition||"-")}</td><td>${esc1(x.score||"-")}</td><td>${esc1(x.reviewer_note||"-")}</td><td>${fmt1(x.reviewed_at)}</td></tr>`).join("")||'<tr><td colspan="6" class="empty">No QA reviews</td></tr>'}</tbody></table></div>`;
+  }
+  async function renderNotifications(){
+    const c=byId("notificationsContent");const {data}=await sb.from("crm_notifications").select("*").or(`user_id.eq.${state.me.id},user_id.is.null`).order("created_at",{ascending:false}).limit(200);
+    c.innerHTML=`<div class="crm1-actions"><button class="btn alt" id="c1MarkRead">Mark All Read</button></div><div class="crm1-timeline">${(data||[]).map(n=>`<div class="crm1-event"><span class="crm1-badge ${n.severity==="danger"?"danger":n.severity==="warning"?"warn":"info"}">${esc1(n.severity)}</span> <b>${esc1(n.title)}</b><div>${esc1(n.message||"")}</div><div class="crm1-muted">${fmt1(n.created_at)}</div></div>`).join("")||'<div class="empty">No notifications</div>'}</div>`;
+    byId("c1MarkRead").onclick=async()=>{await sb.from("crm_notifications").update({is_read:true}).or(`user_id.eq.${state.me.id},user_id.is.null`);loadC1("notifications")};
+  }
+  async function renderAudit(){
+    const c=byId("auditContent");const {data}=await sb.from("audit_logs").select("*,profiles:user_id(full_name)").order("created_at",{ascending:false}).limit(500);
+    c.innerHTML=`<div class="tablewrap"><table><thead><tr><th>When</th><th>User</th><th>Action</th><th>Entity</th><th>Details</th></tr></thead><tbody>${(data||[]).map(a=>`<tr><td>${fmt1(a.created_at)}</td><td>${esc1(a.profiles?.full_name||"System")}</td><td>${esc1(a.action)}</td><td>${esc1(a.entity_type||"")} ${esc1(a.entity_id||"")}</td><td><code>${esc1(JSON.stringify(a.new_data||a.old_data||{}))}</code></td></tr>`).join("")||'<tr><td colspan="5" class="empty">No activity yet</td></tr>'}</tbody></table></div>`;
+  }
+  async function renderAdvancedReports(){
+    await refreshOrders();const c=byId("advancedReportsContent");const real=state.orders.filter(o=>!isEnquiry(o)),del=real.filter(o=>String(o.order_status).toLowerCase()==="delivered"),rto=real.filter(o=>String(o.order_status).toLowerCase()==="rto");
+    const prod={};real.forEach(o=>(o.order_items||[]).forEach(i=>{const n=i.products?.product_name||"Unknown";if(!prod[n])prod[n]={orders:0,qty:0,revenue:0};prod[n].orders++;prod[n].qty+=Number(i.qty||0);prod[n].revenue+=Number(o.total_amount||0)}));
+    c.innerHTML=`<div class="cards"><div class="stat crm1-kpi"><small>Orders</small><b>${real.length}</b></div><div class="stat crm1-kpi"><small>Delivered</small><b>${del.length}</b></div><div class="stat crm1-kpi"><small>Delivery %</small><b>${real.length?(del.length/real.length*100).toFixed(1):0}%</b></div><div class="stat crm1-kpi"><small>RTO</small><b>${rto.length}</b></div></div><div class="panel"><h3>Product Performance</h3><div class="tablewrap"><table><thead><tr><th>Product</th><th>Order Lines</th><th>Qty</th><th>Revenue</th></tr></thead><tbody>${Object.entries(prod).map(([n,x])=>`<tr><td>${esc1(n)}</td><td>${x.orders}</td><td>${x.qty}</td><td>${money(x.revenue)}</td></tr>`).join("")}</tbody></table></div></div>`;
+  }
+
+  // Add automatic age/alert checks after every successful module/dashboard refresh.
+  async function overdueAlerts(){
+    try{await refreshOrders();const overdue=state.orders.filter(o=>!isEnquiry(o)&&!["delivered","cancelled","rto"].includes(String(o.order_status).toLowerCase())&&ageHours(o)>72);for(const o of overdue.slice(0,20))await notify("Order pending >72 hours",`Order #${o.order_no} is pending for ${Math.floor(ageHours(o))} hours.`,"warning",null,"order",o.id)}catch(e){}
+  }
+  function enhanceNav(){
+    const p=window.profile?.role||state.profile?.role;if(!p)return;
+    const nav=byId("nav");if(!nav||nav.dataset.crm1)return;nav.dataset.crm1="1";
+    const frag=document.createDocumentFragment();(C1.rolePages[p]||[]).forEach(id=>frag.appendChild(navButton(id,C1.pages[id][0])));nav.appendChild(frag);
+  }
+  function start(){
+    injectPages();
+    setTimeout(async()=>{await getProfile();enhanceNav();overdueAlerts()},600);
+    setTimeout(enhanceNav,1800);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start);else start();
+})();
+</script>
+
+</body></html   const qty=Number(b.quantity);
+   if(qty<1)throw new Error("Quantity सही डालें।");
+   const productCheck=await sb.from("products").select("*").eq("id",b.product_id).single();
+   if(productCheck.error)throw new Error("Product load failed: "+productCheck.error.message);
+   const pp=productCheck.data;
+   const unitPrice=Number(pp.price ?? pp.sale_price ?? pp.selling_price ?? pp.amount ?? 0);
+   if(unitPrice<=0)throw new Error("Selected product का price database में नहीं मिला।");
+   const total=unitPrice*qty;
+></html>
