@@ -1,7 +1,7 @@
 /* Aaroogyam CRM1 Advanced Business Layer - V3.1 */
 (function(){'use strict';
 const URL='https://ielebadardbzmoxantsc.supabase.co',KEY='sb_publishable_0pekrOT6vhYZYQ48wHr7Ag_NPcpobGj';
-const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]));
 let db=null,me=null,profile=null;
 const roles={super_admin:'Super Admin',management:'Management',order_manager:'Order Manager',agent:'Agent',dealer:'Dealer',warehouse:'Warehouse',courier_manager:'Courier Manager'};
 const canManage=()=>['super_admin','management','order_manager'].includes(profile?.role),canUseLeads=()=>['super_admin','management','order_manager','agent'].includes(profile?.role);
@@ -24,4 +24,19 @@ async function customer360(){const m=$('crm360Mobile').value.replace(/\D/g,''),o
 function loadSupabaseScript(){return new Promise((resolve,reject)=>{if(window.supabase?.createClient){resolve(window.supabase);return}const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';s.onload=()=>window.supabase?.createClient?resolve(window.supabase):reject(new Error('Supabase SDK global not available'));s.onerror=()=>reject(new Error('Supabase SDK failed to load'));document.head.appendChild(s)})}
 async function init(){try{style();const sdk=await loadSupabaseScript();db=sdk.createClient(URL,KEY);const {data,error}=await db.auth.getUser();if(error||!data?.user)return;me=data.user;const r=await db.from('profiles').select('*').eq('id',me.id).maybeSingle();profile=r.data||null;if(!profile)return;pages();addNav();$('crmNewCampaign')?.addEventListener('click',campaignForm);$('crmRefreshCampaign')?.addEventListener('click',loadCampaigns);$('crmNewLead')?.addEventListener('click',leadForm);$('crmRefreshLead')?.addEventListener('click',loadLeads);$('crm360Search')?.addEventListener('click',customer360);$('crm360Mobile')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();customer360()}});if($('closeModal')&&!$('closeModal').dataset.advBound){$('closeModal').dataset.advBound='1';$('closeModal').addEventListener('click',closeModal)}}catch(e){console.error('CRM1 advanced layer init failed',e)}}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+
+/* Telephony UI loader: kept here so index.html does not need to be rewritten. */
+(function(){
+  function load(){
+    if(window.__crm1TelephonyLoader)return;
+    window.__crm1TelephonyLoader=true;
+    if(document.querySelector('script[data-crm1-telephony]'))return;
+    const s=document.createElement('script');
+    s.src='./crm1-telephony-ui.js';
+    s.async=true;
+    s.dataset.crm1Telephony='1';
+    document.head.appendChild(s);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();
 })();
