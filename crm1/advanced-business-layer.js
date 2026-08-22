@@ -13,7 +13,7 @@
   const load=src=>new Promise(resolve=>{const s=document.createElement('script');s.src=src;s.async=false;s.onload=resolve;s.onerror=()=>resolve();document.head.appendChild(s)});
   await load('./advanced-business-layer.core.js');
   await load('./crm1-followup-verification-fix.js');
-  await load('./crm1-telephony-operations.js');
+  /* Existing tested Telephony Admin remains the single telephony administration module. */
   await load('./crm1-agent-workspace.js');
   await load('./crm1-call-console.js');
   await load('./crm1-call-disposition.js');
