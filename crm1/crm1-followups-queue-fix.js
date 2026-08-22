@@ -1,7 +1,7 @@
 /* CRM1 Follow-ups: authoritative active-queue guard. Legacy renders may replace rows at any time; this guard always keeps only active records without hiding the page. */
 (()=>{'use strict';
 const $=id=>document.getElementById(id);
-let observer=null,timer=null,cleaning=false,cache=[],cacheAt=0,loadPromise=null;
+let observer=null,timer=null,cleaning=false,suppressObserver=false,cache=[],cacheAt=0,loadPromise=null;
 const TTL=15000;
 const active=()=>$('followups')?.classList.contains('active');
 const isActive=s=>['pending','open','scheduled','followup'].includes(String(s||'').trim().toLowerCase());
@@ -26,8 +26,7 @@ function counts(root,data){
 function enforceActiveRows(table){
  const si=col(table,'Status');if(si<0)return;
  for(const tr of [...table.querySelectorAll('tbody tr')]){
-  const cells=tr.querySelectorAll('td');
-  if(!cells.length)continue;
+  const cells=tr.querySelectorAll('td');if(!cells.length)continue;
   const status=String(cells[si]?.textContent||'').trim().toLowerCase();
   if(status&&!isActive(status))tr.remove();
  }
@@ -42,22 +41,23 @@ function enrich(table,data){
   let x=pool.find(v=>!v._used&&v._key===key);if(!x&&note)x=pool.find(v=>!v._used&&norm(v.note||v.notes)===note);
   if(!x)continue;x._used=true;
   const cc=tr.querySelectorAll('td')[ci],mc=tr.querySelectorAll('td')[mi];
-  if(cc)cc.textContent=x.customers?.customer_name||'-';if(mc)mc.textContent=x.customers?.mobile||'-';
+  const name=x.customers?.customer_name||'-',mobile=x.customers?.mobile||'-';
+  if(cc&&cc.textContent!==name)cc.textContent=name;if(mc&&mc.textContent!==mobile)mc.textContent=mobile;
  }
 }
 async function clean(){
  if(cleaning||!active())return;
  const root=$('followupsContent'),table=root?.querySelector('table');if(!root||!table)return;
- cleaning=true;
+ cleaning=true;suppressObserver=true;
  try{const data=await load();if(!active())return;enforceActiveRows(table);enrich(table,data);counts(root,data);root.style.removeProperty('visibility');}
- finally{cleaning=false}
+ finally{cleaning=false;setTimeout(()=>{suppressObserver=false},0)}
 }
 function schedule(ms=0){clearTimeout(timer);timer=setTimeout(clean,ms)}
 function begin(){const root=$('followupsContent');if(!root)return;schedule(0);load().then(()=>{if(active())schedule(0)});}
 document.addEventListener('click',e=>{const b=e.target.closest('button,a');if(b&&/follow-ups/i.test(b.textContent||''))begin()},true);
 function observe(){
  const root=$('followupsContent');if(!root||observer)return;
- observer=new MutationObserver(()=>{if(active())schedule(20)});
+ observer=new MutationObserver(()=>{if(!suppressObserver&&active())schedule(20)});
  observer.observe(root,{childList:true,subtree:true,characterData:true});
 }
 const boot=()=>{load();observe();if(active())begin()};
