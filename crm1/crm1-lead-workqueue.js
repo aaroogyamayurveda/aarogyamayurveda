@@ -1,0 +1,21 @@
+/* CRM1 Lead Work Queue + Click-to-Call integration. Extends the tested Lead Management page without replacing its renderer. */
+(function(){'use strict';
+const $=id=>document.getElementById(id),digits=v=>String(v||'').replace(/\D/g,'').slice(-10);
+let observer=null;
+function toast(m){const t=$('toast');if(t){t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2400)}else console.log(m)}
+function active(){return $('crmLeadManager')?.classList.contains('active')}
+function inject(){const page=$('crmLeadManager'),body=$('crmLeadBody');if(!page||!body)return;
+ if(!$('crmLeadQueueBar')){const panel=document.createElement('div');panel.id='crmLeadQueueBar';panel.className='panel';panel.innerHTML='<div class="title" style="margin-bottom:10px"><div><h3 style="margin:0">Agent Lead Work Queue</h3><div class="sub">Prioritize leads and hand them directly to the calling workspace</div></div><button class="btn alt" id="crmLeadQueueRefresh" type="button">Refresh Queue</button></div><div class="crm-adv-grid" style="grid-template-columns:repeat(4,1fr)"><div class="stat"><span>Visible Leads</span><b id="crmQTotal">0</b></div><div class="stat"><span>Urgent / High</span><b id="crmQHigh">0</b></div><div class="stat"><span>Follow-ups Due</span><b id="crmQDue">0</b></div><div class="stat"><span>Unassigned</span><b id="crmQUnassigned">0</b></div></div>';page.insertBefore(panel,page.children[1]||page.firstChild);$('crmLeadQueueRefresh').onclick=()=>window.crm1LeadQueueRefresh?.();}
+ const head=body.closest('table')?.tHead?.rows?.[0];
+ if(head&&!head.querySelector('.crm-q-action')){const th=document.createElement('th');th.className='crm-q-action';th.textContent='Call';head.appendChild(th)}
+ [...body.querySelectorAll('tr')].forEach(row=>{const btn=row.querySelector('.crmLeadOpen');if(!btn)return;if(row.querySelector('.crmLeadCall'))return;const id=btn.dataset.id;const action=row.lastElementChild;if(!action)return;const call=document.createElement('button');call.type='button';call.className='btn alt crmLeadCall';call.textContent='Call';call.dataset.id=id;call.style.marginLeft='6px';call.onclick=()=>callLead(id);action.appendChild(call)});
+ updateStats();
+}
+async function callLead(id){const db=window.sb;if(!db)return;const {data,error}=await db.from('crm_leads').select('id,lead_name,mobile,customer_id').eq('id',id).single();if(error){toast(error.message);return}const mobile=digits(data.mobile);if(!/^[6-9]\d{9}$/.test(mobile)){toast('Lead has no valid mobile number');return}window.crm1SetCallContext?.({lead_id:data.id,customer_id:data.customer_id||null});if(window.crm1OpenCallWorkspace){window.crm1OpenCallWorkspace(mobile,{lead_id:data.id,customer_id:data.customer_id||null});toast('Lead loaded into Call Workspace');return}const input=$('crm1DialNumber');if(input)input.value=mobile;toast('Call Workspace is not ready yet')}
+function parseDate(text){const d=new Date(text);return Number.isNaN(d.getTime())?null:d}
+function updateStats(){const body=$('crmLeadBody');if(!body||!active())return;const rows=[...body.querySelectorAll('tr')].filter(r=>r.children.length>2&&r.querySelector('.crmLeadOpen'));let high=0,due=0,un=0;rows.forEach(r=>{const tx=(r.textContent||'').toLowerCase();if(/\burgent\b|\bhigh\b/.test(tx))high++;const cells=r.children;if((cells[5]?.textContent||'').trim()==='-')un++;const f=parseDate((cells[6]?.textContent||'').trim());if(f&&f<=new Date())due++});$('crmQTotal')&&($('crmQTotal').textContent=rows.length);$('crmQHigh')&&($('crmQHigh').textContent=high);$('crmQDue')&&($('crmQDue').textContent=due);$('crmQUnassigned')&&($('crmQUnassigned').textContent=un)}
+window.crm1LeadQueueRefresh=()=>{const b=$('crmRefreshLead');if(b)b.click();setTimeout(inject,350)};
+function observe(){if(observer)return;const b=$('crmLeadBody');if(!b)return;observer=new MutationObserver(()=>{if(active())setTimeout(inject,0)});observer.observe(b,{childList:true,subtree:true})}
+function boot(){observe();if(active())inject();document.addEventListener('click',e=>{const b=e.target.closest('button');if(b&&/lead management/i.test(b.textContent||''))setTimeout(()=>{inject();observe()},80)},true)}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
