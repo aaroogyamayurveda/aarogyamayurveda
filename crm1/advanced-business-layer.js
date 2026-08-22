@@ -19,4 +19,5 @@
   await load('./crm1-call-console.js');
   await load('./crm1-call-disposition.js');
   await load('./crm1-lead-call-bridge.js');
+  await load('./crm1-lead-workqueue.js');
 })();
