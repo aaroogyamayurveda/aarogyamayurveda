@@ -1,0 +1,1 @@
+const SUPABASE_URL='https://envziigrxkmwmamswduv.supabase.co';const SUPABASE_ANON_KEY='sb_publishable_6ET5_koDowtTZNOMWBX7ig_DWnPDr09';
