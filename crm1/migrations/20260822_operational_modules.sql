@@ -74,13 +74,12 @@ create table if not exists public.inventory_movements (
 );
 create index if not exists inventory_movements_product_idx on public.inventory_movements(product_id,created_at desc);
 
--- Safe partner performance view. Supports both dealer and courier assignments
--- when the corresponding columns exist in the current CRM orders table.
+-- Partner performance view using the column names already used by the working CRM.
 create or replace view public.v_partner_performance as
 select
-  coalesce(d.id::text,c.courier_manager_id::text) as partner_key,
-  coalesce(d.business_name,p.full_name,'Unassigned') as partner_name,
-  case when d.id is not null then 'dealer' when c.courier_manager_id is not null then 'courier' else 'unassigned' end as partner_type,
+  coalesce(d.id::text,o.courier_manager_id::text,'unassigned') as partner_key,
+  coalesce(d.dealer_name,p.full_name,'Unassigned') as partner_name,
+  case when d.id is not null then 'dealer' when o.courier_manager_id is not null then 'courier' else 'unassigned' end as partner_type,
   count(o.id) as total_orders,
   count(o.id) filter (where o.order_status='delivered') as delivered_orders,
   count(o.id) filter (where o.order_status in ('rto','returned','cancelled')) as rto_orders,
@@ -88,9 +87,8 @@ select
 from public.orders o
 left join public.dealers d on d.id=o.dealer_id
 left join public.profiles p on p.id=o.courier_manager_id
-cross join lateral (select o.courier_manager_id) c
 where coalesce(o.remarks,'') not ilike '%[ENQUIRY]%'
-group by d.id,d.business_name,c.courier_manager_id,p.full_name;
+group by d.id,d.dealer_name,o.courier_manager_id,p.full_name;
 
 -- Telephony bridge metadata: no credentials are stored here.
 create table if not exists public.crm_telephony_agents (
