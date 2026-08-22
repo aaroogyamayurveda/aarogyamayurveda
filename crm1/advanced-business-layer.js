@@ -1,4 +1,4 @@
-/* CRM1 compatibility bootstrap: expose one shared Supabase client to classic CRM modules, then load the preserved business layer. */
+/* CRM1 compatibility bootstrap: expose one shared Supabase client to classic CRM modules, then load preserved business layers and reliability fixes. */
 (async()=>{
   'use strict';
   try{
@@ -12,8 +12,10 @@
   }catch(e){
     console.error('CRM Supabase compatibility bootstrap failed:',e);
   }
-  const s=document.createElement('script');
-  s.src='./advanced-business-layer.core.js';
-  s.async=false;
-  document.head.appendChild(s);
+  const load=src=>new Promise(resolve=>{
+    const s=document.createElement('script');
+    s.src=src;s.async=false;s.onload=resolve;s.onerror=()=>resolve();document.head.appendChild(s);
+  });
+  await load('./advanced-business-layer.core.js');
+  await load('./crm1-followup-verification-fix.js');
 })();
