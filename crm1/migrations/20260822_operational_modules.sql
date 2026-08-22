@@ -1,105 +1,25 @@
--- Aaroogyam CRM1 operational modules schema
--- Additive migration: does not replace existing working CRM tables or data.
--- Run in Supabase SQL Editor after taking a database backup.
+-- Aaroogyam CRM1 next-sequence compatibility migration
+-- Additive only. Existing working CRM tables and data remain intact.
 
-alter table if exists public.orders
-  add column if not exists verification_status text not null default 'pending',
-  add column if not exists verified_by uuid null,
-  add column if not exists verified_at timestamptz null,
-  add column if not exists lead_status text null,
-  add column if not exists next_followup_at timestamptz null;
+-- Existing Professional Modules use followups.note while the current database
+-- already has followups.notes. Keep both compatible without changing old data.
+alter table public.followups add column if not exists note text null;
+update public.followups set note=notes where note is null and notes is not null;
 
-create table if not exists public.followups (
-  id uuid primary key default gen_random_uuid(),
-  order_id uuid not null references public.orders(id) on delete cascade,
-  assigned_to uuid null,
-  followup_at timestamptz not null,
-  note text null,
-  status text not null default 'pending' check (status in ('pending','completed','cancelled')),
-  completed_at timestamptz null,
-  created_at timestamptz not null default now(),
-  created_by uuid null
-);
-create index if not exists followups_assigned_when_idx on public.followups(assigned_to,followup_at);
-create index if not exists followups_order_idx on public.followups(order_id);
+create or replace function public.crm1_sync_followup_note()
+returns trigger language plpgsql as $$
+begin
+  if new.note is null and new.notes is not null then new.note:=new.notes; end if;
+  if new.notes is null and new.note is not null then new.notes:=new.note; end if;
+  return new;
+end $$;
 
-create table if not exists public.audit_logs (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid null,
-  action text not null,
-  entity_type text not null,
-  entity_id uuid null,
-  old_data jsonb null,
-  new_data jsonb null,
-  created_at timestamptz not null default now()
-);
-create index if not exists audit_logs_entity_idx on public.audit_logs(entity_type,entity_id,created_at desc);
+drop trigger if exists crm1_sync_followup_note_before_write on public.followups;
+create trigger crm1_sync_followup_note_before_write
+before insert or update on public.followups
+for each row execute function public.crm1_sync_followup_note();
 
-create table if not exists public.crm_notifications (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid null,
-  title text not null,
-  message text null,
-  severity text not null default 'info' check (severity in ('info','success','warning','danger')),
-  entity_type text null,
-  entity_id uuid null,
-  is_read boolean not null default false,
-  created_at timestamptz not null default now(),
-  read_at timestamptz null
-);
-create index if not exists crm_notifications_user_idx on public.crm_notifications(user_id,is_read,created_at desc);
-
-create table if not exists public.pin_assignment_rules (
-  id uuid primary key default gen_random_uuid(),
-  pincode text not null check (pincode ~ '^[0-9]{6}$'),
-  partner_id uuid not null,
-  priority integer not null default 1 check (priority between 1 and 100),
-  is_active boolean not null default true,
-  created_at timestamptz not null default now(),
-  created_by uuid null,
-  unique(pincode,partner_id)
-);
-create index if not exists pin_assignment_rules_lookup_idx on public.pin_assignment_rules(pincode,is_active,priority);
-
-create table if not exists public.inventory_movements (
-  id uuid primary key default gen_random_uuid(),
-  product_id uuid not null references public.products(id) on delete cascade,
-  qty_in numeric not null default 0 check (qty_in >= 0),
-  qty_out numeric not null default 0 check (qty_out >= 0),
-  reference_type text null,
-  reference_id uuid null,
-  remarks text null,
-  created_by uuid null,
-  created_at timestamptz not null default now()
-);
-create index if not exists inventory_movements_product_idx on public.inventory_movements(product_id,created_at desc);
-
--- Partner performance view using the column names already used by the working CRM.
-create or replace view public.v_partner_performance as
-select
-  coalesce(d.id::text,o.courier_manager_id::text,'unassigned') as partner_key,
-  coalesce(d.dealer_name,p.full_name,'Unassigned') as partner_name,
-  case when d.id is not null then 'dealer' when o.courier_manager_id is not null then 'courier' else 'unassigned' end as partner_type,
-  count(o.id) as total_orders,
-  count(o.id) filter (where o.order_status='delivered') as delivered_orders,
-  count(o.id) filter (where o.order_status in ('rto','returned','cancelled')) as rto_orders,
-  coalesce(sum(o.total_amount) filter (where o.order_status='delivered'),0) as delivered_value
-from public.orders o
-left join public.dealers d on d.id=o.dealer_id
-left join public.profiles p on p.id=o.courier_manager_id
-where coalesce(o.remarks,'') not ilike '%[ENQUIRY]%'
-group by d.id,d.dealer_name,o.courier_manager_id,p.full_name;
-
--- Telephony bridge metadata: no credentials are stored here.
-create table if not exists public.crm_telephony_agents (
-  user_id uuid primary key,
-  extension text unique null,
-  dialer_user text unique null,
-  sip_enabled boolean not null default false,
-  is_active boolean not null default true,
-  updated_at timestamptz not null default now()
-);
-
+-- Telephony lifecycle bridge. No SIP/Asterisk/VICIdial secret is stored here.
 create table if not exists public.crm_call_events (
   id uuid primary key default gen_random_uuid(),
   call_id text not null,
@@ -112,6 +32,9 @@ create table if not exists public.crm_call_events (
   payload jsonb null
 );
 create index if not exists crm_call_events_call_idx on public.crm_call_events(call_id,event_at);
+create index if not exists crm_call_events_user_idx on public.crm_call_events(user_id,event_at desc);
 
--- Verify the migration after execution:
--- select to_regclass('public.followups'),to_regclass('public.audit_logs'),to_regclass('public.crm_notifications'),to_regclass('public.pin_assignment_rules'),to_regclass('public.inventory_movements'),to_regclass('public.crm_telephony_agents'),to_regclass('public.crm_call_events');
+-- Verify:
+-- select column_name from information_schema.columns
+-- where table_schema='public' and table_name='followups' and column_name='note';
+-- select to_regclass('public.crm_call_events');
