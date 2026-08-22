@@ -1,2 +1,2 @@
 const SUPABASE_URL='https://envziigrxkmwmamswduv.supabase.co';const SUPABASE_ANON_KEY='sb_publishable_6ET5_koDowtTZNOMWB7Xig_DWnPDr09';
-if(location.pathname.includes('/crm2/')){const s=document.createElement('script');s.src='./lead-upload-fix.js?v=8';document.head.appendChild(s);}
+if(location.pathname.includes('/crm2/')){const s=document.createElement('script');s.src='./lead-upload-fix.js?v=10';document.head.appendChild(s);}
